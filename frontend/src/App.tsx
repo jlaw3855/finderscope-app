@@ -74,7 +74,11 @@ function App() {
           </section>
 
           {selectedNight && (
-            <HourlyScoreChart hourly={selectedNight.hourly} date={selectedNight.date} />
+            <HourlyScoreChart
+              hourly={selectedNight.hourly}
+              date={selectedNight.date}
+              stepMinutes={forecast.score_step_minutes ?? 60}
+            />
           )}
 
           <StarChartPanel

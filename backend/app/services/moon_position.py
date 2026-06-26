@@ -10,8 +10,6 @@ from zoneinfo import ZoneInfo
 
 from skyfield.api import Loader, wgs84
 
-MOON_ALTITUDE_SAMPLE_OFFSET_MINUTES = 30
-
 EPHEMERIS_DIR = Path(__file__).resolve().parents[2] / "data" / "ephemeris"
 EPHEMERIS_FILENAME = "de421.bsp"
 
@@ -67,6 +65,11 @@ def moon_altitude_deg(
     return float(alt.degrees)
 
 
+def sample_interval_midpoint(interval_dt: datetime, step_minutes: int = 30) -> datetime:
+    """Sample moon position at the middle of a score interval bucket."""
+    return interval_dt + timedelta(minutes=step_minutes // 2)
+
+
 def sample_hour_midpoint(hour_dt: datetime) -> datetime:
     """Sample moon position at the middle of an hourly bucket."""
-    return hour_dt + timedelta(minutes=MOON_ALTITUDE_SAMPLE_OFFSET_MINUTES)
+    return sample_interval_midpoint(hour_dt, 60)

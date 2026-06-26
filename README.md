@@ -7,22 +7,31 @@ A full-stack web app for stargazers. Enter an address to get a 7-day stargazing 
 ### Forecast search
 
 1. The user enters a street address or place name.
-2. The backend geocodes the location and fetches seven nights of astronomical darkness windows, moon data, and hourly weather.
+2. The backend geocodes the location and fetches seven nights of astronomical darkness windows, moon data, and weather at hourly and 15-minutely resolution.
 3. The UI displays one **night card** per evening, each with an overall stargazing score, rating, moon details, cloud/precipitation summaries, and suggested best hours.
-4. Selecting a night opens an **hourly scores panel** with per-hour bars, weather metrics, dew point chart, and effective moon sky glow.
+4. Selecting a night opens a **scores panel** with half-hour (or hourly) bars during darkness, weather metrics, a dew point curve, and per-interval moon sky glow and altitude rows.
+
+The chart adapts to the forecast step: when `score_step_minutes` is `30`, columns are narrower and time labels are thinned to keep the panel readable.
 
 ### Stargazing score
 
-Each hour during astronomical darkness receives a score from 0–100 based on:
+Each score interval during astronomical darkness receives a score from 0–100 based on:
 
 | Factor | Weight | Source |
 |--------|--------|--------|
-| Cloud cover | 40% | Open-Meteo hourly |
-| Visibility | 25% | Open-Meteo hourly |
+| Cloud cover | 40% | Open-Meteo (15-min preferred, hourly fallback) |
+| Visibility | 25% | Open-Meteo (15-min preferred, hourly fallback) |
 | Moon sky glow | 25% | IPGeolocation phase + Skyfield altitude |
-| Precipitation / weather code | 10% | Open-Meteo hourly |
+| Precipitation / weather code | 10% | Open-Meteo (15-min preferred, hourly fallback) |
 
-The nightly card score is the average of hourly scores during darkness. **Best hours** are contiguous windows where hourly scores reach 70 or higher.
+**Score step:** The API returns `score_step_minutes: 30` when half-hour slots are built. Each night’s darkness window can start at times like `21:30`; half-hour steps align scores with those boundaries instead of rounding to the next full hour.
+
+| Resolution | Weather source | `:00` slots | `:30` slots |
+|------------|----------------|-------------|-------------|
+| Preferred | Open-Meteo `minutely_15` at `:00` / `:30` | Direct sample | Direct sample; precipitation sums two 15-min buckets |
+| Fallback | Open-Meteo `hourly` | Hourly value | Linear interpolation of continuous fields; precipitation uses half the enclosing hour’s total |
+
+The nightly card score is the average of interval scores during darkness. **Best hours** are contiguous windows where interval scores reach 70 or higher (may start or end at `:30`).
 
 Moon impact uses two related concepts:
 
@@ -30,9 +39,9 @@ Moon impact uses two related concepts:
 |------|---------|
 | **Disk lit** | Lunar phase illumination — how much of the moon's disk is illuminated that night |
 | **Avg moon sky glow** | Average effective sky brightness from moonlight during darkness; drives the nightly score |
-| **Effective moon sky glow** (hourly) | Phase illumination scaled by moon altitude via `sin(altitude)`; low or below-horizon moons contribute less |
+| **Effective moon sky glow** (per interval) | Phase illumination scaled by moon altitude via `sin(altitude)`; low or below-horizon moons contribute less |
 
-Moonrise and moonset on night cards are informational. Hourly scores compute moon altitude with Skyfield at each hour's midpoint. On first forecast run, Skyfield downloads a JPL ephemeris file (~16 MB) into `backend/data/ephemeris/`.
+Moonrise and moonset on night cards are informational. Interval scores compute moon altitude with Skyfield at each slot’s midpoint (+15 minutes for 30-min steps). On first forecast run, Skyfield downloads a JPL ephemeris file (~16 MB) into `backend/data/ephemeris/`.
 
 ### Star chart generation
 
@@ -43,7 +52,7 @@ The star chart panel lets the user pick a night, time, and view type (all-sky or
 | Service | Role | API key |
 |---------|------|---------|
 | [IPGeolocation.io](https://ipgeolocation.io) | Geocoding, twilight windows, moon phase/times | Required |
-| [Open-Meteo](https://open-meteo.com) | Hourly and daily weather | None |
+| [Open-Meteo](https://open-meteo.com) | Hourly, 15-minutely, and daily weather | None |
 | [AstronomyAPI.com](https://www.astronomyapi.com) | Star chart images | Required |
 
 API keys live in `backend/.env` only; the frontend never sees them.
@@ -86,7 +95,7 @@ finderscope/
 │   │   ├── components/
 │   │   │   ├── AddressSearch.tsx
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
-│   │   │   ├── HourlyScoreChart.tsx    # Hourly bars + weather metrics
+│   │   │   ├── HourlyScoreChart.tsx    # Half-hourly/hourly bars + weather metrics
 │   │   │   ├── StarChartPanel.tsx
 │   │   │   ├── CloudBreakdown.tsx
 │   │   │   ├── PrecipitationBreakdownView.tsx
@@ -266,5 +275,14 @@ Live API tests are not run in CI.
 | Endpoint | Description | External calls |
 |----------|-------------|----------------|
 | `GET /health` | Health check | 0 |
-| `POST /api/forecast` | 7-day stargazing forecast for an address | 2 IPGeolocation + 1 Open-Meteo |
+| `POST /api/forecast` | 7-day stargazing forecast for an address | 2 IPGeolocation + 1 Open-Meteo (hourly + minutely_15) |
 | `POST /api/star-chart` | Generate a star chart image URL | 1 AstronomyAPI |
+
+### Forecast response fields
+
+| Field | Description |
+|-------|-------------|
+| `score_step_minutes` | `30` when scores use half-hour slots; `60` when only hourly weather is available |
+| `nights[].hourly` | Time-series score intervals during darkness (includes `:30` times when step is 30) |
+| `nights[].moon_sky_glow_avg` | Average effective moon sky glow during darkness |
+| `nights[].best_hours` | Contiguous high-score windows; may start or end at `:30` |

@@ -259,6 +259,7 @@ class TestBuildForecast:
 
         result = build_forecast(location_data, time_series_data, weather_data)
 
+        assert result.score_step_minutes == 30
         assert result.location.label == "Denver, Colorado, United States"
         assert result.location.latitude == pytest.approx(39.7392)
         assert len(result.nights) == 2
@@ -275,7 +276,9 @@ class TestBuildForecast:
 
         hour_times = {entry.time for entry in first_night.hourly}
         assert "06:00" not in hour_times
+        assert "21:30" in hour_times
         assert "23:00" in hour_times
+        assert "22:30" in hour_times
 
         hour_22 = next(entry for entry in first_night.hourly if entry.time == "22:00")
         hour_04 = next(entry for entry in first_night.hourly if entry.time == "04:00")
@@ -340,8 +343,65 @@ class TestBuildForecast:
 
         result = build_forecast(location_data, time_series_data, weather_data)
 
+        assert result.score_step_minutes == 30
         last_night = result.nights[0]
         assert last_night.date == "2025-07-02"
         hour_times = {entry.time for entry in last_night.hourly}
-        assert hour_times == {"22:00", "23:00", "00:00", "01:00", "02:00", "03:00", "04:00"}
-        assert all(entry.at.startswith("2025-07-03") for entry in last_night.hourly[2:])
+        assert hour_times == {
+            "22:00",
+            "22:30",
+            "23:00",
+            "23:30",
+            "00:00",
+            "00:30",
+            "01:00",
+            "01:30",
+            "02:00",
+            "02:30",
+            "03:00",
+            "03:30",
+            "04:00",
+        }
+        assert all(entry.at.startswith("2025-07-03") for entry in last_night.hourly[4:])
+
+    def test_half_hour_slots_interpolate_from_hourly_when_minutely_missing(self, load_fixture) -> None:
+        location_data = load_fixture("location.json")
+        time_series_data = {
+            "astronomy": [
+                {
+                    "date": "2025-07-02",
+                    "moon_phase": "WANING_GIBBOUS",
+                    "night_begin": "22:00",
+                    "night_end": "23:00",
+                }
+            ]
+        }
+        weather_data = {
+            "timezone": "America/Denver",
+            "hourly": {
+                "time": ["2025-07-02T22:00", "2025-07-02T23:00"],
+                "cloud_cover": [10, 30],
+                "cloud_cover_low": [1, 3],
+                "cloud_cover_mid": [2, 4],
+                "cloud_cover_high": [3, 5],
+                "visibility": [20000, 15000],
+                "precipitation": [0, 0.2],
+                "precipitation_probability": [0, 20],
+                "weather_code": [0, 61],
+                "dew_point_2m": [50, 52],
+                "temperature_2m": [60, 58],
+            },
+            "daily": {
+                "time": ["2025-07-02"],
+                "temperature_2m_max": [80],
+                "temperature_2m_min": [55],
+                "precipitation_sum": [0.2],
+            },
+        }
+
+        result = build_forecast(location_data, time_series_data, weather_data)
+        night = result.nights[0]
+        half_hour = next(entry for entry in night.hourly if entry.time == "22:30")
+
+        assert half_hour.cloud_cover == pytest.approx(20)
+        assert half_hour.precipitation == pytest.approx(0.0)

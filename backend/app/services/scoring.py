@@ -27,6 +27,19 @@ BAD_WEATHER_CODES = {
     95, 96, 99,  # thunderstorm
 }
 
+SCORE_STEP_MINUTES = 30
+
+CONTINUOUS_WEATHER_FIELDS = [
+    "cloud_cover",
+    "cloud_cover_low",
+    "cloud_cover_mid",
+    "cloud_cover_high",
+    "visibility",
+    "precipitation_probability",
+    "dew_point_2m",
+    "temperature_2m",
+]
+
 HOURLY_WEATHER_FIELDS = [
     "cloud_cover",
     "cloud_cover_low",
@@ -283,7 +296,7 @@ def _effective_moon_illumination(
     timezone: str,
 ) -> tuple[float, bool | None, float | None]:
     """Scale phase illumination by moon altitude; fall back to rise/set when needed."""
-    sample_dt = moon_position.sample_hour_midpoint(hour_dt)
+    sample_dt = moon_position.sample_interval_midpoint(hour_dt, SCORE_STEP_MINUTES)
     try:
         altitude = moon_position.moon_altitude_deg(
             latitude,
@@ -479,6 +492,106 @@ def _summarize_hourly_weather(hourly_scores: list[HourlyScore]) -> tuple[CloudCo
     return cloud, precipitation
 
 
+def _iso_time_key(dt: datetime) -> str:
+    return dt.replace(second=0, microsecond=0).strftime("%Y-%m-%dT%H:%M")
+
+
+def _index_weather_block(
+    block: dict,
+    fields: list[str],
+) -> dict[str, dict[str, float | None]]:
+    times: list[str] = block.get("time", [])
+    indexed: dict[str, dict[str, float | None]] = {}
+    for index, time_key in enumerate(times):
+        indexed[time_key] = {field: _value_at(block, field, index) for field in fields}
+    return indexed
+
+
+def _lerp_float(a: float | None, b: float | None, t: float) -> float | None:
+    if a is None and b is None:
+        return None
+    if a is None:
+        return b
+    if b is None:
+        return a
+    return a + (b - a) * t
+
+
+def _half_hour_slots_from_hourly_times(hourly_times: list[str]) -> list[datetime]:
+    if not hourly_times:
+        return []
+
+    start = datetime.fromisoformat(hourly_times[0])
+    end = datetime.fromisoformat(hourly_times[-1])
+    start_slot = start.replace(minute=(start.minute // 30) * 30, second=0, microsecond=0)
+
+    slots: list[datetime] = []
+    current = start_slot
+    while current <= end:
+        slots.append(current)
+        current += timedelta(minutes=SCORE_STEP_MINUTES)
+    return slots
+
+
+def _detect_score_step(weather_data: dict) -> int:
+    hourly_times = weather_data.get("hourly", {}).get("time", [])
+    if hourly_times:
+        return SCORE_STEP_MINUTES
+    minutely_times = weather_data.get("minutely_15", {}).get("time", [])
+    if len(minutely_times) >= 4:
+        return SCORE_STEP_MINUTES
+    return 60
+
+
+def _slot_precip_from_minutely(
+    slot_dt: datetime,
+    minutely_by_time: dict[str, dict[str, float | None]],
+) -> float | None:
+    first_key = _iso_time_key(slot_dt + timedelta(minutes=15))
+    second_key = _iso_time_key(slot_dt + timedelta(minutes=30))
+    first = minutely_by_time.get(first_key, {}).get("precipitation")
+    second = minutely_by_time.get(second_key, {}).get("precipitation")
+    if first is None and second is None:
+        return None
+    return (first or 0.0) + (second or 0.0)
+
+
+def _weather_at_slot(
+    slot_dt: datetime,
+    minutely_by_time: dict[str, dict[str, float | None]],
+    hourly_by_time: dict[str, dict[str, float | None]],
+) -> dict[str, float | None]:
+    slot_key = _iso_time_key(slot_dt)
+    minutely = minutely_by_time.get(slot_key)
+
+    if minutely is not None:
+        wx = dict(minutely)
+        slot_precip = _slot_precip_from_minutely(slot_dt, minutely_by_time)
+        if slot_precip is not None:
+            wx["precipitation"] = slot_precip
+        return wx
+
+    hour_key = _iso_time_key(slot_dt.replace(minute=0))
+    hour_wx = hourly_by_time.get(hour_key)
+    if hour_wx is None:
+        return {field: None for field in HOURLY_WEATHER_FIELDS}
+
+    if slot_dt.minute == 0:
+        return dict(hour_wx)
+
+    next_hour_key = _iso_time_key(slot_dt.replace(minute=0) + timedelta(hours=1))
+    next_wx = hourly_by_time.get(next_hour_key, {})
+    wx: dict[str, float | None] = {}
+
+    for field in CONTINUOUS_WEATHER_FIELDS:
+        wx[field] = _lerp_float(hour_wx.get(field), next_wx.get(field), 0.5)
+
+    hour_precip = hour_wx.get("precipitation")
+    wx["precipitation"] = hour_precip / 2.0 if hour_precip is not None else None
+    wx["weather_code"] = hour_wx.get("weather_code")
+    return wx
+
+
 def build_forecast(
     location_data: dict,
     time_series_data: dict,
@@ -493,14 +606,13 @@ def build_forecast(
 
     hourly_times: list[str] = weather_data.get("hourly", {}).get("time", [])
     hourly_weather = weather_data.get("hourly", {})
+    minutely_weather = weather_data.get("minutely_15", {})
     daily_lookup = _build_daily_lookup(weather_data)
+    score_step_minutes = _detect_score_step(weather_data)
 
-    weather_by_time: dict[str, dict[str, float | None]] = {}
-    for index, time_key in enumerate(hourly_times):
-        weather_by_time[time_key] = {
-            var: _value_at(hourly_weather, var, index)
-            for var in HOURLY_WEATHER_FIELDS
-        }
+    hourly_by_time = _index_weather_block(hourly_weather, HOURLY_WEATHER_FIELDS)
+    minutely_by_time = _index_weather_block(minutely_weather, HOURLY_WEATHER_FIELDS)
+    score_slots = _half_hour_slots_from_hourly_times(hourly_times)
 
     astronomy_days: list[dict] = time_series_data.get("astronomy", [])
     astronomy_by_date = {day.get("date", ""): day for day in astronomy_days if day.get("date")}
@@ -532,17 +644,16 @@ def build_forecast(
         dark_window = TimeWindow(start=night_begin, end=night_end)
         hourly_scores: list[HourlyScore] = []
 
-        for time_key, wx in weather_by_time.items():
-            try:
-                hour_dt = datetime.fromisoformat(time_key)
-            except ValueError:
+        for slot_dt in score_slots:
+            if not _is_in_nights_darkness(slot_dt, day_date, night_begin, night_end):
                 continue
 
-            if not _is_in_nights_darkness(hour_dt, day_date, night_begin, night_end):
+            wx = _weather_at_slot(slot_dt, minutely_by_time, hourly_by_time)
+            if not any(wx.get(field) is not None for field in HOURLY_WEATHER_FIELDS):
                 continue
 
             effective_moon, moon_up, moon_altitude = _effective_moon_illumination(
-                hour_dt,
+                slot_dt,
                 moon_illumination,
                 astronomy_by_date,
                 latitude,
@@ -558,8 +669,8 @@ def build_forecast(
             )
             hourly_scores.append(
                 HourlyScore(
-                    time=hour_dt.strftime("%H:%M"),
-                    at=hour_dt.isoformat(),
+                    time=slot_dt.strftime("%H:%M"),
+                    at=slot_dt.isoformat(),
                     score=score,
                     moon_illumination_effective=effective_moon,
                     moon_up=moon_up,
@@ -625,4 +736,5 @@ def build_forecast(
             timezone=timezone,
         ),
         nights=nights,
+        score_step_minutes=score_step_minutes,
     )

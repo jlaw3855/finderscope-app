@@ -49,7 +49,7 @@ test('selecting another night updates the hourly chart', async ({ page }) => {
   await expect(cards).toHaveCount(7)
 
   await cards.nth(1).click()
-  await expect(page.getByRole('heading', { name: /Hourly scores during darkness/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /scores during darkness/ })).toBeVisible()
 })
 
 test('generates a star chart image from mocked API', async ({ page }) => {

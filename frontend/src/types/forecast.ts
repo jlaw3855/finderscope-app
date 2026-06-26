@@ -73,4 +73,5 @@ export interface NightForecast {
 export interface ForecastResponse {
   location: LocationInfo
   nights: NightForecast[]
+  score_step_minutes?: number
 }

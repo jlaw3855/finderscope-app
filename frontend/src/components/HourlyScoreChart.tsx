@@ -18,6 +18,7 @@ import { PrecipitationBreakdownView } from './PrecipitationBreakdownView'
 interface HourlyScoreChartProps {
   hourly: HourlyScore[]
   date: string
+  stepMinutes?: number
 }
 
 interface HourlyMetricRow {
@@ -115,8 +116,25 @@ function summarizePrecipitation(hourly: HourlyScore[]) {
   }
 }
 
-export function HourlyScoreChart({ hourly, date }: HourlyScoreChartProps) {
-  const heading = `Hourly scores during darkness — ${formatDate(date)}`
+function shouldShowTimeLabel(index: number, total: number, stepMinutes: number): boolean {
+  if (stepMinutes !== 30) {
+    return true
+  }
+  if (index === total - 1) {
+    return true
+  }
+  return index % 2 === 0
+}
+
+export function HourlyScoreChart({
+  hourly,
+  date,
+  stepMinutes = 60,
+}: HourlyScoreChartProps) {
+  const heading =
+    stepMinutes === 30
+      ? `Half-hourly scores during darkness — ${formatDate(date)}`
+      : `Hourly scores during darkness — ${formatDate(date)}`
   const averages = averageHourlyWeather(hourly)
   const cloudSummary = averageCloudBreakdown(hourly)
   const precipSummary = summarizePrecipitation(hourly)
@@ -145,7 +163,9 @@ export function HourlyScoreChart({ hourly, date }: HourlyScoreChartProps) {
 
       <DewPointChart hourly={hourly} />
 
-      <div className="hourly-chart-layout">
+      <div
+        className={`hourly-chart-layout${stepMinutes === 30 ? ' hourly-chart-layout--half-hour' : ''}`}
+      >
         <div className="hourly-metric-labels" aria-hidden="true">
           <div className="hourly-metric-labels-spacer" />
           {HOURLY_METRIC_ROWS.map((row) => (
@@ -157,8 +177,9 @@ export function HourlyScoreChart({ hourly, date }: HourlyScoreChartProps) {
 
         <div className="hourly-chart-scroll">
           <div className="hourly-bars-row">
-            {hourly.map((entry) => {
+            {hourly.map((entry, index) => {
               const label = formatHour12(entry.time)
+              const showLabel = shouldShowTimeLabel(index, hourly.length, stepMinutes)
               return (
                 <div key={entry.at} className="hourly-bar-group">
                   <div className="hourly-bar-track">
@@ -168,7 +189,7 @@ export function HourlyScoreChart({ hourly, date }: HourlyScoreChartProps) {
                       title={formatHourlyTooltip(label, entry)}
                     />
                   </div>
-                  <span className="hourly-label">{label}</span>
+                  <span className="hourly-label">{showLabel ? label : ''}</span>
                 </div>
               )
             })}

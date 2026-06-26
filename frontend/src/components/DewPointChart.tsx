@@ -7,7 +7,9 @@ interface DewPointChartProps {
 
 const CHART_WIDTH = 640
 const CHART_HEIGHT = 160
-const PADDING = { top: 16, right: 16, bottom: 28, left: 40 }
+const PADDING = { top: 20, right: 52, bottom: 36, left: 48 }
+const HORIZONTAL_INSET = 8
+const DOT_RADIUS = 3.5
 
 export function DewPointChart({ hourly }: DewPointChartProps) {
   const dewPoints = hourly
@@ -29,12 +31,15 @@ export function DewPointChart({ hourly }: DewPointChartProps) {
 
   const plotWidth = CHART_WIDTH - PADDING.left - PADDING.right
   const plotHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom
+  const plotInnerWidth = plotWidth - 2 * HORIZONTAL_INSET
 
   const points = hourly
     .filter((entry) => entry.dew_point != null)
     .map((entry, index, filtered) => {
       const x =
-        PADDING.left + (index / Math.max(filtered.length - 1, 1)) * plotWidth
+        PADDING.left +
+        HORIZONTAL_INSET +
+        (index / Math.max(filtered.length - 1, 1)) * plotInnerWidth
       const y =
         PADDING.top +
         plotHeight -
@@ -80,7 +85,7 @@ export function DewPointChart({ hourly }: DewPointChartProps) {
 
         {points.map((point) => (
           <g key={point.entry.at}>
-            <circle cx={point.x} cy={point.y} r={3.5} className="dew-point-dot" />
+            <circle cx={point.x} cy={point.y} r={DOT_RADIUS} className="dew-point-dot" />
             <title>
               {`${formatHour12(point.entry.time)}: dew ${formatTemperature(point.entry.dew_point)}`}
             </title>
@@ -92,8 +97,10 @@ export function DewPointChart({ hourly }: DewPointChartProps) {
             <text
               key={`${point.entry.at}-label`}
               x={point.x}
-              y={CHART_HEIGHT - 6}
-              textAnchor="middle"
+              y={CHART_HEIGHT - PADDING.bottom + 14}
+              textAnchor={
+                index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'
+              }
               className="dew-time-label"
             >
               {formatHour12(point.entry.time)}

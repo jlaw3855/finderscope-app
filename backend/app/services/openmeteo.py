@@ -19,6 +19,19 @@ HOURLY_VARIABLES = [
     "dew_point_2m",
 ]
 
+MINUTELY_15_VARIABLES = [
+    "cloud_cover",
+    "cloud_cover_low",
+    "cloud_cover_mid",
+    "cloud_cover_high",
+    "visibility",
+    "precipitation",
+    "precipitation_probability",
+    "weather_code",
+    "temperature_2m",
+    "dew_point_2m",
+]
+
 DAILY_VARIABLES = [
     "temperature_2m_max",
     "temperature_2m_min",
@@ -35,11 +48,12 @@ class OpenMeteoError(Exception):
 
 
 async def fetch_forecast(latitude: float, longitude: float, forecast_days: int = 7) -> dict:
-    """Fetch hourly and daily weather forecast for stargazing conditions."""
+    """Fetch hourly, 15-minutely, and daily weather forecast for stargazing conditions."""
     params = {
         "latitude": latitude,
         "longitude": longitude,
         "hourly": ",".join(HOURLY_VARIABLES),
+        "minutely_15": ",".join(MINUTELY_15_VARIABLES),
         "daily": ",".join(DAILY_VARIABLES),
         "forecast_days": forecast_days,
         "timezone": "auto",

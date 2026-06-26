@@ -78,3 +78,4 @@ class NightForecast(BaseModel):
 class ForecastResponse(BaseModel):
     location: LocationInfo
     nights: list[NightForecast]
+    score_step_minutes: int = 60
