@@ -1,0 +1,248 @@
+{
+  "location": {
+    "label": "Denver, Colorado, United States",
+    "latitude": 39.7392,
+    "longitude": -104.9903,
+    "timezone": "America/Denver"
+  },
+  "nights": [
+    {
+      "date": "2025-06-20",
+      "rating": "Good",
+      "score": 77,
+      "moon_phase": "WANING_GIBBOUS",
+      "moon_illumination": 72.5,
+      "temperature_high": 28.0,
+      "temperature_low": 12.0,
+      "cloud_cover": {
+        "total": 11.666666666666666,
+        "low": 3.0,
+        "mid": 3.0,
+        "high": 5.666666666666667
+      },
+      "precipitation": {
+        "total_mm": 0.0,
+        "max_hourly_mm": 0.0,
+        "max_probability": 10.0
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:45"
+      },
+      "best_hours": [
+        {
+          "start": "23:00",
+          "end": "04:00",
+          "score": 77
+        }
+      ],
+      "hourly": [
+        {
+          "time": "23:00",
+          "at": "2025-06-20T23:00:00",
+          "score": 79,
+          "cloud_cover": 8.0,
+          "cloud_cover_low": 2.0,
+          "cloud_cover_mid": 2.0,
+          "cloud_cover_high": 4.0,
+          "visibility": 24000.0,
+          "precipitation": 0.0,
+          "precipitation_probability": 0.0,
+          "dew_point": 7.0,
+          "temperature": 19.0
+        },
+        {
+          "time": "01:00",
+          "at": "2025-06-21T01:00:00",
+          "score": 77,
+          "cloud_cover": 12.0,
+          "cloud_cover_low": 3.0,
+          "cloud_cover_mid": 3.0,
+          "cloud_cover_high": 6.0,
+          "visibility": 22000.0,
+          "precipitation": 0.0,
+          "precipitation_probability": 5.0,
+          "dew_point": 8.0,
+          "temperature": 17.0
+        },
+        {
+          "time": "04:00",
+          "at": "2025-06-21T04:00:00",
+          "score": 76,
+          "cloud_cover": 15.0,
+          "cloud_cover_low": 4.0,
+          "cloud_cover_mid": 4.0,
+          "cloud_cover_high": 7.0,
+          "visibility": 21000.0,
+          "precipitation": 0.0,
+          "precipitation_probability": 10.0,
+          "dew_point": 9.0,
+          "temperature": 16.0
+        }
+      ],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-21",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "LAST_QUARTER",
+      "moon_illumination": 62.6,
+      "temperature_high": 27.0,
+      "temperature_low": 11.0,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:40"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-22",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "WANING_GIBBOUS",
+      "moon_illumination": 52.1,
+      "temperature_high": null,
+      "temperature_low": null,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:45"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-23",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "LAST_QUARTER",
+      "moon_illumination": 41.5,
+      "temperature_high": null,
+      "temperature_low": null,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:40"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-24",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "WANING_GIBBOUS",
+      "moon_illumination": 31.3,
+      "temperature_high": null,
+      "temperature_low": null,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:45"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-25",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "LAST_QUARTER",
+      "moon_illumination": 21.9,
+      "temperature_high": null,
+      "temperature_low": null,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:40"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    },
+    {
+      "date": "2025-06-26",
+      "rating": "Poor",
+      "score": 0,
+      "moon_phase": "WANING_GIBBOUS",
+      "moon_illumination": 13.8,
+      "temperature_high": null,
+      "temperature_low": null,
+      "cloud_cover": {
+        "total": null,
+        "low": null,
+        "mid": null,
+        "high": null
+      },
+      "precipitation": {
+        "total_mm": null,
+        "max_hourly_mm": null,
+        "max_probability": null
+      },
+      "dark_window": {
+        "start": "21:30",
+        "end": "04:45"
+      },
+      "best_hours": [],
+      "hourly": [],
+      "no_darkness": false
+    }
+  ]
+}

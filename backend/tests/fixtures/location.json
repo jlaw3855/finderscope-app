@@ -1,0 +1,13 @@
+{
+  "location": {
+    "location_string": "Denver, Colorado, United States",
+    "city": "Denver",
+    "latitude": 39.7392,
+    "longitude": -104.9903
+  },
+  "astronomy": {
+    "date": "2025-06-20",
+    "moon_phase": "WANING_GIBBOUS",
+    "moon_illumination_percentage": -72.5
+  }
+}

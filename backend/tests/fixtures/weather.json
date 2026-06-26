@@ -1,0 +1,29 @@
+{
+  "timezone": "America/Denver",
+  "hourly": {
+    "time": [
+      "2025-06-20T06:00",
+      "2025-06-20T21:00",
+      "2025-06-20T23:00",
+      "2025-06-21T01:00",
+      "2025-06-21T04:00",
+      "2025-06-21T06:00"
+    ],
+    "cloud_cover": [10, 5, 8, 12, 15, 20],
+    "cloud_cover_low": [2, 1, 2, 3, 4, 5],
+    "cloud_cover_mid": [3, 2, 2, 3, 4, 5],
+    "cloud_cover_high": [5, 2, 4, 6, 7, 10],
+    "visibility": [20000, 25000, 24000, 22000, 21000, 18000],
+    "precipitation": [0, 0, 0, 0, 0, 0.1],
+    "precipitation_probability": [0, 0, 0, 5, 10, 15],
+    "weather_code": [0, 0, 0, 0, 0, 61],
+    "dew_point_2m": [5, 6, 7, 8, 9, 10],
+    "temperature_2m": [18, 20, 19, 17, 16, 15]
+  },
+  "daily": {
+    "time": ["2025-06-20", "2025-06-21"],
+    "temperature_2m_max": [28, 27],
+    "temperature_2m_min": [12, 11],
+    "precipitation_sum": [0.0, 0.2]
+  }
+}
