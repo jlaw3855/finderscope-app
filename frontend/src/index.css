@@ -292,10 +292,13 @@ button:disabled {
 }
 
 .precip-breakdown {
+  margin: 0.5rem 0;
+}
+
+.precip-breakdown-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
-  margin: 0.5rem 0;
 }
 
 .precip-breakdown.compact {
@@ -304,6 +307,12 @@ button:disabled {
   color: #8a96ad;
   margin: 0.35rem 0 0.5rem;
   line-height: 1.35;
+}
+
+.precip-breakdown-header {
+  font-size: 0.85rem;
+  color: #a8b8d0;
+  margin-bottom: 0.45rem;
 }
 
 .precip-stat {
@@ -377,25 +386,79 @@ button:disabled {
   stroke-width: 1;
 }
 
-.hourly-chart {
+.hourly-chart-layout {
+  --hourly-bar-height: 225px;
+  --hourly-column-min-width: 99px;
+  --hourly-column-gap: 0.75rem;
+  --hourly-metric-row-height: 1.35rem;
+
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  min-height: 360px;
+}
+
+.hourly-metric-labels {
   display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 0.5rem;
+}
+
+.hourly-metric-labels-spacer {
+  height: calc(var(--hourly-bar-height) + 1.5rem);
+  flex-shrink: 0;
+}
+
+.hourly-metric-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--hourly-metric-row-height);
+  font-size: 0.87rem;
+  color: #8a96ad;
+  line-height: 1.35;
+  text-align: right;
+  padding-right: 0.25rem;
+}
+
+.hourly-chart-scroll {
   overflow-x: auto;
   padding: 0.5rem 0;
-  min-height: 240px;
+}
+
+.hourly-bars-row,
+.hourly-metrics-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--hourly-column-gap);
+}
+
+.hourly-metrics-row {
+  align-items: flex-start;
+  margin-top: 0.15rem;
 }
 
 .hourly-bar-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 66px;
+  min-width: var(--hourly-column-min-width);
+  flex-shrink: 0;
+}
+
+.hourly-metric-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: var(--hourly-column-min-width);
+  flex-shrink: 0;
 }
 
 .hourly-bar-track {
-  width: 42px;
-  height: 150px;
+  width: 63px;
+  height: var(--hourly-bar-height);
   background: rgba(8, 12, 24, 0.6);
   border-radius: 4px;
   display: flex;
@@ -412,15 +475,19 @@ button:disabled {
 }
 
 .hourly-label {
-  font-size: 0.65rem;
+  font-size: 0.98rem;
   color: #8a96ad;
   margin-top: 0.25rem;
 }
 
-.hourly-weather-label {
-  font-size: 0.58rem;
+.hourly-metric-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hourly-metric-row-height);
+  font-size: 0.87rem;
   color: #6d7a92;
-  line-height: 1.2;
+  line-height: 1.35;
   white-space: nowrap;
 }
 

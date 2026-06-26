@@ -4,6 +4,7 @@ import {
   formatHour12,
   formatTemperature,
   formatVisibility,
+  formatMoonSkyGlowAvg,
   averageHourlyWeather,
 } from '../lib/weather-format'
 import { CloudBreakdown } from './CloudBreakdown'
@@ -68,7 +69,19 @@ export function NightForecastCard({ night, selected, onSelect }: NightForecastCa
             High {formatTemperature(night.temperature_high)} · Low{' '}
             {formatTemperature(night.temperature_low)}
           </p>
-          <p className="night-detail">{moonLabel} · {Math.round(night.moon_illumination)}% lit</p>
+          <p className="night-detail">{moonLabel} · {Math.round(night.moon_illumination)}% disk lit</p>
+          {night.moon_sky_glow_avg != null && (
+            <p className="night-detail">
+              Avg moon sky glow during darkness: {formatMoonSkyGlowAvg(night.moon_sky_glow_avg)}
+            </p>
+          )}
+          {(night.moonrise || night.moonset) && (
+            <p className="night-detail">
+              {night.moonrise && <>Moonrise {formatHour12(night.moonrise)}</>}
+              {night.moonrise && night.moonset && ' · '}
+              {night.moonset && <>Moonset {formatHour12(night.moonset)}</>}
+            </p>
+          )}
           {night.hourly.length > 0 && (
             <p className="night-detail night-weather">
               {formatCloudCover(weatherAverages.avgCloudCover)} avg clouds ·{' '}

@@ -37,6 +37,9 @@ export interface HourlyScore {
   time: string
   at: string
   score: number
+  moon_illumination_effective?: number | null
+  moon_up?: boolean | null
+  moon_altitude?: number | null
   cloud_cover?: number | null
   cloud_cover_low?: number | null
   cloud_cover_mid?: number | null
@@ -54,6 +57,9 @@ export interface NightForecast {
   score: number | null
   moon_phase: string
   moon_illumination: number
+  moonrise?: string | null
+  moonset?: string | null
+  moon_sky_glow_avg?: number | null
   temperature_high?: number | null
   temperature_low?: number | null
   cloud_cover: CloudCoverBreakdown

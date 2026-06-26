@@ -23,7 +23,11 @@ async def get_forecast(
         time_series_data = await ipgeolocation.fetch_time_series(
             settings, latitude, longitude, date_start, date_end
         )
-        weather_data = await openmeteo.fetch_forecast(latitude, longitude)
+        weather_data = await openmeteo.fetch_forecast(
+            latitude,
+            longitude,
+            forecast_days=ipgeolocation.weather_forecast_days(date_start, date_end),
+        )
 
         return scoring.build_forecast(location_data, time_series_data, weather_data)
     except ipgeolocation.IPGeolocationError as exc:

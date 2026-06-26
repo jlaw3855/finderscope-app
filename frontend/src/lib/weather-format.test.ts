@@ -7,6 +7,9 @@ import {
   formatCloudLayers,
   formatHour12,
   formatHourlyTooltip,
+  formatMoonAltitude,
+  formatMoonIlluminationEffective,
+  formatMoonSkyGlowAvg,
   formatPrecipitationMm,
   formatPrecipitationProbability,
   formatPrecipitationSummary,
@@ -129,6 +132,65 @@ describe('formatPrecipitationSummary', () => {
       max_probability: 25,
     }
     expect(formatPrecipitationSummary(precip)).toBe('0.4 mm total · 0.2 mm max/hr · 25% chance')
+  })
+})
+
+describe('formatMoonSkyGlowAvg', () => {
+  it('formats average sky glow percentage', () => {
+    expect(formatMoonSkyGlowAvg(31.4)).toBe('31%')
+  })
+
+  it('returns em dash for null', () => {
+    expect(formatMoonSkyGlowAvg(null)).toBe('—')
+  })
+})
+
+describe('formatMoonIlluminationEffective', () => {
+  it('shows moon down when below horizon', () => {
+    const entry: HourlyScore = {
+      time: '22:00',
+      at: '2025-06-20T22:00',
+      score: 90,
+      moon_up: false,
+      moon_illumination_effective: 0,
+    }
+    expect(formatMoonIlluminationEffective(entry)).toBe('Moon down')
+  })
+
+  it('shows effective sky glow percentage when moon is up', () => {
+    const entry: HourlyScore = {
+      time: '04:00',
+      at: '2025-06-21T04:00',
+      score: 75,
+      moon_up: true,
+      moon_illumination_effective: 31,
+      moon_altitude: 25.3,
+    }
+    expect(formatMoonIlluminationEffective(entry)).toBe('31%')
+  })
+})
+
+describe('formatMoonAltitude', () => {
+  it('shows degrees when moon is above horizon', () => {
+    const entry: HourlyScore = {
+      time: '04:00',
+      at: '2025-06-21T04:00',
+      score: 75,
+      moon_up: true,
+      moon_altitude: 25.3,
+    }
+    expect(formatMoonAltitude(entry)).toBe('25°')
+  })
+
+  it('returns em dash when moon is down', () => {
+    const entry: HourlyScore = {
+      time: '22:00',
+      at: '2025-06-20T22:00',
+      score: 90,
+      moon_up: false,
+      moon_altitude: -5,
+    }
+    expect(formatMoonAltitude(entry)).toBe('—')
   })
 })
 

@@ -7,6 +7,8 @@ import {
   formatPrecipitationProbability,
   formatTemperature,
   formatVisibility,
+  formatMoonAltitude,
+  formatMoonIlluminationEffective,
   averageHourlyWeather,
 } from '../lib/weather-format'
 import { CloudBreakdown } from './CloudBreakdown'
@@ -17,6 +19,60 @@ interface HourlyScoreChartProps {
   hourly: HourlyScore[]
   date: string
 }
+
+interface HourlyMetricRow {
+  id: string
+  label: string
+  format: (entry: HourlyScore) => string
+}
+
+const HOURLY_METRIC_ROWS: HourlyMetricRow[] = [
+  {
+    id: 'cloud-total',
+    label: 'Total cloud cover',
+    format: (entry) => formatCloudCover(entry.cloud_cover),
+  },
+  {
+    id: 'cloud-low',
+    label: 'Low-altitude clouds',
+    format: (entry) => formatCloudCover(entry.cloud_cover_low),
+  },
+  {
+    id: 'cloud-mid',
+    label: 'Mid-altitude clouds',
+    format: (entry) => formatCloudCover(entry.cloud_cover_mid),
+  },
+  {
+    id: 'cloud-high',
+    label: 'High-altitude clouds',
+    format: (entry) => formatCloudCover(entry.cloud_cover_high),
+  },
+  {
+    id: 'precip-amount',
+    label: 'Precipitation amount',
+    format: (entry) => formatPrecipitationMm(entry.precipitation),
+  },
+  {
+    id: 'precip-chance',
+    label: 'Chance of precipitation',
+    format: (entry) => formatPrecipitationProbability(entry.precipitation_probability),
+  },
+  {
+    id: 'moon-light',
+    label: 'Effective moon sky glow',
+    format: (entry) => formatMoonIlluminationEffective(entry),
+  },
+  {
+    id: 'moon-altitude',
+    label: 'Moon altitude',
+    format: (entry) => formatMoonAltitude(entry),
+  },
+  {
+    id: 'dew-point',
+    label: 'Dew point',
+    format: (entry) => formatTemperature(entry.dew_point),
+  },
+]
 
 function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T12:00:00`)
@@ -89,41 +145,47 @@ export function HourlyScoreChart({ hourly, date }: HourlyScoreChartProps) {
 
       <DewPointChart hourly={hourly} />
 
-      <div className="hourly-chart">
-        {hourly.map((entry) => {
-          const label = formatHour12(entry.time)
-          return (
-            <div key={entry.at} className="hourly-bar-group">
-              <div className="hourly-bar-track">
-                <div
-                  className="hourly-bar-fill"
-                  style={{ height: `${entry.score}%` }}
-                  title={formatHourlyTooltip(label, entry)}
-                />
+      <div className="hourly-chart-layout">
+        <div className="hourly-metric-labels" aria-hidden="true">
+          <div className="hourly-metric-labels-spacer" />
+          {HOURLY_METRIC_ROWS.map((row) => (
+            <span key={row.id} className="hourly-metric-label">
+              {row.label}
+            </span>
+          ))}
+        </div>
+
+        <div className="hourly-chart-scroll">
+          <div className="hourly-bars-row">
+            {hourly.map((entry) => {
+              const label = formatHour12(entry.time)
+              return (
+                <div key={entry.at} className="hourly-bar-group">
+                  <div className="hourly-bar-track">
+                    <div
+                      className="hourly-bar-fill"
+                      style={{ height: `${entry.score}%` }}
+                      title={formatHourlyTooltip(label, entry)}
+                    />
+                  </div>
+                  <span className="hourly-label">{label}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="hourly-metrics-row">
+            {hourly.map((entry) => (
+              <div key={entry.at} className="hourly-metric-column">
+                {HOURLY_METRIC_ROWS.map((row) => (
+                  <span key={row.id} className="hourly-metric-value">
+                    {row.format(entry)}
+                  </span>
+                ))}
               </div>
-              <span className="hourly-label">{label}</span>
-              <span className="hourly-weather-label">T {formatCloudCover(entry.cloud_cover)}</span>
-              <span className="hourly-weather-label">
-                L {formatCloudCover(entry.cloud_cover_low)}
-              </span>
-              <span className="hourly-weather-label">
-                M {formatCloudCover(entry.cloud_cover_mid)}
-              </span>
-              <span className="hourly-weather-label">
-                H {formatCloudCover(entry.cloud_cover_high)}
-              </span>
-              <span className="hourly-weather-label">
-                {formatPrecipitationMm(entry.precipitation)}
-              </span>
-              <span className="hourly-weather-label">
-                {formatPrecipitationProbability(entry.precipitation_probability)}
-              </span>
-              <span className="hourly-weather-label">
-                Dew {formatTemperature(entry.dew_point)}
-              </span>
-            </div>
-          )
-        })}
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   )

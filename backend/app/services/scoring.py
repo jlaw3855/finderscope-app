@@ -14,6 +14,7 @@ from app.models.forecast import (
     PrecipitationBreakdown,
     TimeWindow,
 )
+from app.services import moon_position
 
 # * WMO weather codes that indicate poor stargazing conditions.
 BAD_WEATHER_CODES = {
@@ -212,6 +213,113 @@ def _weather_penalty(weather_code: float | None) -> float:
     return 100.0
 
 
+def _parse_moon_event(time_str: object) -> int | None:
+    """Parse moonrise/moonset HH:mm into minutes; None when absent or -:-."""
+    if not time_str or time_str == "-:-":
+        return None
+    try:
+        return _time_to_minutes(str(time_str))
+    except (ValueError, IndexError):
+        return None
+
+
+def _parse_moon_time_display(raw: object) -> str | None:
+    if not raw or raw == "-:-":
+        return None
+    return str(raw)
+
+
+def _is_moon_up_at_minutes(minutes: int, rise: int | None, set_: int | None) -> bool | None:
+    """Return whether the moon is above the horizon; None when timing is unknown."""
+    if rise is None and set_ is None:
+        return None
+    if rise is None:
+        return minutes < set_
+    if set_ is None:
+        return minutes >= rise
+    if rise < set_:
+        return rise <= minutes < set_
+    return minutes >= rise or minutes < set_
+
+
+def _is_moon_up(hour_dt: datetime, astronomy_by_date: dict[str, dict]) -> bool | None:
+    """Determine if the moon is above the horizon for a given hour."""
+    day_astronomy = astronomy_by_date.get(hour_dt.date().isoformat())
+    if day_astronomy is None:
+        return None
+
+    rise = _parse_moon_event(day_astronomy.get("moonrise"))
+    set_ = _parse_moon_event(day_astronomy.get("moonset"))
+    minutes = hour_dt.hour * 60 + hour_dt.minute
+    result = _is_moon_up_at_minutes(minutes, rise, set_)
+    if result is not None:
+        return result
+
+    prev_day = astronomy_by_date.get((hour_dt.date() - timedelta(days=1)).isoformat())
+    if prev_day is None:
+        return None
+
+    prev_rise = _parse_moon_event(prev_day.get("moonrise"))
+    prev_set = _parse_moon_event(prev_day.get("moonset"))
+    if prev_rise is None:
+        return None
+
+    if prev_set is not None and prev_rise < prev_set:
+        return None
+
+    if set_ is not None:
+        return minutes < set_
+    if prev_set is None:
+        return True
+    return None
+
+
+def _effective_moon_illumination(
+    hour_dt: datetime,
+    moon_illumination: float,
+    astronomy_by_date: dict[str, dict],
+    latitude: float,
+    longitude: float,
+    timezone: str,
+) -> tuple[float, bool | None, float | None]:
+    """Scale phase illumination by moon altitude; fall back to rise/set when needed."""
+    sample_dt = moon_position.sample_hour_midpoint(hour_dt)
+    try:
+        altitude = moon_position.moon_altitude_deg(
+            latitude,
+            longitude,
+            sample_dt,
+            timezone,
+        )
+        effective = moon_position.effective_moon_illumination(moon_illumination, altitude)
+        moon_up = altitude > 0
+        return effective, moon_up, round(altitude, 1)
+    except Exception:
+        moon_up = _is_moon_up(hour_dt, astronomy_by_date)
+        if moon_up is False:
+            return 0.0, False, None
+        if moon_up is True:
+            return moon_illumination, True, None
+        return moon_illumination, None, None
+
+
+def _resolve_night_moon_times(
+    day: dict,
+    astronomy_by_date: dict[str, dict],
+) -> tuple[str | None, str | None]:
+    """Moonrise on the night date; moonset from the following morning when available."""
+    day_date = day.get("date", "")
+    moonrise = _parse_moon_time_display(day.get("moonrise"))
+
+    next_date = (datetime.fromisoformat(day_date).date() + timedelta(days=1)).isoformat()
+    next_day = astronomy_by_date.get(next_date, {})
+    moonset = _parse_moon_time_display(next_day.get("moonset"))
+    if moonset is None:
+        moonset = _parse_moon_time_display(day.get("moonset"))
+
+    return moonrise, moonset
+
+
 def _hour_score(
     cloud_cover: float | None,
     visibility: float | None,
@@ -395,6 +503,7 @@ def build_forecast(
         }
 
     astronomy_days: list[dict] = time_series_data.get("astronomy", [])
+    astronomy_by_date = {day.get("date", ""): day for day in astronomy_days if day.get("date")}
     moon_anchor = _moon_anchor_from_single_day(location_data)
     nights: list[NightForecast] = []
 
@@ -405,6 +514,7 @@ def build_forecast(
 
         moon_illumination = _resolve_moon_illumination(day, moon_anchor, day_date)
         moon_phase = day.get("moon_phase", "UNKNOWN")
+        moonrise, moonset = _resolve_night_moon_times(day, astronomy_by_date)
 
         if not night_begin or not night_end:
             nights.append(
@@ -431,10 +541,18 @@ def build_forecast(
             if not _is_in_nights_darkness(hour_dt, day_date, night_begin, night_end):
                 continue
 
+            effective_moon, moon_up, moon_altitude = _effective_moon_illumination(
+                hour_dt,
+                moon_illumination,
+                astronomy_by_date,
+                latitude,
+                longitude,
+                timezone,
+            )
             score = _hour_score(
                 cloud_cover=wx.get("cloud_cover"),
                 visibility=wx.get("visibility"),
-                moon_illumination=moon_illumination,
+                moon_illumination=effective_moon,
                 precipitation=wx.get("precipitation"),
                 weather_code=wx.get("weather_code"),
             )
@@ -443,6 +561,9 @@ def build_forecast(
                     time=hour_dt.strftime("%H:%M"),
                     at=hour_dt.isoformat(),
                     score=score,
+                    moon_illumination_effective=effective_moon,
+                    moon_up=moon_up,
+                    moon_altitude=moon_altitude,
                     cloud_cover=wx.get("cloud_cover"),
                     cloud_cover_low=wx.get("cloud_cover_low"),
                     cloud_cover_mid=wx.get("cloud_cover_mid"),
@@ -459,6 +580,15 @@ def build_forecast(
         cloud_summary, precip_summary = _summarize_hourly_weather(hourly_scores)
         daily_weather = daily_lookup.get(day_date, {})
 
+        effective_values = [
+            entry.moon_illumination_effective
+            for entry in hourly_scores
+            if entry.moon_illumination_effective is not None
+        ]
+        moon_sky_glow_avg = _average(effective_values)
+        if moon_sky_glow_avg is not None:
+            moon_sky_glow_avg = round(moon_sky_glow_avg, 1)
+
         if hourly_scores:
             avg_score = sum(h.score for h in hourly_scores) / len(hourly_scores)
             rating = _rating_from_score(avg_score)
@@ -474,6 +604,9 @@ def build_forecast(
                 score=score,
                 moon_phase=moon_phase,
                 moon_illumination=moon_illumination,
+                moonrise=moonrise,
+                moonset=moonset,
+                moon_sky_glow_avg=moon_sky_glow_avg,
                 temperature_high=daily_weather.get("temperature_high"),
                 temperature_low=daily_weather.get("temperature_low"),
                 cloud_cover=cloud_summary,

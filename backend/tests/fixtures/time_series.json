@@ -3,14 +3,20 @@
     {
       "date": "2025-06-20",
       "moon_phase": "WANING_GIBBOUS",
+      "moon_illumination_percentage": -72.5,
       "night_begin": "21:30",
-      "night_end": "04:45"
+      "night_end": "04:45",
+      "moonrise": "23:00",
+      "moonset": "-:-"
     },
     {
       "date": "2025-06-21",
       "moon_phase": "LAST_QUARTER",
+      "moon_illumination_percentage": -62.6,
       "night_begin": "21:30",
-      "night_end": "04:40"
+      "night_end": "04:40",
+      "moonrise": "-:-",
+      "moonset": "04:00"
     }
   ]
 }

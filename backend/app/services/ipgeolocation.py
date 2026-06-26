@@ -69,3 +69,8 @@ async def fetch_time_series(
 def default_date_range() -> tuple[date, date]:
     today = date.today()
     return today, today + timedelta(days=6)
+
+
+def weather_forecast_days(start: date, end: date) -> int:
+    """Open-Meteo days needed to cover each night's pre-dawn hours on the following day."""
+    return (end - start).days + 2

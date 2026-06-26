@@ -5,6 +5,7 @@ backend/**/__pycache__/
 backend/.venv/
 backend/.pytest_cache/
 backend/htmlcov/
+backend/data/ephemeris/
 *.pyc
 
 # Node

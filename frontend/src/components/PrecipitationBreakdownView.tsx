@@ -16,28 +16,31 @@ export function PrecipitationBreakdownView({
   if (compact) {
     return (
       <p className="precip-breakdown compact">
-        Precip {formatPrecipitationMm(precipitation.total_mm)} · Max{' '}
-        {formatPrecipitationMm(precipitation.max_hourly_mm)}/hr ·{' '}
-        {formatPrecipitationProbability(precipitation.max_probability)} chance
+        Rainfall: {formatPrecipitationMm(precipitation.total_mm)} total ·{' '}
+        {formatPrecipitationMm(precipitation.max_hourly_mm)} max/hr ·{' '}
+        {formatPrecipitationProbability(precipitation.max_probability)} chance of rain
       </p>
     )
   }
 
   return (
     <div className="precip-breakdown">
-      <div className="precip-stat">
-        <span className="precip-stat-label">Total during darkness</span>
-        <span className="precip-stat-value">{formatPrecipitationMm(precipitation.total_mm)}</span>
-      </div>
-      <div className="precip-stat">
-        <span className="precip-stat-label">Max hourly</span>
-        <span className="precip-stat-value">{formatPrecipitationMm(precipitation.max_hourly_mm)}</span>
-      </div>
-      <div className="precip-stat">
-        <span className="precip-stat-label">Peak probability</span>
-        <span className="precip-stat-value">
-          {formatPrecipitationProbability(precipitation.max_probability)}
-        </span>
+      <div className="precip-breakdown-header">Precipitation summary</div>
+      <div className="precip-breakdown-stats">
+        <div className="precip-stat">
+          <span className="precip-stat-label">Total precipitation during darkness</span>
+          <span className="precip-stat-value">{formatPrecipitationMm(precipitation.total_mm)}</span>
+        </div>
+        <div className="precip-stat">
+          <span className="precip-stat-label">Heaviest hourly rainfall</span>
+          <span className="precip-stat-value">{formatPrecipitationMm(precipitation.max_hourly_mm)}</span>
+        </div>
+        <div className="precip-stat">
+          <span className="precip-stat-label">Highest chance of precipitation</span>
+          <span className="precip-stat-value">
+            {formatPrecipitationProbability(precipitation.max_probability)}
+          </span>
+        </div>
       </div>
     </div>
   )

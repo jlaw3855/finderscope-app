@@ -42,6 +42,9 @@ class HourlyScore(BaseModel):
     time: str
     at: str
     score: int
+    moon_illumination_effective: float | None = None
+    moon_up: bool | None = None
+    moon_altitude: float | None = None
     cloud_cover: float | None = None
     cloud_cover_low: float | None = None
     cloud_cover_mid: float | None = None
@@ -59,6 +62,9 @@ class NightForecast(BaseModel):
     score: int | None
     moon_phase: str
     moon_illumination: float
+    moonrise: str | None = None
+    moonset: str | None = None
+    moon_sky_glow_avg: float | None = None
     temperature_high: float | None = None
     temperature_low: float | None = None
     cloud_cover: CloudCoverBreakdown = Field(default_factory=CloudCoverBreakdown)

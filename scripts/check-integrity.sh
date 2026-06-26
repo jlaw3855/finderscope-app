@@ -61,7 +61,7 @@ PYTHON_BIN="$(resolve_python)"
 
 cd "$ROOT_DIR"
 
-run_stage "Backend tests (pytest)" bash -c "cd backend && \"$PYTHON_BIN\" -m pytest"
+run_stage "Backend tests (pytest)" bash -c "cd backend && \"$PYTHON_BIN\" -c \"from app.services.moon_position import ensure_ephemeris; ensure_ephemeris()\" && \"$PYTHON_BIN\" -m pytest"
 run_stage "Frontend unit tests (vitest)" bash -c "cd frontend && npm run test:run"
 run_stage "E2E browser tests (Playwright)" bash -c "cd e2e && npm run test"
 run_stage "Frontend lint (oxlint)" bash -c "cd frontend && npm run lint"

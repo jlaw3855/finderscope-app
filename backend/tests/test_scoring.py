@@ -1,23 +1,39 @@
 """Unit tests for scoring logic and forecast assembly."""
 
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
 from app.models.forecast import HourlyScore
 from app.services.scoring import (
     MoonIlluminationAnchor,
+    _effective_moon_illumination,
     _find_best_hours,
     _hour_score,
     _interpolate_illumination,
+    _is_moon_up,
+    _is_moon_up_at_minutes,
     _is_in_nights_darkness,
     _parse_illumination,
     _parse_time,
     _rating_from_score,
     _resolve_moon_illumination,
+    _resolve_night_moon_times,
     _weather_penalty,
     build_forecast,
 )
+
+DENVER_LAT = 39.7392
+DENVER_LON = -104.9903
+DENVER_TZ = "America/Denver"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _load_ephemeris() -> None:
+    from app.services.moon_position import ensure_ephemeris
+
+    ensure_ephemeris()
 
 
 class TestParseTime:
@@ -125,6 +141,116 @@ class TestMoonIllumination:
         assert _resolve_moon_illumination(day, None, "2025-06-20") == 45.0
 
 
+class TestMoonriseMoonset:
+    def test_same_day_rise_before_set(self) -> None:
+        assert _is_moon_up_at_minutes(12 * 60, 6 * 60, 18 * 60) is True
+        assert _is_moon_up_at_minutes(5 * 60, 6 * 60, 18 * 60) is False
+
+    def test_overnight_moon_window(self) -> None:
+        assert _is_moon_up_at_minutes(23 * 60, 22 * 60, 4 * 60) is True
+        assert _is_moon_up_at_minutes(3 * 60, 22 * 60, 4 * 60) is True
+        assert _is_moon_up_at_minutes(21 * 60, 22 * 60, 4 * 60) is False
+
+    def test_moon_up_before_rise(self) -> None:
+        astronomy = {
+            "2025-06-20": {"date": "2025-06-20", "moonrise": "23:00", "moonset": "-:-"},
+            "2025-06-21": {"date": "2025-06-21", "moonrise": "-:-", "moonset": "04:00"},
+        }
+        hour_before_rise = datetime.fromisoformat("2025-06-20T22:00")
+        hour_after_rise = datetime.fromisoformat("2025-06-20T23:00")
+        hour_before_set = datetime.fromisoformat("2025-06-21T03:00")
+
+        assert _is_moon_up(hour_before_rise, astronomy) is False
+        assert _is_moon_up(hour_after_rise, astronomy) is True
+        assert _is_moon_up(hour_before_set, astronomy) is True
+
+    def test_effective_illumination_zero_when_moon_down(self) -> None:
+        astronomy = {
+            "2025-06-20": {"date": "2025-06-20", "moonrise": "23:00", "moonset": "-:-"},
+        }
+        hour_dt = datetime.fromisoformat("2025-06-20T22:00")
+        effective, moon_up, altitude = _effective_moon_illumination(
+            hour_dt,
+            72.5,
+            astronomy,
+            DENVER_LAT,
+            DENVER_LON,
+            DENVER_TZ,
+        )
+        assert effective == 0.0
+        assert moon_up is False
+        assert altitude is not None
+        assert altitude <= 0
+
+    def test_effective_illumination_scales_with_altitude(self) -> None:
+        astronomy = {
+            "2025-06-20": {"date": "2025-06-20", "moonrise": "23:00", "moonset": "-:-"},
+            "2025-06-21": {"date": "2025-06-21", "moonrise": "-:-", "moonset": "04:00"},
+        }
+        hour_low = datetime.fromisoformat("2025-06-21T02:00")
+        hour_higher = datetime.fromisoformat("2025-06-21T04:00")
+        low_effective, low_up, _ = _effective_moon_illumination(
+            hour_low,
+            72.5,
+            astronomy,
+            DENVER_LAT,
+            DENVER_LON,
+            DENVER_TZ,
+        )
+        high_effective, high_up, _ = _effective_moon_illumination(
+            hour_higher,
+            72.5,
+            astronomy,
+            DENVER_LAT,
+            DENVER_LON,
+            DENVER_TZ,
+        )
+        assert low_up is True
+        assert high_up is True
+        assert 0 < low_effective < high_effective < 72.5
+
+    def test_effective_illumination_falls_back_when_skyfield_fails(self) -> None:
+        astronomy = {
+            "2025-06-20": {"date": "2025-06-20", "moonrise": "22:00", "moonset": "04:00"},
+        }
+        hour_dt = datetime.fromisoformat("2025-06-20T23:00")
+        with patch(
+            "app.services.scoring.moon_position.moon_altitude_deg",
+            side_effect=RuntimeError("ephemeris unavailable"),
+        ):
+            effective, moon_up, altitude = _effective_moon_illumination(
+                hour_dt,
+                72.5,
+                astronomy,
+                DENVER_LAT,
+                DENVER_LON,
+                DENVER_TZ,
+            )
+        assert effective == pytest.approx(72.5)
+        assert moon_up is True
+        assert altitude is None
+
+    def test_moon_down_hours_score_higher(self) -> None:
+        base_kwargs = {
+            "cloud_cover": 0,
+            "visibility": 10000,
+            "precipitation": 0,
+            "weather_code": 0,
+        }
+        score_moon_up = _hour_score(moon_illumination=80.0, **base_kwargs)
+        score_moon_down = _hour_score(moon_illumination=0.0, **base_kwargs)
+        assert score_moon_down > score_moon_up
+
+    def test_resolve_night_moon_times(self) -> None:
+        astronomy = {
+            "2025-06-20": {"date": "2025-06-20", "moonrise": "23:00", "moonset": "-:-"},
+            "2025-06-21": {"date": "2025-06-21", "moonrise": "-:-", "moonset": "04:00"},
+        }
+        moonrise, moonset = _resolve_night_moon_times(astronomy["2025-06-20"], astronomy)
+        assert moonrise == "23:00"
+        assert moonset == "04:00"
+
+
 class TestBuildForecast:
     def test_build_forecast_from_fixtures(self, load_fixture) -> None:
         location_data = load_fixture("location.json")
@@ -150,3 +276,72 @@ class TestBuildForecast:
         hour_times = {entry.time for entry in first_night.hourly}
         assert "06:00" not in hour_times
         assert "23:00" in hour_times
+
+        hour_22 = next(entry for entry in first_night.hourly if entry.time == "22:00")
+        hour_04 = next(entry for entry in first_night.hourly if entry.time == "04:00")
+        assert hour_22.moon_up is False
+        assert hour_22.moon_illumination_effective == 0.0
+        assert hour_04.moon_up is True
+        assert 0 < hour_04.moon_illumination_effective < first_night.moon_illumination
+        assert first_night.moon_sky_glow_avg is not None
+        assert first_night.moon_sky_glow_avg < first_night.moon_illumination
+        expected_avg = round(
+            sum(entry.moon_illumination_effective or 0 for entry in first_night.hourly)
+            / len(first_night.hourly),
+            1,
+        )
+        assert first_night.moon_sky_glow_avg == pytest.approx(expected_avg)
+        assert first_night.moonrise == "23:00"
+        assert first_night.moonset == "04:00"
+
+    def test_last_night_includes_post_midnight_hours(self, load_fixture) -> None:
+        """The final night's darkness spans into the next calendar day."""
+        location_data = load_fixture("location.json")
+        time_series_data = {
+            "astronomy": [
+                {
+                    "date": "2025-07-02",
+                    "moon_phase": "WANING_GIBBOUS",
+                    "night_begin": "21:30",
+                    "night_end": "04:45",
+                }
+            ]
+        }
+        weather_data = {
+            "timezone": "America/Los_Angeles",
+            "hourly": {
+                "time": [
+                    "2025-07-02T22:00",
+                    "2025-07-02T23:00",
+                    "2025-07-03T00:00",
+                    "2025-07-03T01:00",
+                    "2025-07-03T02:00",
+                    "2025-07-03T03:00",
+                    "2025-07-03T04:00",
+                ],
+                "cloud_cover": [5, 5, 5, 5, 5, 5, 5],
+                "cloud_cover_low": [1, 1, 1, 1, 1, 1, 1],
+                "cloud_cover_mid": [1, 1, 1, 1, 1, 1, 1],
+                "cloud_cover_high": [1, 1, 1, 1, 1, 1, 1],
+                "visibility": [20000] * 7,
+                "precipitation": [0] * 7,
+                "precipitation_probability": [0] * 7,
+                "weather_code": [0] * 7,
+                "dew_point_2m": [50] * 7,
+                "temperature_2m": [60] * 7,
+            },
+            "daily": {
+                "time": ["2025-07-02"],
+                "temperature_2m_max": [80],
+                "temperature_2m_min": [55],
+                "precipitation_sum": [0.0],
+            },
+        }
+
+        result = build_forecast(location_data, time_series_data, weather_data)
+
+        last_night = result.nights[0]
+        assert last_night.date == "2025-07-02"
+        hour_times = {entry.time for entry in last_night.hourly}
+        assert hour_times == {"22:00", "23:00", "00:00", "01:00", "02:00", "03:00", "04:00"}
+        assert all(entry.at.startswith("2025-07-03") for entry in last_night.hourly[2:])

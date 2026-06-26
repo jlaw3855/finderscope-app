@@ -8,17 +8,20 @@
   "nights": [
     {
       "date": "2025-06-20",
-      "rating": "Good",
-      "score": 77,
+      "rating": "Excellent",
+      "score": 94,
       "moon_phase": "WANING_GIBBOUS",
       "moon_illumination": 72.5,
+      "moonrise": "23:00",
+      "moonset": "04:00",
+      "moon_sky_glow_avg": 7.8,
       "temperature_high": 28.0,
       "temperature_low": 12.0,
       "cloud_cover": {
-        "total": 11.666666666666666,
-        "low": 3.0,
-        "mid": 3.0,
-        "high": 5.666666666666667
+        "total": 10.0,
+        "low": 2.5,
+        "mid": 2.75,
+        "high": 4.75
       },
       "precipitation": {
         "total_mm": 0.0,
@@ -31,16 +34,36 @@
       },
       "best_hours": [
         {
-          "start": "23:00",
+          "start": "22:00",
           "end": "04:00",
-          "score": 77
+          "score": 94
         }
       ],
       "hourly": [
         {
+          "time": "22:00",
+          "at": "2025-06-20T22:00:00",
+          "score": 98,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -31.7,
+          "cloud_cover": 5.0,
+          "cloud_cover_low": 1.0,
+          "cloud_cover_mid": 2.0,
+          "cloud_cover_high": 2.0,
+          "visibility": 25000.0,
+          "precipitation": 0.0,
+          "precipitation_probability": 0.0,
+          "dew_point": 6.0,
+          "temperature": 20.0
+        },
+        {
           "time": "23:00",
           "at": "2025-06-20T23:00:00",
-          "score": 79,
+          "score": 97,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -25.3,
           "cloud_cover": 8.0,
           "cloud_cover_low": 2.0,
           "cloud_cover_mid": 2.0,
@@ -54,21 +77,27 @@
         {
           "time": "01:00",
           "at": "2025-06-21T01:00:00",
-          "score": 77,
+          "score": 95,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -7.4,
           "cloud_cover": 12.0,
           "cloud_cover_low": 3.0,
           "cloud_cover_mid": 3.0,
           "cloud_cover_high": 6.0,
           "visibility": 22000.0,
           "precipitation": 0.0,
-          "precipitation_probability": 5.0,
+          "precipitation_probability": 0.0,
           "dew_point": 8.0,
           "temperature": 17.0
         },
         {
           "time": "04:00",
           "at": "2025-06-21T04:00:00",
-          "score": 76,
+          "score": 86,
+          "moon_illumination_effective": 31.0,
+          "moon_up": true,
+          "moon_altitude": 25.3,
           "cloud_cover": 15.0,
           "cloud_cover_low": 4.0,
           "cloud_cover_mid": 4.0,
@@ -88,6 +117,9 @@
       "score": 0,
       "moon_phase": "LAST_QUARTER",
       "moon_illumination": 62.6,
+      "moonrise": null,
+      "moonset": "04:00",
+      "moon_sky_glow_avg": null,
       "temperature_high": 27.0,
       "temperature_low": 11.0,
       "cloud_cover": {
@@ -114,7 +146,10 @@
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
-      "moon_illumination": 52.1,
+      "moon_illumination": 72.5,
+      "moonrise": "23:00",
+      "moonset": "04:00",
+      "moon_sky_glow_avg": null,
       "temperature_high": null,
       "temperature_low": null,
       "cloud_cover": {
@@ -141,7 +176,10 @@
       "rating": "Poor",
       "score": 0,
       "moon_phase": "LAST_QUARTER",
-      "moon_illumination": 41.5,
+      "moon_illumination": 62.6,
+      "moonrise": null,
+      "moonset": "04:00",
+      "moon_sky_glow_avg": null,
       "temperature_high": null,
       "temperature_low": null,
       "cloud_cover": {
@@ -168,7 +206,10 @@
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
-      "moon_illumination": 31.3,
+      "moon_illumination": 72.5,
+      "moonrise": "23:00",
+      "moonset": "04:00",
+      "moon_sky_glow_avg": null,
       "temperature_high": null,
       "temperature_low": null,
       "cloud_cover": {
@@ -195,7 +236,10 @@
       "rating": "Poor",
       "score": 0,
       "moon_phase": "LAST_QUARTER",
-      "moon_illumination": 21.9,
+      "moon_illumination": 62.6,
+      "moonrise": null,
+      "moonset": "04:00",
+      "moon_sky_glow_avg": null,
       "temperature_high": null,
       "temperature_low": null,
       "cloud_cover": {
@@ -222,7 +266,10 @@
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
-      "moon_illumination": 13.8,
+      "moon_illumination": 72.5,
+      "moonrise": "23:00",
+      "moonset": null,
+      "moon_sky_glow_avg": null,
       "temperature_high": null,
       "temperature_low": null,
       "cloud_cover": {

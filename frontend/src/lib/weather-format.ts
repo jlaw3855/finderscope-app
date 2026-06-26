@@ -95,9 +95,35 @@ export function formatPrecipitationSummary(precip: PrecipitationBreakdown): stri
   ].join(' · ')
 }
 
+export function formatMoonSkyGlowAvg(value: number | null | undefined): string {
+  if (value == null) {
+    return '—'
+  }
+  return `${Math.round(value)}%`
+}
+
+export function formatMoonIlluminationEffective(entry: HourlyScore): string {
+  if (entry.moon_up === false) {
+    return 'Moon down'
+  }
+  if (entry.moon_illumination_effective == null) {
+    return '—'
+  }
+  return `${Math.round(entry.moon_illumination_effective)}%`
+}
+
+export function formatMoonAltitude(entry: HourlyScore): string {
+  if (entry.moon_up === false || entry.moon_altitude == null || entry.moon_altitude <= 0) {
+    return '—'
+  }
+  return `${Math.round(entry.moon_altitude)}°`
+}
+
 export function formatHourlyTooltip(label: string, entry: HourlyScore): string {
   return [
     `${label}: ${entry.score}/100`,
+    `Moon sky glow: ${formatMoonIlluminationEffective(entry)}`,
+    `Moon altitude: ${formatMoonAltitude(entry)}`,
     `Clouds: ${formatCloudCover(entry.cloud_cover)} (L ${formatCloudCover(entry.cloud_cover_low)} / M ${formatCloudCover(entry.cloud_cover_mid)} / H ${formatCloudCover(entry.cloud_cover_high)})`,
     `Visibility: ${formatVisibility(entry.visibility)}`,
     `Precip: ${formatPrecipitationMm(entry.precipitation)} (${formatPrecipitationProbability(entry.precipitation_probability)} chance)`,
