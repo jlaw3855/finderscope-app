@@ -42,3 +42,6 @@ jobs:
         run: ./scripts/check-integrity.sh
         env:
           CI: true
+          IPGEOLOCATION_API_KEY: ci-test-key
+          ASTRONOMY_API_APPLICATION_ID: ci-test-id
+          ASTRONOMY_API_APPLICATION_SECRET: ci-test-secret
