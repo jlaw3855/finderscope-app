@@ -1,22 +1,18 @@
 import { useState } from 'react'
 
 import { AddressSearch } from './components/AddressSearch'
+import { AstronomyEventsPanel } from './components/AstronomyEventsPanel'
 import { ErrorBanner } from './components/ErrorBanner'
 import { HourlyScoreChart } from './components/HourlyScoreChart'
 import { NightForecastCard } from './components/NightForecastCard'
-import { StarChartPanel } from './components/StarChartPanel'
+import { useAstronomySummary } from './hooks/useAstronomySummary'
 import { useForecast } from './hooks/useForecast'
 import { useMoonEnrichment } from './hooks/useMoonEnrichment'
-import { useStarChart } from './hooks/useStarChart'
 
 function App() {
   const { data: forecast, loading: forecastLoading, error: forecastError, search } = useForecast()
-  const {
-    data: starChart,
-    loading: chartLoading,
-    error: chartError,
-    generate,
-  } = useStarChart()
+  const { data: astronomy, loading: astronomyLoading, error: astronomyError } =
+    useAstronomySummary(forecast)
   const [selectedNightIndex, setSelectedNightIndex] = useState(0)
   const { byDate: moonByDate, status: moonEnrichmentStatus } = useMoonEnrichment(forecast)
 
@@ -25,26 +21,6 @@ function App() {
     if (result) {
       setSelectedNightIndex(0)
     }
-  }
-
-  const handleGenerateChart = (params: {
-    date: string
-    time: string
-    viewType: 'all-sky' | 'constellation'
-    constellation?: string
-  }) => {
-    if (!forecast) {
-      return
-    }
-
-    generate({
-      latitude: forecast.location.latitude,
-      longitude: forecast.location.longitude,
-      date: params.date,
-      time: params.time,
-      view_type: params.viewType,
-      constellation: params.constellation ?? null,
-    })
   }
 
   const selectedNight = forecast?.nights[selectedNightIndex]
@@ -89,13 +65,11 @@ function App() {
             />
           )}
 
-          <StarChartPanel
-            location={forecast.location}
-            nights={forecast.nights}
-            imageUrl={starChart?.image_url ?? null}
-            loading={chartLoading}
-            error={chartError}
-            onGenerate={handleGenerateChart}
+          <AstronomyEventsPanel
+            timezone={forecast.location.timezone}
+            data={astronomy}
+            loading={astronomyLoading}
+            error={astronomyError}
           />
         </>
       )}

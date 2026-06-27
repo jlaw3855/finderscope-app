@@ -1,0 +1,21 @@
+"""Astronomy summary routes."""
+
+from fastapi import APIRouter
+
+from app.models.astronomy import AstronomyRequest, AstronomyResponse
+from app.services.astronomy_events import search_astronomy_events
+from app.services.planet_visibility import compute_planet_visibility
+
+router = APIRouter(prefix="/api", tags=["astronomy"])
+
+
+@router.post("/astronomy", response_model=AstronomyResponse)
+def get_astronomy_summary(request: AstronomyRequest) -> AstronomyResponse:
+    events = search_astronomy_events(request.latitude, request.longitude)
+    planet_visibility = compute_planet_visibility(
+        request.latitude,
+        request.longitude,
+        request.timezone,
+        request.dates,
+    )
+    return AstronomyResponse(events=events, planet_visibility=planet_visibility)

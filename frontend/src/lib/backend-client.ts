@@ -1,6 +1,6 @@
+import type { AstronomyRequest, AstronomyResponse } from '../types/astronomy'
 import type { ForecastRequest, ForecastResponse } from '../types/forecast'
 import type { MoonEnrichmentResponse } from '../types/moon-enrichment'
-import type { StarChartRequest, StarChartResponse } from '../types/star-chart'
 
 class BackendClientError extends Error {
   status: number
@@ -46,8 +46,8 @@ export async function fetchForecast(request: ForecastRequest): Promise<ForecastR
   return postJson<ForecastResponse>('/api/forecast', request)
 }
 
-export async function fetchStarChart(request: StarChartRequest): Promise<StarChartResponse> {
-  return postJson<StarChartResponse>('/api/star-chart', request)
+export async function fetchAstronomySummary(request: AstronomyRequest): Promise<AstronomyResponse> {
+  return postJson<AstronomyResponse>('/api/astronomy', request)
 }
 
 export async function fetchMoonEnrichment(

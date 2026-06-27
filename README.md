@@ -1,6 +1,6 @@
 # Finderscope
 
-A full-stack web app for stargazers. Enter an address to get a 7-day stargazing weather forecast and generate a custom star chart for any date and time.
+A full-stack web app for stargazers. Enter an address to get a 7-day stargazing weather forecast and a local astronomy summary for your location.
 
 ## Application functionality
 
@@ -61,9 +61,18 @@ Free tier limits: **80 calls/day**, **1 request/second**. The server caches phas
 ./scripts/prewarm-moon-cache.sh   # optional; requires FREEASTRO_API_KEY in backend/.env
 ```
 
-### Star chart generation
+### Astronomy summary (astronomy-engine)
 
-The star chart panel lets the user pick a night, time, and view type (all-sky or constellation). A **quick-pick dropdown** fills dark-hour presets; a **custom time input** beside it is authoritative for generation. The backend calls AstronomyAPI.com and returns an image URL rendered at a larger display size in the browser.
+After a forecast loads, the frontend calls `POST /api/astronomy` in parallel with moon enrichment. The backend uses [astronomy-engine](https://pypi.org/project/astronomy-engine/) locally — no API key required.
+
+| Section | Window | Content |
+|---------|--------|---------|
+| **Events timeline** | Next 30 days | Lunar eclipses, local solar eclipses, Mercury/Venus transits, planetary oppositions/conjunctions (vs Sun), and bright planet–planet conjunctions (≤ ~3° separation) |
+| **Planet visibility** | 7 forecast nights | For each calendar night date, whether Mercury–Neptune is above the horizon at any time that day |
+
+Planet visibility cells include explicit **above-horizon time windows** (`windows[]` with local `start`/`end` in `HH:MM`), **peak altitude**, **peak time**, and **magnitude** at peak. Uranus and Neptune appear as muted telescope rows.
+
+Events show a local visibility badge when they are global phenomena not guaranteed to be visible at the forecast location (e.g. transits, inferior/superior conjunctions with the Sun).
 
 ### External services
 
@@ -72,7 +81,7 @@ The star chart panel lets the user pick a night, time, and view type (all-sky or
 | [IPGeolocation.io](https://ipgeolocation.io) | Geocoding, twilight windows, moon phase/times | Required |
 | [Open-Meteo](https://open-meteo.com) | Hourly, 15-minutely, and daily weather | None |
 | [FreeAstroAPI](https://www.freeastroapi.com/moon) | Moon phase graphics and enriched lunar labels (optional) | Optional |
-| [AstronomyAPI.com](https://www.astronomyapi.com) | Star chart images | Required |
+| [astronomy-engine](https://pypi.org/project/astronomy-engine/) | Local eclipse, conjunction, and planet visibility calculations | None (MIT library) |
 
 API keys live in `backend/.env` only; the frontend never sees them.
 
@@ -87,26 +96,31 @@ finderscope/
 │   │   ├── models/
 │   │   │   ├── forecast.py     # Pydantic schemas for forecast API
 │   │   │   ├── moon_enrichment.py  # Pydantic schemas for moon enrichment API
-│   │   │   └── star_chart.py   # Pydantic schemas for star chart API
+│   │   │   └── astronomy.py    # Pydantic schemas for astronomy summary API
 │   │   ├── routers/
 │   │   │   ├── forecast.py     # POST /api/forecast orchestration
 │   │   │   ├── moon_enrichment.py  # GET /api/moon/enrichment + SVG route
-│   │   │   └── star_chart.py   # POST /api/star-chart
+│   │   │   └── astronomy.py    # POST /api/astronomy
 │   │   └── services/
 │   │       ├── ipgeolocation.py    # Astronomy API client (geocode + time series)
 │   │       ├── openmeteo.py        # Weather forecast client
 │   │       ├── scoring.py          # Merge weather + astronomy into scores
 │   │       ├── moon_position.py    # Skyfield moon altitude + sky-glow curve
+│   │       ├── astronomy_events.py # 30-day eclipse/conjunction event search
+│   │       ├── planet_visibility.py  # Per-night planet above-horizon windows
+│   │       ├── astronomy_time.py   # Timezone/time helpers for astronomy-engine
 │   │       ├── freeastroapi.py     # FreeAstro moon phase client
 │   │       ├── moon_cache.py       # SQLite + SVG cache for moon enrichment
 │   │       ├── moon_enrichment.py  # Enrichment orchestration
 │   │       ├── moon_enrichment_queue.py  # 1 RPS rate-limited fetch queue
-│   │       └── astronomyapi.py     # Star chart image generation
 │   ├── data/ephemeris/         # Cached JPL ephemeris (gitignored, auto-downloaded)
 │   ├── data/moon_cache/        # Cached FreeAstro moon SVGs + quota state (gitignored)
 │   ├── tests/
 │   │   ├── test_scoring.py     # Scoring and forecast assembly tests
 │   │   ├── test_moon_position.py
+│   │   ├── test_astronomy_events.py
+│   │   ├── test_planet_visibility.py
+│   │   ├── test_astronomy_routes.py
 │   │   ├── test_routes.py      # Route tests with mocked services
 │   │   ├── test_integration_live.py  # Opt-in live API tests
 │   │   └── fixtures/           # JSON fixtures + E2E fixture generator
@@ -123,7 +137,7 @@ finderscope/
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
 │   │   │   ├── HourlyScoreChart.tsx    # Unified grid: scores, dew/temp, metrics
 │   │   │   ├── hourly-chart-layout.ts  # Shared column width and temperature scale helpers
-│   │   │   ├── StarChartPanel.tsx
+│   │   │   ├── AstronomyEventsPanel.tsx  # Events timeline + planet visibility grid
 │   │   │   ├── CloudBreakdown.tsx
 │   │   │   ├── PrecipitationBreakdownView.tsx
 │   │   │   ├── DewPointChart.tsx
@@ -131,15 +145,16 @@ finderscope/
 │   │   ├── hooks/
 │   │   │   ├── useForecast.ts  # Forecast fetch state
 │   │   │   ├── useMoonEnrichment.ts  # Async FreeAstro moon graphics
-│   │   │   └── useStarChart.ts # Star chart fetch state
+│   │   │   └── useAstronomySummary.ts  # Astronomy summary fetch state
 │   │   ├── lib/
 │   │   │   ├── backend-client.ts   # Typed fetch wrappers for /api
+│   │   │   ├── astronomy-format.ts # Astronomy panel display formatters
 │   │   │   ├── moon-sample-time.ts # Dark-window sample times for moon enrichment
 │   │   │   └── weather-format.ts   # Display formatters
 │   │   └── types/
 │   │       ├── forecast.ts
 │   │       ├── moon-enrichment.ts
-│   │       └── star-chart.ts
+│   │       └── astronomy.ts
 │   └── vite.config.ts          # Dev server; proxies /api → localhost:8000
 │
 ├── e2e/                        # Playwright browser tests
@@ -166,27 +181,27 @@ flowchart LR
   subgraph backend [Backend]
     ForecastRouter["/api/forecast"]
     Scoring[scoring.build_forecast]
-    StarChartRouter["/api/star-chart"]
+    AstronomyRouter["/api/astronomy"]
+    AstroEngine[astronomy-engine]
   end
   subgraph external [External APIs]
     IPGeo[IPGeolocation]
     OpenMeteo[Open-Meteo]
-    AstroAPI[AstronomyAPI]
   end
   UI --> ForecastRouter
   ForecastRouter --> IPGeo
   ForecastRouter --> OpenMeteo
   ForecastRouter --> Scoring
   Scoring --> MoonPos[moon_position Skyfield]
-  UI --> StarChartRouter
-  StarChartRouter --> AstroAPI
+  UI --> AstronomyRouter
+  AstronomyRouter --> AstroEngine
 ```
 
 ## Prerequisites
 
 - Python 3.10+
 - Node.js 18+
-- Free API keys from [IPGeolocation.io](https://ipgeolocation.io) and [AstronomyAPI.com](https://www.astronomyapi.com)
+- Free API key from [IPGeolocation.io](https://ipgeolocation.io)
 - Optional [FreeAstroAPI](https://www.freeastroapi.com/moon) key for moon phase SVG enrichment
 
 Open-Meteo requires no API key.
@@ -198,10 +213,17 @@ Open-Meteo requires no API key.
 ```bash
 cd backend
 cp .env.example .env
-# Fill in credentials from provider dashboards (see Prerequisites)
-pip install -r requirements.txt
+# Fill in IPGEOLOCATION_API_KEY (see Prerequisites)
+
+# Recommended: use a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+
+python -m pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+On macOS, if `pip` is not found, use `python3 -m pip` instead of `pip`.
 
 The API runs at `http://localhost:8000`.
 
@@ -221,7 +243,7 @@ The UI runs at `http://localhost:5173` and proxies `/api` requests to the backen
 
 ```bash
 cd backend
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt   # or: python -m pip install -r requirements-dev.txt
 python -m pytest
 ```
 
@@ -243,7 +265,7 @@ npm run test:install   # first time only
 npm run test
 ```
 
-E2E tests mock `/api/forecast` and `/api/star-chart` in the browser — no backend or external APIs required.
+E2E tests mock `/api/forecast`, `/api/astronomy`, and `/api/moon/enrichment` in the browser — no backend or external APIs required.
 
 ## Integrity checks
 
@@ -260,7 +282,7 @@ Fast mode (skips the Vite production build):
 ./scripts/check-integrity.sh --fast
 ```
 
-Live backend integration (~4 paid external API calls; requires valid `backend/.env`):
+Live backend integration (~2 paid external API calls; requires valid `backend/.env`):
 
 ```bash
 ./scripts/check-integrity.sh --live
@@ -280,9 +302,9 @@ The harness runs, in order:
 | Mode | External API calls |
 |------|-------------------|
 | Default | 0 |
-| `--live` | ~4 paid (2 IPGeolocation + 1 AstronomyAPI; Open-Meteo is free) |
+| `--live` | ~2 paid (2 IPGeolocation; Open-Meteo and astronomy-engine are free/local) |
 
-Refresh E2E fixtures from live responses when API shapes change:
+Refresh E2E fixtures from live responses when API shapes change (forecast via IPGeolocation; astronomy summary computed locally):
 
 ```bash
 chmod +x scripts/record-e2e-fixtures.sh
@@ -311,7 +333,17 @@ Live API tests are not run in CI.
 | `POST /api/forecast` | 7-day stargazing forecast for an address | 2 IPGeolocation + 1 Open-Meteo (hourly + minutely_15) |
 | `GET /api/moon/enrichment` | Cached FreeAstro moon phase labels and SVG URLs | 0 when cached; 1/date on miss (queued at 1 RPS) |
 | `GET /api/moon/visual/{date}.svg` | Cached moon phase SVG | 0 |
-| `POST /api/star-chart` | Generate a star chart image URL | 1 AstronomyAPI |
+| `POST /api/astronomy` | 30-day event timeline + 7-night planet visibility | 0 (local astronomy-engine) |
+
+### Astronomy response fields
+
+| Field | Description |
+|-------|-------------|
+| `events[]` | Upcoming events sorted by `start_at`; categories include `lunar_eclipse`, `solar_eclipse`, `transit`, `conjunction`, `opposition` |
+| `events[].visible_locally` | Whether the event is expected to be observable at the request coordinates |
+| `planet_visibility[]` | One entry per requested forecast night date |
+| `planet_visibility[].planets[].windows[]` | Local above-horizon intervals (`start`/`end` as `HH:MM`) on that calendar day |
+| `planet_visibility[].planets[].visible` | `true` when at least one window exists |
 
 ### Forecast response fields
 

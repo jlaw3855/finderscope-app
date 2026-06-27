@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     )
 
     ipgeolocation_api_key: str
-    astronomy_api_application_id: str
-    astronomy_api_application_secret: str
     cors_origins: str = "http://localhost:5173"
     freeastro_api_key: str = ""
     moon_enrichment_enabled: bool = True

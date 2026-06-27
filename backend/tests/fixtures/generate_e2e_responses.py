@@ -42,19 +42,6 @@ def main() -> None:
     forecast_path = E2E_FIXTURES_DIR / "forecast-response.json"
     forecast_path.write_text(json.dumps(forecast.model_dump(), indent=2), encoding="utf-8")
 
-    star_chart_path = E2E_FIXTURES_DIR / "star-chart-response.json"
-    if not star_chart_path.exists():
-        star_chart_path.write_text(
-            json.dumps(
-                {
-                    "image_url": "https://example.com/finderscope-test-chart.png",
-                    "view_type": "area",
-                },
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-
     print(f"Wrote {forecast_path} ({len(forecast.nights)} nights)")
 
 

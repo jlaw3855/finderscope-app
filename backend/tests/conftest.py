@@ -27,8 +27,6 @@ def _live_tests_enabled() -> bool:
     return all(
         [
             settings.ipgeolocation_api_key not in PLACEHOLDER_VALUES,
-            settings.astronomy_api_application_id not in PLACEHOLDER_VALUES,
-            settings.astronomy_api_application_secret not in PLACEHOLDER_VALUES,
         ]
     )
 
@@ -55,8 +53,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 def fake_settings() -> Settings:
     return Settings(
         ipgeolocation_api_key="test-ipgeo-key",
-        astronomy_api_application_id="test-app-id",
-        astronomy_api_application_secret="test-app-secret",
         cors_origins="http://localhost:5173",
     )
 

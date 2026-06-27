@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test'
 
 const fixturesDir = join(process.cwd(), 'fixtures')
 const forecastFixture = readFileSync(join(fixturesDir, 'forecast-response.json'), 'utf8')
-const starChartFixture = readFileSync(join(fixturesDir, 'star-chart-response.json'), 'utf8')
+const astronomyFixture = readFileSync(join(fixturesDir, 'astronomy-response.json'), 'utf8')
 const moonEnrichmentFixture = readFileSync(
   join(fixturesDir, 'moon-enrichment-response.json'),
   'utf8',
@@ -26,11 +26,11 @@ test.beforeEach(async ({ page }) => {
     })
   })
 
-  await page.route('**/api/star-chart', async (route) => {
+  await page.route('**/api/astronomy', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: starChartFixture,
+      body: astronomyFixture,
     })
   })
 
@@ -76,18 +76,14 @@ test('selecting another night updates the hourly chart', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /scores during darkness/ })).toBeVisible()
 })
 
-test('generates a star chart image from mocked API', async ({ page }) => {
+test('shows astronomy events and planet visibility after forecast', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('Address').fill('Denver, CO')
   await page.getByRole('button', { name: 'Get Forecast' }).click()
 
   await expect(page.getByTestId('night-card')).toHaveCount(7)
-  await page.getByTestId('generate-chart').click()
-
-  const chartImage = page.getByTestId('chart-image')
-  await expect(chartImage).toBeVisible()
-  await expect(chartImage).toHaveAttribute(
-    'src',
-    'https://example.com/finderscope-test-chart.png',
-  )
+  await expect(page.getByTestId('astronomy-panel')).toBeVisible()
+  await expect(page.getByTestId('astronomy-events-list')).toBeVisible()
+  await expect(page.getByTestId('planet-visibility-table')).toBeVisible()
+  await expect(page.getByTestId('planet-visibility-cell').first()).toBeVisible()
 })
