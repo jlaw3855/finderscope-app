@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 import astronomy
 from astronomy import (
     Body,
-    Direction,
     EclipseKind,
+    Equator,
+    Horizon,
     Observer,
+    Refraction,
     SearchLocalSolarEclipse,
     SearchLunarEclipse,
     SearchRelativeLongitude,
@@ -19,9 +21,14 @@ from astronomy import (
 )
 
 from app.models.astronomy import AstronomyEvent
-from app.services.astronomy_time import time_to_utc_datetime, utc_now_time
+from app.services.astronomy_time import local_datetime_to_time, time_to_utc_datetime, utc_now_time
+from app.services.meteor_showers import (
+    load_meteor_shower_catalog,
+    radiant_altitude,
+    sun_below_astronomical_twilight,
+)
 
-EVENT_WINDOW_DAYS = 30
+EVENT_WINDOW_DAYS = 90
 PLANET_CONJUNCTION_MAX_SEPARATION_DEG = 3.0
 PLANET_CONJUNCTION_PAIRS: list[tuple[Body, Body, str]] = [
     (Body.Venus, Body.Jupiter, "Venus and Jupiter"),
@@ -292,6 +299,82 @@ def _dedupe_events(events: list[AstronomyEvent]) -> list[AstronomyEvent]:
     return unique
 
 
+def _load_meteor_shower_catalog() -> list[dict]:
+    return load_meteor_shower_catalog()
+
+
+def _altitude_deg(body: Body, observer: Observer, moment: Time) -> float:
+    equator = Equator(body, moment, observer, ofdate=True, aberration=True)
+    horizon = Horizon(moment, observer, equator.ra, equator.dec, Refraction.Normal)
+    return horizon.altitude
+
+
+def _radiant_altitude(
+    observer: Observer,
+    ra_hours: float,
+    dec_deg: float,
+    moment: Time,
+) -> float:
+    return radiant_altitude(observer, ra_hours, dec_deg, moment)
+
+
+def _sun_below_astronomical_twilight(observer: Observer, moment: Time) -> bool:
+    return sun_below_astronomical_twilight(observer, moment)
+
+
+def _years_in_window(start: Time, end: Time) -> list[int]:
+    start_year = time_to_utc_datetime(start).year
+    end_year = time_to_utc_datetime(end).year
+    return list(range(start_year, end_year + 1))
+
+
+def _collect_meteor_showers(
+    start: Time,
+    end: Time,
+    observer: Observer,
+) -> list[AstronomyEvent]:
+    events: list[AstronomyEvent] = []
+    for shower in _load_meteor_shower_catalog():
+        for year in _years_in_window(start, end):
+            peak_date = date(year, shower["peak_month"], shower["peak_day"])
+            peak_dt = datetime(peak_date.year, peak_date.month, peak_date.day, 5, 0, tzinfo=timezone.utc)
+            peak_time = local_datetime_to_time(peak_dt)
+            if peak_time.ut < start.ut or peak_time.ut >= end.ut:
+                continue
+
+            radiant_alt = _radiant_altitude(
+                observer,
+                shower["radiant_ra_hours"],
+                shower["radiant_dec_deg"],
+                peak_time,
+            )
+            visible_locally = radiant_alt > 0 and _sun_below_astronomical_twilight(observer, peak_time)
+            peak_utc = time_to_utc_datetime(peak_time)
+            zhr = shower.get("zhr_nominal")
+            zhr_text = f" Nominal ZHR ~{zhr}." if zhr is not None else ""
+            constellation = shower.get("constellation")
+            title = shower["name"]
+            if constellation:
+                title = f"{shower['name']} ({constellation})"
+
+            events.append(
+                AstronomyEvent(
+                    id=_event_id("meteor_shower", shower["id"], str(peak_time.ut)),
+                    category="meteor_shower",
+                    title=title,
+                    start_at=peak_utc,
+                    peak_at=peak_utc,
+                    end_at=None,
+                    description=(
+                        f"Peak activity around {peak_date.isoformat()} with radiant altitude "
+                        f"{radiant_alt:.1f}° at sample time.{zhr_text}"
+                    ),
+                    visible_locally=visible_locally,
+                )
+            )
+    return events
+
+
 def search_astronomy_events(
     latitude: float,
     longitude: float,
@@ -310,5 +393,6 @@ def search_astronomy_events(
     events.extend(_collect_transits(start, end))
     events.extend(_collect_sun_relative_events(start, end))
     events.extend(_collect_planet_conjunctions(start, end))
+    events.extend(_collect_meteor_showers(start, end, observer))
 
     return _dedupe_events(events)

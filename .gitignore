@@ -7,6 +7,7 @@ backend/.pytest_cache/
 backend/htmlcov/
 backend/data/ephemeris/
 backend/data/moon_cache/
+backend/data/forecast_cache/
 *.pyc
 
 # Node
@@ -16,6 +17,11 @@ frontend/coverage/
 e2e/node_modules/
 e2e/test-results/
 e2e/playwright-report/
+e2e/screenshots/
+
+# Local meteor card preview (Playwright screenshot script; not part of CI)
+e2e/tests/screenshot-meteor-forecast-card.spec.ts
+e2e/fixtures/forecast-meteor-peak-preview.json
 
 # OS / IDE
 .DS_Store

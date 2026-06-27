@@ -11,7 +11,17 @@ AstronomyEventCategory = Literal[
     "transit",
     "conjunction",
     "opposition",
+    "meteor_shower",
 ]
+
+
+class SkySourceEnrichment(BaseModel):
+    query: str
+    short_name: str | None = None
+    types: list[str] = Field(default_factory=list)
+    interest: float | None = None
+    names: list[str] = Field(default_factory=list)
+    model: str | None = None
 
 
 class AstronomyRequest(BaseModel):
@@ -30,6 +40,7 @@ class AstronomyEvent(BaseModel):
     end_at: datetime | None = None
     description: str
     visible_locally: bool = True
+    subjects: list[SkySourceEnrichment] = Field(default_factory=list)
 
 
 class VisibilityWindow(BaseModel):
@@ -40,7 +51,8 @@ class VisibilityWindow(BaseModel):
 class PlanetVisibilityRow(BaseModel):
     body: str
     visible: bool
-    windows: list[VisibilityWindow]
+    windows_civil: list[VisibilityWindow] = Field(default_factory=list)
+    windows_astronomical: list[VisibilityWindow] = Field(default_factory=list)
     peak_altitude_deg: float | None = None
     peak_at: str | None = None
     magnitude: float | None = None

@@ -1,4 +1,4 @@
-import type { AstronomyEvent, AstronomyEventCategory } from '../types/astronomy'
+import type { AstronomyEvent, AstronomyEventCategory, SkySourceEnrichment } from '../types/astronomy'
 
 const CATEGORY_LABELS: Record<AstronomyEventCategory, string> = {
   lunar_eclipse: 'Lunar eclipse',
@@ -6,6 +6,7 @@ const CATEGORY_LABELS: Record<AstronomyEventCategory, string> = {
   transit: 'Transit',
   conjunction: 'Conjunction',
   opposition: 'Opposition',
+  meteor_shower: 'Meteor shower',
 }
 
 export function formatEventCategory(category: AstronomyEventCategory): string {
@@ -33,11 +34,22 @@ export function formatNightColumnDate(dateStr: string): string {
   })
 }
 
-export function formatVisibilityWindows(windows: { start: string; end: string }[]): string {
-  if (windows.length === 0) {
-    return '—'
+export function formatVisibilityWindows(
+  civil: { start: string; end: string }[],
+  astronomical: { start: string; end: string }[],
+): string {
+  const parts: string[] = []
+  if (civil.length > 0) {
+    parts.push(
+      `civil: ${civil.map((window) => `${window.start} – ${window.end}`).join('; ')}`,
+    )
   }
-  return windows.map((window) => `${window.start} – ${window.end}`).join('; ')
+  if (astronomical.length > 0) {
+    parts.push(
+      `astro: ${astronomical.map((window) => `${window.start} – ${window.end}`).join('; ')}`,
+    )
+  }
+  return parts.length > 0 ? parts.join(' · ') : '—'
 }
 
 export function formatMagnitude(value: number | null): string {
@@ -55,7 +67,32 @@ export function formatPeakAltitude(value: number | null): string {
 }
 
 export function eventCategoryClass(category: AstronomyEventCategory): string {
-  return `astronomy-event--${category.replace('_', '-')}`
+  return `astronomy-event--${category.replace(/_/g, '-')}`
+}
+
+export function formatSubjectTypes(subject: SkySourceEnrichment): string {
+  if (subject.types.length === 0) {
+    return subject.short_name ?? subject.query
+  }
+  return subject.types.join(', ')
+}
+
+export function formatSubjectInterest(interest: number | null): string | null {
+  if (interest == null) {
+    return null
+  }
+  return `Interest ${interest.toFixed(1)}`
+}
+
+export function formatSubjectAliases(subject: SkySourceEnrichment): string | null {
+  if (subject.names.length <= 1) {
+    return null
+  }
+  const aliases = subject.names.filter((name) => name !== subject.short_name).slice(0, 3)
+  if (aliases.length === 0) {
+    return null
+  }
+  return aliases.join(' · ')
 }
 
 export function sortEventsByStart(events: AstronomyEvent[]): AstronomyEvent[] {

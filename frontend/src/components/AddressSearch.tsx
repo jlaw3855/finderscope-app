@@ -15,10 +15,17 @@ export function AddressSearch({ onSearch, loading }: AddressSearchProps) {
 
   return (
     <section className="panel search-panel">
-      <h1>Finderscope</h1>
-      <p className="subtitle">
-        Enter an address to see stargazing conditions for the next week and generate a custom sky map.
-      </p>
+      <header className="app-header">
+        <h1>Finderscope</h1>
+        <p className="subtitle">
+          Enter an address for a 7-night stargazing forecast and local astronomy summary at
+          your location.
+        </p>
+        <p className="app-capabilities muted">
+          Night scores during darkness · 3-month events timeline · Planet visibility · Meteor
+          shower peak nights
+        </p>
+      </header>
       <form className="search-form" onSubmit={handleSubmit}>
         <input
           type="text"

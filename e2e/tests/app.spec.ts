@@ -76,14 +76,23 @@ test('selecting another night updates the hourly chart', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /scores during darkness/ })).toBeVisible()
 })
 
-test('shows astronomy events and planet visibility after forecast', async ({ page }) => {
+test('shows astronomy events and planet timeline after forecast', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('Address').fill('Denver, CO')
   await page.getByRole('button', { name: 'Get Forecast' }).click()
 
   await expect(page.getByTestId('night-card')).toHaveCount(7)
+  await expect(page.getByTestId('meteor-shower-badges')).toBeVisible()
+  await expect(page.getByTestId('meteor-shower-badges').getByText('Perseids')).toBeVisible()
   await expect(page.getByTestId('astronomy-panel')).toBeVisible()
   await expect(page.getByTestId('astronomy-events-list')).toBeVisible()
-  await expect(page.getByTestId('planet-visibility-table')).toBeVisible()
-  await expect(page.getByTestId('planet-visibility-cell').first()).toBeVisible()
+  await expect(page.getByTestId('planet-timeline-date-select')).toBeVisible()
+  await expect(page.getByTestId('planet-visibility-timeline')).toBeVisible()
+  await expect(page.getByTestId('planet-timeline-darkness').first()).toBeVisible()
+  await expect(page.getByTestId('planet-timeline-segment').first()).toBeVisible()
+  await expect(page.getByTestId('planet-visibility-details')).toBeVisible()
+
+  await page.getByTestId('planet-timeline-date-select').selectOption({ index: 1 })
+  await expect(page.getByTestId('planet-visibility-timeline')).toBeVisible()
+  await expect(page.getByTestId('planet-timeline-darkness')).toHaveCount(2)
 })

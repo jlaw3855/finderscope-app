@@ -71,6 +71,24 @@ export function NightForecastCard({
         <span className={`rating-badge ${ratingClass(night.rating)}`}>{night.rating}</span>
       </div>
 
+      {night.meteor_showers.length > 0 && (
+        <div className="meteor-shower-badges" data-testid="meteor-shower-badges">
+          {night.meteor_showers.map((shower) => (
+            <span
+              key={shower.id}
+              className="meteor-shower-badge"
+              title={
+                shower.zhr_nominal != null
+                  ? `${shower.name} peak · nominal ZHR ~${shower.zhr_nominal}`
+                  : `${shower.name} peak`
+              }
+            >
+              {shower.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       {night.no_darkness ? (
         <p className="night-detail muted">No astronomical darkness this night.</p>
       ) : (

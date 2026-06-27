@@ -14,7 +14,7 @@ from app.models.forecast import (
     PrecipitationBreakdown,
     TimeWindow,
 )
-from app.services import moon_position
+from app.services import moon_position, meteor_showers
 
 # * WMO weather codes that indicate poor stargazing conditions.
 BAD_WEATHER_CODES = {
@@ -592,10 +592,37 @@ def _weather_at_slot(
     return wx
 
 
+def _dark_window_from_astronomy_day(day: dict) -> TimeWindow | None:
+    night_begin = day.get("night_begin")
+    night_end = day.get("night_end") or day.get("morning", {}).get("astronomical_twilight_end")
+    if not night_begin or not night_end:
+        return None
+    return TimeWindow(start=night_begin, end=night_end)
+
+
+def _in_forecast_window(
+    day_date: str,
+    forecast_start: date | None,
+    forecast_end: date | None,
+) -> bool:
+    if forecast_start is None and forecast_end is None:
+        return True
+    if not day_date:
+        return False
+    parsed = date.fromisoformat(day_date)
+    if forecast_start is not None and parsed < forecast_start:
+        return False
+    if forecast_end is not None and parsed > forecast_end:
+        return False
+    return True
+
+
 def build_forecast(
     location_data: dict,
     time_series_data: dict,
     weather_data: dict,
+    forecast_start: date | None = None,
+    forecast_end: date | None = None,
 ) -> ForecastResponse:
     """Combine IPGeolocation and Open-Meteo data into a 7-day stargazing forecast."""
     location_block = location_data.get("location", {})
@@ -619,8 +646,17 @@ def build_forecast(
     moon_anchor = _moon_anchor_from_single_day(location_data)
     nights: list[NightForecast] = []
 
+    prior_day_dark_window: TimeWindow | None = None
+    if forecast_start is not None:
+        prior_day = astronomy_by_date.get((forecast_start - timedelta(days=1)).isoformat())
+        if prior_day:
+            prior_day_dark_window = _dark_window_from_astronomy_day(prior_day)
+
     for day in astronomy_days:
         day_date = day.get("date", "")
+        if not _in_forecast_window(day_date, forecast_start, forecast_end):
+            continue
+
         night_begin = day.get("night_begin")
         night_end = day.get("night_end") or day.get("morning", {}).get("astronomical_twilight_end")
 
@@ -642,6 +678,14 @@ def build_forecast(
             continue
 
         dark_window = TimeWindow(start=night_begin, end=night_end)
+        night_meteor_showers = meteor_showers.meteor_highlights_for_night(
+            latitude,
+            longitude,
+            timezone,
+            day_date,
+            night_begin,
+            night_end,
+        )
         hourly_scores: list[HourlyScore] = []
 
         for slot_dt in score_slots:
@@ -725,6 +769,7 @@ def build_forecast(
                 dark_window=dark_window,
                 best_hours=_find_best_hours(hourly_scores),
                 hourly=hourly_scores,
+                meteor_showers=night_meteor_showers,
             )
         )
 
@@ -737,4 +782,5 @@ def build_forecast(
         ),
         nights=nights,
         score_step_minutes=score_step_minutes,
+        prior_day_dark_window=prior_day_dark_window,
     )

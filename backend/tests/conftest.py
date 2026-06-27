@@ -54,6 +54,8 @@ def fake_settings() -> Settings:
     return Settings(
         ipgeolocation_api_key="test-ipgeo-key",
         cors_origins="http://localhost:5173",
+        forecast_cache_enabled=False,
+        noctua_enrichment_enabled=False,
     )
 
 

@@ -4,6 +4,16 @@ export type AstronomyEventCategory =
   | 'transit'
   | 'conjunction'
   | 'opposition'
+  | 'meteor_shower'
+
+export interface SkySourceEnrichment {
+  query: string
+  short_name: string | null
+  types: string[]
+  interest: number | null
+  names: string[]
+  model: string | null
+}
 
 export interface AstronomyEvent {
   id: string
@@ -14,6 +24,7 @@ export interface AstronomyEvent {
   end_at: string | null
   description: string
   visible_locally: boolean
+  subjects: SkySourceEnrichment[]
 }
 
 export interface VisibilityWindow {
@@ -24,7 +35,8 @@ export interface VisibilityWindow {
 export interface PlanetVisibilityRow {
   body: string
   visible: boolean
-  windows: VisibilityWindow[]
+  windows_civil: VisibilityWindow[]
+  windows_astronomical: VisibilityWindow[]
   peak_altitude_deg: number | null
   peak_at: string | null
   magnitude: number | null

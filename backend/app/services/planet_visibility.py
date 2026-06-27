@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import astronomy
-from astronomy import Body, Direction, Equator, Horizon, Illumination, Observer, Refraction, SearchRiseSet, Time
+from astronomy import Body, Direction, Equator, Horizon, Illumination, Observer, Refraction, SearchAltitude, SearchRiseSet, Time
 
 from app.models.astronomy import PlanetDayVisibility, PlanetVisibilityRow, VisibilityWindow
 from app.services.astronomy_time import (
     calendar_day_bounds,
     time_to_local_hhmm,
-    time_to_utc_datetime,
 )
 
 NAKED_EYE_BODIES: list[tuple[Body, str]] = [
@@ -26,6 +24,10 @@ TELESCOPE_BODIES: list[tuple[Body, str]] = [
 ]
 
 SAMPLE_INTERVAL_MINUTES = 30
+
+# * Sun altitude thresholds for observable sky darkness (degrees below horizon).
+CIVIL_TWILIGHT_SUN_ALTITUDE_DEG = -6.0
+ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG = -18.0
 
 
 def _altitude_deg(body: Body, observer: Observer, moment: Time) -> float:
@@ -47,7 +49,7 @@ def _clip_window(
     return Time(start_ut), Time(end_ut)
 
 
-def _collect_day_windows(
+def _collect_above_horizon_windows(
     body: Body,
     observer: Observer,
     day_start: Time,
@@ -89,6 +91,99 @@ def _collect_day_windows(
     return windows
 
 
+def _collect_sun_below_windows(
+    observer: Observer,
+    day_start: Time,
+    day_end: Time,
+    altitude_limit: float,
+) -> list[tuple[Time, Time]]:
+    """Intervals on the calendar day when the Sun is below altitude_limit."""
+    span_days = max((day_end.ut - day_start.ut) + 1.0, 1.5)
+    windows: list[tuple[Time, Time]] = []
+
+    alt_at_start = _altitude_deg(Body.Sun, observer, day_start)
+    cursor = day_start
+
+    if alt_at_start < altitude_limit:
+        rise = SearchAltitude(
+            Body.Sun, observer, Direction.Rise, day_start, span_days, altitude_limit
+        )
+        if rise is None or rise.ut > day_end.ut:
+            clipped = _clip_window(day_start, day_end, day_start, day_end)
+            return [clipped] if clipped else []
+        clipped = _clip_window(day_start, rise, day_start, day_end)
+        if clipped:
+            windows.append(clipped)
+        cursor = rise
+
+    while cursor.ut <= day_end.ut:
+        set_time = SearchAltitude(
+            Body.Sun, observer, Direction.Set, cursor, span_days, altitude_limit
+        )
+        if set_time is None or set_time.ut > day_end.ut:
+            break
+        rise = SearchAltitude(
+            Body.Sun, observer, Direction.Rise, set_time, span_days, altitude_limit
+        )
+        if rise is None:
+            clipped = _clip_window(set_time, day_end, day_start, day_end)
+            if clipped:
+                windows.append(clipped)
+            break
+        clipped = _clip_window(set_time, rise, day_start, day_end)
+        if clipped:
+            windows.append(clipped)
+        if rise.ut >= day_end.ut:
+            break
+        cursor = rise
+
+    return windows
+
+
+def _intersect_windows(
+    left: list[tuple[Time, Time]],
+    right: list[tuple[Time, Time]],
+) -> list[tuple[Time, Time]]:
+    intersections: list[tuple[Time, Time]] = []
+    for left_start, left_end in left:
+        for right_start, right_end in right:
+            start_ut = max(left_start.ut, right_start.ut)
+            end_ut = min(left_end.ut, right_end.ut)
+            if start_ut <= end_ut:
+                intersections.append((Time(start_ut), Time(end_ut)))
+    return intersections
+
+
+def _merge_time_windows(windows: list[tuple[Time, Time]]) -> list[tuple[Time, Time]]:
+    if not windows:
+        return []
+
+    sorted_windows = sorted(windows, key=lambda entry: entry[0].ut)
+    merged: list[tuple[Time, Time]] = [sorted_windows[0]]
+
+    for window_start, window_end in sorted_windows[1:]:
+        last_start, last_end = merged[-1]
+        if window_start.ut <= last_end.ut:
+            merged[-1] = (last_start, Time(max(last_end.ut, window_end.ut)))
+            continue
+        merged.append((window_start, window_end))
+
+    return merged
+
+
+def _to_visibility_windows(
+    windows: list[tuple[Time, Time]],
+    timezone_name: str,
+) -> list[VisibilityWindow]:
+    return [
+        VisibilityWindow(
+            start=time_to_local_hhmm(start, timezone_name),
+            end=time_to_local_hhmm(end, timezone_name),
+        )
+        for start, end in windows
+    ]
+
+
 def _peak_within_windows(
     body: Body,
     observer: Observer,
@@ -126,21 +221,29 @@ def _visibility_row(
     day_end: Time,
     timezone_name: str,
 ) -> PlanetVisibilityRow:
-    raw_windows = _collect_day_windows(body, observer, day_start, day_end)
-    windows = [
-        VisibilityWindow(
-            start=time_to_local_hhmm(start, timezone_name),
-            end=time_to_local_hhmm(end, timezone_name),
-        )
-        for start, end in raw_windows
-    ]
-    peak_alt, peak_at, magnitude = _peak_within_windows(
-        body, observer, raw_windows, timezone_name
+    horizon_windows = _collect_above_horizon_windows(body, observer, day_start, day_end)
+    civil_sun_windows = _collect_sun_below_windows(
+        observer, day_start, day_end, CIVIL_TWILIGHT_SUN_ALTITUDE_DEG
     )
+    astronomical_sun_windows = _collect_sun_below_windows(
+        observer, day_start, day_end, ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
+    )
+
+    civil_windows = _merge_time_windows(_intersect_windows(horizon_windows, civil_sun_windows))
+    astronomical_windows = _merge_time_windows(
+        _intersect_windows(horizon_windows, astronomical_sun_windows)
+    )
+
+    peak_windows = astronomical_windows or civil_windows
+    peak_alt, peak_at, magnitude = _peak_within_windows(
+        body, observer, peak_windows, timezone_name
+    )
+
     return PlanetVisibilityRow(
         body=label,
-        visible=len(windows) > 0,
-        windows=windows,
+        visible=len(civil_windows) > 0,
+        windows_civil=_to_visibility_windows(civil_windows, timezone_name),
+        windows_astronomical=_to_visibility_windows(astronomical_windows, timezone_name),
         peak_altitude_deg=peak_alt,
         peak_at=peak_at,
         magnitude=magnitude,

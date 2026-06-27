@@ -67,9 +67,12 @@ function App() {
 
           <AstronomyEventsPanel
             timezone={forecast.location.timezone}
+            nights={forecast.nights}
+            priorDayDarkWindow={forecast.prior_day_dark_window}
             data={astronomy}
             loading={astronomyLoading}
             error={astronomyError}
+            selectedNightDate={selectedNight?.date ?? null}
           />
         </>
       )}

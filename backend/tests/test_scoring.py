@@ -405,3 +405,27 @@ class TestBuildForecast:
 
         assert half_hour.cloud_cover == pytest.approx(20)
         assert half_hour.precipitation == pytest.approx(0.0)
+
+    def test_prior_day_dark_window_from_extended_time_series(self, load_fixture) -> None:
+        from datetime import date
+
+        location_data = load_fixture("location.json")
+        weather_data = load_fixture("weather.json")
+        base_day = load_fixture("time_series.json")["astronomy"][0]
+        prior_day = {**base_day, "date": "2025-06-19"}
+        time_series_data = {
+            "astronomy": [prior_day, *load_fixture("time_series.json")["astronomy"]],
+        }
+
+        result = build_forecast(
+            location_data,
+            time_series_data,
+            weather_data,
+            forecast_start=date(2025, 6, 20),
+            forecast_end=date(2025, 6, 21),
+        )
+
+        assert len(result.nights) == 2
+        assert result.prior_day_dark_window is not None
+        assert result.prior_day_dark_window.start == "21:30"
+        assert result.prior_day_dark_window.end == "04:45"

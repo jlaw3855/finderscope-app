@@ -56,6 +56,12 @@ class HourlyScore(BaseModel):
     temperature: float | None = None
 
 
+class MeteorShowerHighlight(BaseModel):
+    id: str
+    name: str
+    zhr_nominal: int | None = None
+
+
 class NightForecast(BaseModel):
     date: str
     rating: str
@@ -73,9 +79,11 @@ class NightForecast(BaseModel):
     best_hours: list[BestHourWindow] = Field(default_factory=list)
     hourly: list[HourlyScore] = Field(default_factory=list)
     no_darkness: bool = False
+    meteor_showers: list[MeteorShowerHighlight] = Field(default_factory=list)
 
 
 class ForecastResponse(BaseModel):
     location: LocationInfo
     nights: list[NightForecast]
     score_step_minutes: int = 60
+    prior_day_dark_window: TimeWindow | None = None
