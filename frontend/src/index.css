@@ -51,8 +51,18 @@ h2 {
 }
 
 .subtitle {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.65rem;
   color: #9aa8c0;
+}
+
+.app-header {
+  margin-bottom: 0.25rem;
+}
+
+.app-capabilities {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
 }
 
 .panel {
@@ -223,6 +233,23 @@ button:disabled {
   border-radius: 999px;
   background: rgba(126, 200, 240, 0.15);
   color: #9fd6f7;
+}
+
+.meteor-shower-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.meteor-shower-badge {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.18);
+  color: #e8c96a;
+  border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
 .night-date {
@@ -839,6 +866,34 @@ button:disabled {
   background: #6b8cff;
 }
 
+.astronomy-event--meteor-shower .astronomy-event-marker {
+  background: #c9a227;
+}
+
+.astronomy-event-subjects {
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.astronomy-event-subject {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.astronomy-event-subject-type {
+  color: #b8c8e8;
+}
+
+.astronomy-event-subject-interest {
+  font-size: 0.75rem;
+}
+
 .astronomy-event-card {
   background: rgba(8, 12, 24, 0.55);
   border: 1px solid rgba(100, 130, 200, 0.18);
@@ -885,66 +940,222 @@ button:disabled {
   line-height: 1.45;
 }
 
-.planet-visibility-scroll {
-  overflow-x: auto;
+.planet-timeline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.planet-visibility-table {
-  width: 100%;
-  min-width: 42rem;
-  border-collapse: collapse;
+.planet-timeline-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #9aa8c0;
+}
+
+.planet-timeline-select {
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 130, 200, 0.25);
+  background: rgba(8, 12, 24, 0.8);
+  color: #e8edf5;
+  font-size: 0.9rem;
+}
+
+.planet-timeline {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.planet-timeline-axis-row,
+.planet-timeline-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.planet-timeline-axis-row {
+  margin-bottom: 0.35rem;
+}
+
+.planet-timeline-label--axis {
+  visibility: hidden;
+}
+
+.planet-timeline-axis {
+  position: relative;
+  height: 1.5rem;
+}
+
+.planet-timeline-axis-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: #8a96ad;
+  white-space: nowrap;
+}
+
+.planet-timeline-track {
+  position: relative;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgba(8, 12, 24, 0.55);
+  border: 1px solid rgba(100, 130, 200, 0.12);
+}
+
+.planet-timeline-darkness {
+  position: absolute;
+  top: 0.12rem;
+  bottom: 0.12rem;
+  border-radius: 999px;
+  background: rgba(88, 72, 180, 0.35);
+  border: 1px solid rgba(130, 110, 220, 0.45);
+  min-width: 2px;
+}
+
+.planet-timeline-row--darkness .planet-timeline-label {
+  color: #9aa8c0;
   font-size: 0.82rem;
 }
 
-.planet-visibility-table th,
-.planet-visibility-table td {
-  border: 1px solid rgba(100, 130, 200, 0.15);
-  padding: 0.55rem 0.45rem;
-  vertical-align: top;
-  text-align: left;
+.planet-timeline-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
-.planet-visibility-table thead th {
-  background: rgba(12, 18, 32, 0.85);
-  font-weight: 600;
-}
-
-.planet-row--telescope th {
+.planet-timeline-row--telescope .planet-timeline-label {
   color: #7a879c;
 }
 
-.planet-cell {
-  min-width: 7rem;
+.planet-timeline-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
 }
 
-.planet-cell--visible .planet-visible-label {
+.planet-timeline-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.planet-timeline-swatch--darkness {
+  background: rgba(88, 72, 180, 0.45);
+  border: 1px solid rgba(130, 110, 220, 0.45);
+}
+
+.planet-timeline-swatch--civil {
+  background: rgba(120, 140, 200, 0.35);
+  border: 1px solid rgba(150, 170, 220, 0.45);
+}
+
+.planet-timeline-swatch--astronomical {
+  background: rgba(88, 72, 180, 0.85);
+  border: 1px solid rgba(130, 110, 220, 0.55);
+}
+
+.planet-timeline-segment {
+  position: absolute;
+  top: 0.12rem;
+  bottom: 0.12rem;
+  border-radius: 999px;
+  min-width: 2px;
+}
+
+.planet-timeline-segment--civil {
+  opacity: 0.35;
+  z-index: 1;
+}
+
+.planet-timeline-segment--astronomical {
+  opacity: 1;
+  z-index: 2;
+}
+
+.planet-timeline-row--telescope .planet-timeline-segment--civil {
+  opacity: 0.25;
+}
+
+.planet-timeline-row--telescope .planet-timeline-segment--astronomical {
+  opacity: 0.55;
+}
+
+.planet-timeline-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+}
+
+.planet-timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.78rem;
+  color: #9aa8c0;
+}
+
+.planet-timeline-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.planet-timeline-details {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.planet-timeline-detail-row {
+  display: grid;
+  grid-template-columns: 5.5rem 5.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.82rem;
+}
+
+.planet-timeline-detail-name {
+  font-weight: 600;
+}
+
+.planet-timeline-detail-visible {
   color: #8fd6a8;
   font-weight: 600;
 }
 
-.planet-cell--hidden .planet-visible-label {
-  color: #8a96ad;
-}
-
-.planet-windows {
-  display: block;
-  margin-top: 0.25rem;
+.planet-timeline-detail-meta {
   font-size: 0.78rem;
 }
 
-.planet-altitude-bar {
-  display: block;
-  height: 4px;
-  margin-top: 0.35rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #4a7cff, #8fd6a8);
-  max-width: 100%;
-}
-
-.planet-peak {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.74rem;
-}
-
 @media (max-width: 600px) {
+  .planet-timeline-detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  #root {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-form button {
+    width: 100%;
+  }
+}

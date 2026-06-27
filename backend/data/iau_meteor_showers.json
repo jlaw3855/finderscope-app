@@ -1,0 +1,82 @@
+[
+  {
+    "id": "QUA",
+    "name": "Quadrantids",
+    "constellation": "Boötes",
+    "peak_month": 1,
+    "peak_day": 3,
+    "radiant_ra_hours": 15.28,
+    "radiant_dec_deg": 49.5,
+    "zhr_nominal": 110
+  },
+  {
+    "id": "LRY",
+    "name": "Lyrids",
+    "constellation": "Lyra",
+    "peak_month": 4,
+    "peak_day": 22,
+    "radiant_ra_hours": 18.1,
+    "radiant_dec_deg": 34.0,
+    "zhr_nominal": 18
+  },
+  {
+    "id": "ETA",
+    "name": "Eta Aquariids",
+    "constellation": "Aquarius",
+    "peak_month": 5,
+    "peak_day": 5,
+    "radiant_ra_hours": 22.5,
+    "radiant_dec_deg": -1.0,
+    "zhr_nominal": 50
+  },
+  {
+    "id": "PER",
+    "name": "Perseids",
+    "constellation": "Perseus",
+    "peak_month": 8,
+    "peak_day": 12,
+    "radiant_ra_hours": 3.07,
+    "radiant_dec_deg": 58.0,
+    "zhr_nominal": 100
+  },
+  {
+    "id": "ORI",
+    "name": "Orionids",
+    "constellation": "Orion",
+    "peak_month": 10,
+    "peak_day": 21,
+    "radiant_ra_hours": 6.23,
+    "radiant_dec_deg": 16.0,
+    "zhr_nominal": 20
+  },
+  {
+    "id": "LEO",
+    "name": "Leonids",
+    "constellation": "Leo",
+    "peak_month": 11,
+    "peak_day": 17,
+    "radiant_ra_hours": 10.17,
+    "radiant_dec_deg": 22.0,
+    "zhr_nominal": 15
+  },
+  {
+    "id": "GEM",
+    "name": "Geminids",
+    "constellation": "Gemini",
+    "peak_month": 12,
+    "peak_day": 14,
+    "radiant_ra_hours": 7.33,
+    "radiant_dec_deg": 32.0,
+    "zhr_nominal": 150
+  },
+  {
+    "id": "URS",
+    "name": "Ursids",
+    "constellation": "Ursa Minor",
+    "peak_month": 12,
+    "peak_day": 22,
+    "radiant_ra_hours": 14.33,
+    "radiant_dec_deg": 75.0,
+    "zhr_nominal": 10
+  }
+]

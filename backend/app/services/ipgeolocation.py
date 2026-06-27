@@ -71,6 +71,12 @@ def default_date_range() -> tuple[date, date]:
     return today, today + timedelta(days=6)
 
 
+def time_series_date_range() -> tuple[date, date]:
+    """Forecast window plus one prior day for pre-dawn darkness on the first night."""
+    start, end = default_date_range()
+    return start - timedelta(days=1), end
+
+
 def weather_forecast_days(start: date, end: date) -> int:
     """Open-Meteo days needed to cover each night's pre-dawn hours on the following day."""
     return (end - start).days + 2

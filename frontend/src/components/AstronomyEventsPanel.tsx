@@ -1,40 +1,99 @@
+import { useEffect, useMemo, useState } from 'react'
+
 import type { AstronomyResponse } from '../types/astronomy'
-import { NAKED_EYE_PLANETS, TELESCOPE_PLANETS } from '../types/astronomy'
 import {
-  altitudeBarPercent,
   formatEventCategory,
   formatEventDate,
-  formatMagnitude,
   formatNightColumnDate,
-  formatPeakAltitude,
-  formatVisibilityWindows,
+  formatSubjectAliases,
+  formatSubjectInterest,
+  formatSubjectTypes,
   eventCategoryClass,
   sortEventsByStart,
 } from '../lib/astronomy-format'
+import {
+  darknessSegmentsForCalendarDay,
+} from '../lib/planet-timeline-layout'
+import type { NightForecast, TimeWindow } from '../types/forecast'
+import {
+  PlanetDayDetails,
+  PlanetTimelineLegend,
+  PlanetVisibilityTimeline,
+} from './PlanetVisibilityTimeline'
 
 interface AstronomyEventsPanelProps {
   timezone: string
+  nights: NightForecast[]
+  priorDayDarkWindow?: TimeWindow | null
   data: AstronomyResponse | null
   loading: boolean
   error: string | null
+  selectedNightDate?: string | null
 }
-
-const ALL_PLANET_ROWS = [...NAKED_EYE_PLANETS, ...TELESCOPE_PLANETS]
 
 export function AstronomyEventsPanel({
   timezone,
+  nights,
+  priorDayDarkWindow,
   data,
   loading,
   error,
+  selectedNightDate,
 }: AstronomyEventsPanelProps) {
   const events = sortEventsByStart(data?.events ?? [])
   const planetDays = data?.planet_visibility ?? []
+  const availableDatesKey = useMemo(
+    () => data?.planet_visibility.map((day) => day.date).join(',') ?? '',
+    [data],
+  )
+  const availableDates = useMemo(
+    () => (availableDatesKey ? availableDatesKey.split(',') : []),
+    [availableDatesKey],
+  )
+  const [selectedDate, setSelectedDate] = useState<string>('')
+
+  useEffect(() => {
+    if (availableDates.length === 0) {
+      setSelectedDate('')
+      return
+    }
+
+    const defaultDate =
+      selectedNightDate && availableDates.includes(selectedNightDate)
+        ? selectedNightDate
+        : availableDates[0]
+    setSelectedDate(defaultDate)
+  }, [availableDatesKey])
+
+  useEffect(() => {
+    if (!selectedNightDate || !availableDates.includes(selectedNightDate)) {
+      return
+    }
+    setSelectedDate(selectedNightDate)
+  }, [selectedNightDate, availableDatesKey])
+
+  const selectedDay = planetDays.find((day) => day.date === selectedDate)
+  const selectedNight = nights.find((night) => night.date === selectedDate)
+  const firstForecastDate = nights[0]?.date
+  const darknessSegments = selectedDate
+    ? darknessSegmentsForCalendarDay(selectedDate, nights, {
+        priorDayDarkWindow,
+        firstForecastDate,
+      })
+    : []
+  const showNextDaySpilloverHint =
+    availableDates.length > 0 &&
+    selectedDate === availableDates[0] &&
+    Boolean(selectedNight?.dark_window && !selectedNight.no_darkness)
 
   return (
     <section className="panel astronomy-panel" data-testid="astronomy-panel">
       <header className="astronomy-panel-header">
         <h2>Astronomy</h2>
-        <p className="muted">Next 30 days of events and 7-day planet visibility for this location.</p>
+        <p className="muted">
+          Next 3 months of events and a 24-hour planet visibility timeline with astronomical darkness
+          overlay.
+        </p>
       </header>
 
       {loading && <p className="muted astronomy-status">Loading astronomy data…</p>}
@@ -50,7 +109,7 @@ export function AstronomyEventsPanel({
             <h3 id="astronomy-events-heading">Events timeline</h3>
             {events.length === 0 ? (
               <p className="muted astronomy-empty" data-testid="astronomy-events-empty">
-                No notable astronomy events in the next 30 days.
+                No notable astronomy events in the next 3 months.
               </p>
             ) : (
               <ol className="astronomy-timeline" data-testid="astronomy-events-list">
@@ -75,6 +134,27 @@ export function AstronomyEventsPanel({
                         {formatEventDate(event.start_at, timezone)}
                       </p>
                       <p className="astronomy-event-description">{event.description}</p>
+                      {event.subjects.length > 0 && (
+                        <ul className="astronomy-event-subjects" data-testid="astronomy-event-subjects">
+                          {event.subjects.map((subject) => {
+                            const interest = formatSubjectInterest(subject.interest)
+                            const aliases = formatSubjectAliases(subject)
+                            return (
+                              <li key={`${event.id}-${subject.query}`} className="astronomy-event-subject">
+                                <span className="astronomy-event-subject-type">
+                                  {formatSubjectTypes(subject)}
+                                </span>
+                                {interest && (
+                                  <span className="astronomy-event-subject-interest muted">{interest}</span>
+                                )}
+                                {aliases && (
+                                  <span className="astronomy-event-subject-aliases muted">{aliases}</span>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -85,76 +165,44 @@ export function AstronomyEventsPanel({
           <section className="astronomy-section" aria-labelledby="planet-visibility-heading">
             <h3 id="planet-visibility-heading">Planet visibility</h3>
             <p className="muted astronomy-section-note">
-              Visible when above the horizon at any time on each forecast night (local time).
+              Select a forecast night to view planet visibility when the Sun is below civil twilight
+              (−6°) and astronomical twilight (−18°). Shaded bands show forecast astronomical darkness
+              clipped to that day; pre-dawn darkness from the prior night appears on the following day.
             </p>
-            <div className="planet-visibility-scroll">
-              <table className="planet-visibility-table" data-testid="planet-visibility-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Planet</th>
-                    {planetDays.map((day) => (
-                      <th key={day.date} scope="col">
-                        {formatNightColumnDate(day.date)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {ALL_PLANET_ROWS.map((planetName) => {
-                    const isTelescope = TELESCOPE_PLANETS.includes(
-                      planetName as (typeof TELESCOPE_PLANETS)[number],
-                    )
-                    return (
-                      <tr
-                        key={planetName}
-                        className={isTelescope ? 'planet-row--telescope' : undefined}
-                      >
-                        <th scope="row">{planetName}</th>
-                        {planetDays.map((day) => {
-                          const row = day.planets.find((planet) => planet.body === planetName)
-                          if (!row) {
-                            return (
-                              <td key={`${day.date}-${planetName}`} className="planet-cell">
-                                —
-                              </td>
-                            )
-                          }
-                          return (
-                            <td
-                              key={`${day.date}-${planetName}`}
-                              className={`planet-cell ${row.visible ? 'planet-cell--visible' : 'planet-cell--hidden'}`}
-                              data-testid="planet-visibility-cell"
-                            >
-                              <span className="planet-visible-label">
-                                {row.visible ? 'Visible' : 'Not visible'}
-                              </span>
-                              {row.visible && (
-                                <>
-                                  <span className="planet-windows">
-                                    {formatVisibilityWindows(row.windows)}
-                                  </span>
-                                  <span
-                                    className="planet-altitude-bar"
-                                    aria-hidden="true"
-                                    style={{ width: `${altitudeBarPercent(row.peak_altitude_deg)}%` }}
-                                  />
-                                  <span className="planet-peak muted">
-                                    Peak {formatPeakAltitude(row.peak_altitude_deg)}
-                                    {row.peak_at ? ` at ${row.peak_at}` : ''}
-                                    {' · mag '}
-                                    {formatMagnitude(row.magnitude)}
-                                  </span>
-                                </>
-                              )}
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+
+            {availableDates.length > 0 && selectedDay && (
+              <>
+                <div className="planet-timeline-controls">
+                  <label htmlFor="planet-timeline-date-select">
+                    Forecast night
+                    <select
+                      id="planet-timeline-date-select"
+                      className="planet-timeline-select"
+                      data-testid="planet-timeline-date-select"
+                      value={selectedDate}
+                      onChange={(event) => setSelectedDate(event.target.value)}
+                    >
+                      {availableDates.map((date) => (
+                        <option key={date} value={date}>
+                          {formatNightColumnDate(date)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <PlanetVisibilityTimeline
+                  date={selectedDate}
+                  planets={selectedDay.planets}
+                  darknessSegments={darknessSegments}
+                  noDarkness={selectedNight?.no_darkness === true}
+                  showNextDaySpilloverHint={showNextDaySpilloverHint}
+                />
+
+                <PlanetTimelineLegend />
+                <PlanetDayDetails planets={selectedDay.planets} />
+              </>
+            )}
           </section>
         </>
       )}

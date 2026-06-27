@@ -7,14 +7,14 @@
   },
   "nights": [
     {
-      "date": "2025-06-20",
+      "date": "2026-08-09",
       "rating": "Excellent",
-      "score": 93,
+      "score": 95,
       "moon_phase": "WANING_GIBBOUS",
       "moon_illumination": 72.5,
       "moonrise": "23:00",
       "moonset": "04:00",
-      "moon_sky_glow_avg": 7.0,
+      "moon_sky_glow_avg": 2.0,
       "temperature_high": 28.0,
       "temperature_low": 12.0,
       "cloud_cover": {
@@ -36,17 +36,17 @@
         {
           "start": "21:30",
           "end": "04:30",
-          "score": 93
+          "score": 95
         }
       ],
       "hourly": [
         {
           "time": "21:30",
-          "at": "2025-06-20T21:30:00",
+          "at": "2026-08-09T21:30:00",
           "score": 98,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -34.9,
+          "moon_altitude": -23.2,
           "cloud_cover": 4.0,
           "cloud_cover_low": 1.0,
           "cloud_cover_mid": 1.0,
@@ -59,11 +59,11 @@
         },
         {
           "time": "22:00",
-          "at": "2025-06-20T22:00:00",
+          "at": "2026-08-09T22:00:00",
           "score": 98,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -33.0,
+          "moon_altitude": -24.2,
           "cloud_cover": 5.0,
           "cloud_cover_low": 1.0,
           "cloud_cover_mid": 2.0,
@@ -76,11 +76,11 @@
         },
         {
           "time": "22:30",
-          "at": "2025-06-20T22:30:00",
+          "at": "2026-08-09T22:30:00",
           "score": 98,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -30.4,
+          "moon_altitude": -24.5,
           "cloud_cover": 5.0,
           "cloud_cover_low": 1.0,
           "cloud_cover_mid": 2.0,
@@ -93,11 +93,11 @@
         },
         {
           "time": "23:00",
-          "at": "2025-06-20T23:00:00",
+          "at": "2026-08-09T23:00:00",
           "score": 97,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -27.1,
+          "moon_altitude": -24.2,
           "cloud_cover": 8.0,
           "cloud_cover_low": 2.0,
           "cloud_cover_mid": 2.0,
@@ -110,11 +110,11 @@
         },
         {
           "time": "23:30",
-          "at": "2025-06-20T23:30:00",
+          "at": "2026-08-09T23:30:00",
           "score": 96,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -23.4,
+          "moon_altitude": -23.2,
           "cloud_cover": 9.0,
           "cloud_cover_low": 2.0,
           "cloud_cover_mid": 2.0,
@@ -127,11 +127,11 @@
         },
         {
           "time": "00:00",
-          "at": "2025-06-21T00:00:00",
+          "at": "2026-08-10T00:00:00",
           "score": 96,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -19.2,
+          "moon_altitude": -21.6,
           "cloud_cover": 10.0,
           "cloud_cover_low": 2.0,
           "cloud_cover_mid": 2.0,
@@ -144,11 +144,11 @@
         },
         {
           "time": "00:30",
-          "at": "2025-06-21T00:30:00",
+          "at": "2026-08-10T00:30:00",
           "score": 96,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -14.7,
+          "moon_altitude": -19.4,
           "cloud_cover": 11.0,
           "cloud_cover_low": 3.0,
           "cloud_cover_mid": 3.0,
@@ -161,11 +161,11 @@
         },
         {
           "time": "01:00",
-          "at": "2025-06-21T01:00:00",
+          "at": "2026-08-10T01:00:00",
           "score": 95,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -9.9,
+          "moon_altitude": -16.6,
           "cloud_cover": 12.0,
           "cloud_cover_low": 3.0,
           "cloud_cover_mid": 3.0,
@@ -178,11 +178,11 @@
         },
         {
           "time": "01:30",
-          "at": "2025-06-21T01:30:00",
+          "at": "2026-08-10T01:30:00",
           "score": 95,
           "moon_illumination_effective": 0.0,
           "moon_up": false,
-          "moon_altitude": -4.9,
+          "moon_altitude": -13.4,
           "cloud_cover": 12.5,
           "cloud_cover_low": 3.0,
           "cloud_cover_mid": 3.0,
@@ -195,11 +195,11 @@
         },
         {
           "time": "02:00",
-          "at": "2025-06-21T02:00:00",
+          "at": "2026-08-10T02:00:00",
           "score": 95,
-          "moon_illumination_effective": 0.4,
-          "moon_up": true,
-          "moon_altitude": 0.3,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -9.8,
           "cloud_cover": 13.0,
           "cloud_cover_low": 3.0,
           "cloud_cover_mid": 3.0,
@@ -212,11 +212,11 @@
         },
         {
           "time": "02:30",
-          "at": "2025-06-21T02:30:00",
-          "score": 93,
-          "moon_illumination_effective": 7.2,
-          "moon_up": true,
-          "moon_altitude": 5.7,
+          "at": "2026-08-10T02:30:00",
+          "score": 95,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -5.8,
           "cloud_cover": 13.5,
           "cloud_cover_low": 3.5,
           "cloud_cover_mid": 3.5,
@@ -229,11 +229,11 @@
         },
         {
           "time": "03:00",
-          "at": "2025-06-21T03:00:00",
-          "score": 91,
-          "moon_illumination_effective": 14.1,
-          "moon_up": true,
-          "moon_altitude": 11.2,
+          "at": "2026-08-10T03:00:00",
+          "score": 94,
+          "moon_illumination_effective": 0.0,
+          "moon_up": false,
+          "moon_altitude": -1.4,
           "cloud_cover": 14.0,
           "cloud_cover_low": 4.0,
           "cloud_cover_mid": 4.0,
@@ -246,11 +246,11 @@
         },
         {
           "time": "03:30",
-          "at": "2025-06-21T03:30:00",
-          "score": 89,
-          "moon_illumination_effective": 21.0,
+          "at": "2026-08-10T03:30:00",
+          "score": 93,
+          "moon_illumination_effective": 4.0,
           "moon_up": true,
-          "moon_altitude": 16.8,
+          "moon_altitude": 3.1,
           "cloud_cover": 14.5,
           "cloud_cover_low": 4.0,
           "cloud_cover_mid": 4.0,
@@ -263,11 +263,11 @@
         },
         {
           "time": "04:00",
-          "at": "2025-06-21T04:00:00",
-          "score": 87,
-          "moon_illumination_effective": 27.7,
+          "at": "2026-08-10T04:00:00",
+          "score": 92,
+          "moon_illumination_effective": 10.0,
           "moon_up": true,
-          "moon_altitude": 22.5,
+          "moon_altitude": 8.0,
           "cloud_cover": 15.0,
           "cloud_cover_low": 4.0,
           "cloud_cover_mid": 4.0,
@@ -280,11 +280,11 @@
         },
         {
           "time": "04:30",
-          "at": "2025-06-21T04:30:00",
-          "score": 75,
-          "moon_illumination_effective": 34.2,
+          "at": "2026-08-10T04:30:00",
+          "score": 80,
+          "moon_illumination_effective": 16.3,
           "moon_up": true,
-          "moon_altitude": 28.1,
+          "moon_altitude": 13.0,
           "cloud_cover": 16.0,
           "cloud_cover_low": 4.0,
           "cloud_cover_mid": 4.0,
@@ -296,10 +296,11 @@
           "temperature": 16.0
         }
       ],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     },
     {
-      "date": "2025-06-21",
+      "date": "2026-08-10",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "LAST_QUARTER",
@@ -326,10 +327,11 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     },
     {
-      "date": "2025-06-22",
+      "date": "2026-08-11",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
@@ -356,10 +358,11 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     },
     {
-      "date": "2025-06-23",
+      "date": "2026-08-12",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "LAST_QUARTER",
@@ -386,10 +389,17 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": [
+        {
+          "id": "PER",
+          "name": "Perseids",
+          "zhr_nominal": 100
+        }
+      ]
     },
     {
-      "date": "2025-06-24",
+      "date": "2026-08-13",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
@@ -416,10 +426,11 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     },
     {
-      "date": "2025-06-25",
+      "date": "2026-08-14",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "LAST_QUARTER",
@@ -446,10 +457,11 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     },
     {
-      "date": "2025-06-26",
+      "date": "2026-08-15",
       "rating": "Poor",
       "score": 0,
       "moon_phase": "WANING_GIBBOUS",
@@ -476,8 +488,13 @@
       },
       "best_hours": [],
       "hourly": [],
-      "no_darkness": false
+      "no_darkness": false,
+      "meteor_showers": []
     }
   ],
-  "score_step_minutes": 30
+  "score_step_minutes": 30,
+  "prior_day_dark_window": {
+    "start": "21:30",
+    "end": "04:45"
+  }
 }

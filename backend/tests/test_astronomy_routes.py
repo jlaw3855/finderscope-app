@@ -34,7 +34,8 @@ class TestAstronomyRoute:
                     PlanetVisibilityRow(
                         body="Jupiter",
                         visible=True,
-                        windows=[{"start": "20:00", "end": "04:00"}],
+                        windows_civil=[{"start": "20:00", "end": "04:00"}],
+                        windows_astronomical=[{"start": "21:30", "end": "04:00"}],
                         peak_altitude_deg=45.0,
                         peak_at="23:00",
                         magnitude=-2.1,

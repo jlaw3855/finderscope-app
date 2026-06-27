@@ -20,6 +20,14 @@ class Settings(BaseSettings):
     moon_enrichment_enabled: bool = True
     moon_visual_moon_color: str = "#E0E0E0"
     moon_visual_shadow_color: str = "#1a2030"
+    forecast_cache_enabled: bool = True
+    forecast_geocode_ttl_hours: float = 24 * 30
+    forecast_astronomy_ttl_hours: float = 24
+    forecast_weather_ttl_hours: float = 3
+    noctua_enrichment_enabled: bool = False
+    noctua_base_url: str = "https://api.noctuasky.com/api/v1"
+    noctua_request_timeout_seconds: float = 12.0
+    noctua_enrichment_budget_seconds: float = 5.0
 
     @property
     def cors_origin_list(self) -> list[str]:

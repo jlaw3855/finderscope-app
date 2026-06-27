@@ -1,694 +1,877 @@
 {
   "events": [
     {
-      "id": "2e55a3c02fb4dd4b",
+      "id": "b0e1948b8faf78eb",
       "category": "conjunction",
       "title": "Mercury inferior conjunction",
-      "start_at": "2026-07-13T01:19:31.131001Z",
-      "peak_at": "2026-07-13T01:19:31.131001Z",
+      "start_at": "2026-07-13T01:19:31.131002Z",
+      "peak_at": "2026-07-13T01:19:31.131002Z",
       "end_at": null,
       "description": "Mercury reaches inferior conjunction with the Sun.",
-      "visible_locally": false
+      "visible_locally": false,
+      "subjects": []
     }
   ],
   "planet_visibility": [
     {
-      "date": "2025-06-20",
+      "date": "2026-08-09",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:07",
+              "start": "21:04",
               "end": "22:05"
             }
           ],
-          "peak_altitude_deg": 73.78350058472272,
-          "peak_at": "14:37",
-          "magnitude": -0.2874651951205678
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.032620879027405,
+          "peak_at": "21:04",
+          "magnitude": -0.2722555327725087
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:06",
-              "end": "16:46"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 63.90096643492272,
-          "peak_at": "10:06",
-          "magnitude": -4.255356295234608
+          "windows_astronomical": [
+            {
+              "start": "03:06",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097479864038,
+          "peak_at": "03:06",
+          "magnitude": -4.257842282020896
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:00",
               "end": "00:05"
             },
             {
-              "start": "10:37",
+              "start": "21:04",
               "end": "23:59"
             }
           ],
-          "peak_altitude_deg": 61.95430266066096,
-          "peak_at": "17:07",
-          "magnitude": 1.4297981101442616
+          "windows_astronomical": [
+            {
+              "start": "00:00",
+              "end": "00:05"
+            },
+            {
+              "start": "22:33",
+              "end": "23:59"
+            }
+          ],
+          "peak_altitude_deg": 16.35742039595621,
+          "peak_at": "22:33",
+          "magnitude": 1.4311648259492775
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:47",
-              "end": "20:40"
-            }
-          ],
-          "peak_altitude_deg": 73.51618183131995,
-          "peak_at": "13:17",
-          "magnitude": -1.8952241337714142
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:15",
-              "end": "13:10"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 48.860253065931346,
-          "peak_at": "07:15",
-          "magnitude": 0.9223435576939423
+          "windows_astronomical": [
+            {
+              "start": "01:15",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 22.040921828559078,
+          "peak_at": "03:15",
+          "magnitude": 0.9230481230358425
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:39",
-              "end": "18:03"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 69.88077413716462,
-          "peak_at": "10:39",
-          "magnitude": 5.814056866372864
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.23874630739833,
+          "peak_at": "04:39",
+          "magnitude": 5.814263732283867
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:13",
-              "end": "13:14"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 49.91478700551956,
-          "peak_at": "07:13",
-          "magnitude": 7.887488968022496
+          "windows_astronomical": [
+            {
+              "start": "01:13",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 22.14649365609189,
+          "peak_at": "03:13",
+          "magnitude": 7.8876927454801224
         }
       ]
     },
     {
-      "date": "2025-06-21",
+      "date": "2026-08-10",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:11",
+              "start": "21:04",
               "end": "22:06"
             }
           ],
-          "peak_altitude_deg": 73.45041979152037,
-          "peak_at": "14:41",
-          "magnitude": -0.2312779653051762
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.243580856210556,
+          "peak_at": "21:04",
+          "magnitude": -0.21663557456129223
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:05",
-              "end": "16:48"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 64.22165733723692,
-          "peak_at": "10:05",
-          "magnitude": -4.246908303726996
+          "windows_astronomical": [
+            {
+              "start": "03:05",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097633412323,
+          "peak_at": "03:05",
+          "magnitude": -4.249362476087345
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:00",
               "end": "00:02"
             },
             {
-              "start": "10:36",
+              "start": "21:04",
               "end": "23:59"
             }
           ],
-          "peak_altitude_deg": 61.75538246793786,
-          "peak_at": "17:06",
-          "magnitude": 1.435777119094888
+          "windows_astronomical": [
+            {
+              "start": "00:00",
+              "end": "00:02"
+            },
+            {
+              "start": "22:33",
+              "end": "23:59"
+            }
+          ],
+          "peak_altitude_deg": 15.841422146474173,
+          "peak_at": "22:33",
+          "magnitude": 1.437122247971156
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:44",
-              "end": "20:37"
-            }
-          ],
-          "peak_altitude_deg": 73.51318573413135,
-          "peak_at": "13:14",
-          "magnitude": -1.8954072488450073
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:11",
-              "end": "13:06"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 48.87083089529933,
-          "peak_at": "07:11",
-          "magnitude": 0.9181002571714032
+          "windows_astronomical": [
+            {
+              "start": "01:11",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 22.042091348764885,
+          "peak_at": "03:11",
+          "magnitude": 0.9188125803664882
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:35",
-              "end": "17:59"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 69.89074142368405,
-          "peak_at": "10:35",
-          "magnitude": 5.813215376719488
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.237598403972953,
+          "peak_at": "04:35",
+          "magnitude": 5.813428726912615
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:09",
-              "end": "13:10"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 49.9169864618537,
-          "peak_at": "07:09",
-          "magnitude": 7.886268666151971
+          "windows_astronomical": [
+            {
+              "start": "01:09",
+              "end": "03:29"
+            }
+          ],
+          "peak_altitude_deg": 22.146720772951284,
+          "peak_at": "03:09",
+          "magnitude": 7.886472709602535
         }
       ]
     },
     {
-      "date": "2025-06-22",
+      "date": "2026-08-11",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:15",
+              "start": "21:04",
               "end": "22:07"
             }
           ],
-          "peak_altitude_deg": 73.09215222795977,
-          "peak_at": "14:45",
-          "magnitude": -0.17658361751708584
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.412726138987765,
+          "peak_at": "21:04",
+          "magnitude": -0.16244047802435047
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:04",
-              "end": "16:49"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 64.53795391707929,
-          "peak_at": "10:04",
-          "magnitude": -4.238569979803448
+          "windows_astronomical": [
+            {
+              "start": "03:04",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097416341518,
+          "peak_at": "03:04",
+          "magnitude": -4.240991979224643
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "10:35",
+              "start": "21:04",
               "end": "23:57"
             }
           ],
-          "peak_altitude_deg": 61.55395642651827,
-          "peak_at": "17:05",
-          "magnitude": 1.441638991489266
+          "windows_astronomical": [
+            {
+              "start": "22:33",
+              "end": "23:57"
+            }
+          ],
+          "peak_altitude_deg": 15.335503194889824,
+          "peak_at": "22:33",
+          "magnitude": 1.4429622042390065
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:41",
-              "end": "20:34"
-            }
-          ],
-          "peak_altitude_deg": 73.50977416048363,
-          "peak_at": "13:11",
-          "magnitude": -1.8956598584848088
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:07",
-              "end": "13:02"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 48.88075747118825,
-          "peak_at": "07:07",
-          "magnitude": 0.9138109007385342
+          "windows_astronomical": [
+            {
+              "start": "01:07",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 22.043192361406383,
+          "peak_at": "03:07",
+          "magnitude": 0.9145308773635641
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:32",
-              "end": "17:55"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 69.90061834861827,
-          "peak_at": "10:32",
-          "magnitude": 5.812348108878371
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.236459886412646,
+          "peak_at": "04:32",
+          "magnitude": 5.812567906582204
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:05",
-              "end": "13:06"
+              "end": "04:59"
             }
           ],
-          "peak_altitude_deg": 49.918975897098456,
-          "peak_at": "07:05",
-          "magnitude": 7.8850469775545085
+          "windows_astronomical": [
+            {
+              "start": "01:05",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 22.146928396188116,
+          "peak_at": "03:05",
+          "magnitude": 7.885251228471714
         }
       ]
     },
     {
-      "date": "2025-06-23",
+      "date": "2026-08-12",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:18",
+              "start": "21:04",
               "end": "22:08"
             }
           ],
-          "peak_altitude_deg": 72.71023138921025,
-          "peak_at": "14:48",
-          "magnitude": -0.12316884941232997
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.540715425923182,
+          "peak_at": "21:04",
+          "magnitude": -0.10945722493210175
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:04",
-              "end": "16:50"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 64.84957933301034,
-          "peak_at": "10:04",
-          "magnitude": -4.230342331888096
+          "windows_astronomical": [
+            {
+              "start": "03:04",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 0.0059910977176116376,
+          "peak_at": "03:04",
+          "magnitude": -4.232731900279344
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "10:34",
+              "start": "21:04",
               "end": "23:54"
             }
           ],
-          "peak_altitude_deg": 61.35004620139111,
-          "peak_at": "17:04",
-          "magnitude": 1.447384235112439
+          "windows_astronomical": [
+            {
+              "start": "22:34",
+              "end": "23:54"
+            }
+          ],
+          "peak_altitude_deg": 14.839724679335518,
+          "peak_at": "22:34",
+          "magnitude": 1.4486852273102095
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:38",
-              "end": "20:31"
-            }
-          ],
-          "peak_altitude_deg": 73.50595012098717,
-          "peak_at": "13:08",
-          "magnitude": -1.8959774024548626
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:04",
-              "end": "12:58"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 48.890029869067355,
-          "peak_at": "07:04",
-          "magnitude": 0.9094761719355322
+          "windows_astronomical": [
+            {
+              "start": "01:04",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 22.044224698266802,
+          "peak_at": "03:04",
+          "magnitude": 0.9102036808369327
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:28",
-              "end": "17:52"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 69.91040502343864,
-          "peak_at": "10:28",
-          "magnitude": 5.811455219734477
+          "windows_astronomical": [
+            {
+              "start": "03:28",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097551699909,
+          "peak_at": "03:28",
+          "magnitude": 5.811718969151774
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:01",
-              "end": "13:02"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 49.92075491749189,
-          "peak_at": "07:01",
-          "magnitude": 7.883824256174749
+          "windows_astronomical": [
+            {
+              "start": "01:01",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 22.14711645192841,
+          "peak_at": "03:01",
+          "magnitude": 7.884028654989863
         }
       ]
     },
     {
-      "date": "2025-06-24",
+      "date": "2026-08-13",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:22",
+              "start": "21:04",
               "end": "22:08"
             }
           ],
-          "peak_altitude_deg": 72.30634527557899,
-          "peak_at": "14:52",
-          "magnitude": -0.07081384031557425
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.628196005940524,
+          "peak_at": "21:04",
+          "magnitude": -0.05746521718243813
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:03",
-              "end": "16:52"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 65.15626420725707,
-          "peak_at": "10:03",
-          "magnitude": -4.222226013744263
+          "windows_astronomical": [
+            {
+              "start": "03:03",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097592726646,
+          "peak_at": "03:03",
+          "magnitude": -4.22458299746226
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "10:33",
+              "start": "21:04",
               "end": "23:52"
             }
           ],
-          "peak_altitude_deg": 61.14367576107194,
-          "peak_at": "17:03",
-          "magnitude": 1.4530134089391642
+          "windows_astronomical": [
+            {
+              "start": "22:34",
+              "end": "23:52"
+            }
+          ],
+          "peak_altitude_deg": 14.35413068983398,
+          "peak_at": "22:34",
+          "magnitude": 1.4542919063882687
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:35",
-              "end": "20:28"
-            }
-          ],
-          "peak_altitude_deg": 73.50171642639113,
-          "peak_at": "13:05",
-          "magnitude": -1.8961008479644512
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "01:00",
-              "end": "12:55"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 48.8986444730214,
-          "peak_at": "07:00",
-          "magnitude": 0.9050968521833784
+          "windows_astronomical": [
+            {
+              "start": "01:00",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 27.291660646396586,
+          "peak_at": "03:30",
+          "magnitude": 0.90573996033147
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:24",
-              "end": "17:48"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 69.92010081292172,
-          "peak_at": "10:24",
-          "magnitude": 5.810536883140016
+          "windows_astronomical": [
+            {
+              "start": "03:24",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097674439061,
+          "peak_at": "03:24",
+          "magnitude": 5.810808055408197
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:57",
-              "end": "12:58"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 49.922322204991865,
-          "peak_at": "06:57",
-          "magnitude": 7.882600861457857
+          "windows_astronomical": [
+            {
+              "start": "00:57",
+              "end": "03:30"
+            }
+          ],
+          "peak_altitude_deg": 27.453436913491856,
+          "peak_at": "03:27",
+          "magnitude": 7.8827797875195325
         }
       ]
     },
     {
-      "date": "2025-06-25",
+      "date": "2026-08-14",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:26",
+              "start": "21:04",
               "end": "22:08"
             }
           ],
-          "peak_altitude_deg": 71.88231487584517,
-          "peak_at": "14:56",
-          "magnitude": -0.01928830083790256
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.675786036581584,
+          "peak_at": "21:04",
+          "magnitude": -0.0062324466791943145
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:02",
-              "end": "16:53"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 65.45774715573003,
-          "peak_at": "10:02",
-          "magnitude": -4.2142213260071335
+          "windows_astronomical": [
+            {
+              "start": "03:02",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 0.0059910977358157425,
+          "peak_at": "03:02",
+          "magnitude": -4.2165456729166175
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "10:32",
+              "start": "21:04",
               "end": "23:49"
             }
           ],
-          "peak_altitude_deg": 60.934870981493134,
-          "peak_at": "17:02",
-          "magnitude": 1.4585271417704677
+          "windows_astronomical": [
+            {
+              "start": "22:34",
+              "end": "23:49"
+            }
+          ],
+          "peak_altitude_deg": 13.8787480808748,
+          "peak_at": "22:34",
+          "magnitude": 1.4597829040708366
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:32",
-              "end": "20:25"
-            }
-          ],
-          "peak_altitude_deg": 73.49707523428256,
-          "peak_at": "13:02",
-          "magnitude": -1.895191141506773
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:56",
-              "end": "12:51"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 48.90659721757041,
-          "peak_at": "06:56",
-          "magnitude": 0.9006738079605388
+          "windows_astronomical": [
+            {
+              "start": "00:56",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 27.29304098942599,
+          "peak_at": "03:26",
+          "magnitude": 0.9013232545419214
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:20",
-              "end": "17:44"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 69.92970414117886,
-          "peak_at": "10:20",
-          "magnitude": 5.809593290141577
+          "windows_astronomical": [
+            {
+              "start": "03:20",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097689943103,
+          "peak_at": "03:20",
+          "magnitude": 5.809871827662243
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:53",
-              "end": "12:55"
+              "end": "05:00"
             }
           ],
-          "peak_altitude_deg": 49.92367573180136,
-          "peak_at": "06:53",
-          "magnitude": 7.881377156919275
+          "windows_astronomical": [
+            {
+              "start": "00:53",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 27.45366738219637,
+          "peak_at": "03:23",
+          "magnitude": 7.881556105639665
         }
       ]
     },
     {
-      "date": "2025-06-26",
+      "date": "2026-08-15",
       "planets": [
         {
           "body": "Mercury",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "07:29",
+              "start": "21:04",
               "end": "22:08"
             }
           ],
-          "peak_altitude_deg": 71.44006671688341,
-          "peak_at": "14:59",
-          "magnitude": 0.03165208880430592
+          "windows_astronomical": [],
+          "peak_altitude_deg": 10.684058542597654,
+          "peak_at": "21:04",
+          "magnitude": 0.044487952726246505
         },
         {
           "body": "Venus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:01",
-              "end": "16:55"
+              "end": "05:01"
             }
           ],
-          "peak_altitude_deg": 65.75377538151913,
-          "peak_at": "10:01",
-          "magnitude": -4.206328241164379
+          "windows_astronomical": [
+            {
+              "start": "03:01",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 0.005991097661421918,
+          "peak_at": "03:01",
+          "magnitude": -4.208619991045188
         },
         {
           "body": "Mars",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
-              "start": "10:31",
+              "start": "21:04",
               "end": "23:47"
             }
           ],
-          "peak_altitude_deg": 60.72365913250741,
-          "peak_at": "17:01",
-          "magnitude": 1.463926142450238
+          "windows_astronomical": [
+            {
+              "start": "22:33",
+              "end": "23:47"
+            }
+          ],
+          "peak_altitude_deg": 13.413586269151693,
+          "peak_at": "22:33",
+          "magnitude": 1.4651589645695262
         },
         {
           "body": "Jupiter",
-          "visible": true,
-          "windows": [
-            {
-              "start": "05:29",
-              "end": "20:22"
-            }
-          ],
-          "peak_altitude_deg": 73.49202775713249,
-          "peak_at": "12:59",
-          "magnitude": -1.8943029710358452
+          "visible": false,
+          "windows_civil": [],
+          "windows_astronomical": [],
+          "peak_altitude_deg": null,
+          "peak_at": null,
+          "magnitude": null
         },
         {
           "body": "Saturn",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:52",
-              "end": "12:47"
+              "end": "05:01"
             }
           ],
-          "peak_altitude_deg": 48.91388398116805,
-          "peak_at": "06:52",
-          "magnitude": 0.8962079677317707
+          "windows_astronomical": [
+            {
+              "start": "00:52",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 27.29431228896597,
+          "peak_at": "03:22",
+          "magnitude": 0.8968636142376063
         },
         {
           "body": "Uranus",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "03:17",
-              "end": "17:41"
+              "end": "05:01"
             }
           ],
-          "peak_altitude_deg": 69.93921249702817,
-          "peak_at": "10:17",
-          "magnitude": 5.808624648186378
+          "windows_astronomical": [
+            {
+              "start": "03:17",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 0.0059910975565173885,
+          "peak_at": "03:17",
+          "magnitude": 5.808910488703519
         },
         {
           "body": "Neptune",
           "visible": true,
-          "windows": [
+          "windows_civil": [
             {
               "start": "00:49",
-              "end": "12:51"
+              "end": "05:01"
             }
           ],
-          "peak_altitude_deg": 49.92481314204844,
-          "peak_at": "06:49",
-          "magnitude": 7.880153508560363
+          "windows_astronomical": [
+            {
+              "start": "00:49",
+              "end": "03:31"
+            }
+          ],
+          "peak_altitude_deg": 27.453865378798966,
+          "peak_at": "03:19",
+          "magnitude": 7.880332426325762
         }
       ]
     }

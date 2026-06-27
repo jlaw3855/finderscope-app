@@ -51,6 +51,12 @@ export interface HourlyScore {
   temperature?: number | null
 }
 
+export interface MeteorShowerHighlight {
+  id: string
+  name: string
+  zhr_nominal: number | null
+}
+
 export interface NightForecast {
   date: string
   rating: string
@@ -68,10 +74,12 @@ export interface NightForecast {
   best_hours: BestHourWindow[]
   hourly: HourlyScore[]
   no_darkness: boolean
+  meteor_showers: MeteorShowerHighlight[]
 }
 
 export interface ForecastResponse {
   location: LocationInfo
   nights: NightForecast[]
   score_step_minutes?: number
+  prior_day_dark_window?: TimeWindow | null
 }
