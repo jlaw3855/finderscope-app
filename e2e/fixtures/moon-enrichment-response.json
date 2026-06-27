@@ -1,0 +1,70 @@
+{
+  "entries": [
+    {
+      "date": "2025-06-20",
+      "phase_name": "Waning Gibbous",
+      "illumination_pct": 72.5,
+      "age_days": 18.2,
+      "is_waxing": false,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-20.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-21",
+      "phase_name": "Last Quarter",
+      "illumination_pct": 62.6,
+      "age_days": 22.1,
+      "is_waxing": false,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-21.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-22",
+      "phase_name": "Waning Crescent",
+      "illumination_pct": 50.0,
+      "age_days": 24.5,
+      "is_waxing": false,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-22.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-23",
+      "phase_name": "Waning Crescent",
+      "illumination_pct": 35.0,
+      "age_days": 26.0,
+      "is_waxing": false,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-23.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-24",
+      "phase_name": "New Moon",
+      "illumination_pct": 2.0,
+      "age_days": 28.5,
+      "is_waxing": false,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-24.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-25",
+      "phase_name": "Waxing Crescent",
+      "illumination_pct": 8.0,
+      "age_days": 1.5,
+      "is_waxing": true,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-25.svg?profile=dark"
+    },
+    {
+      "date": "2025-06-26",
+      "phase_name": "Waxing Crescent",
+      "illumination_pct": 18.0,
+      "age_days": 3.5,
+      "is_waxing": true,
+      "special_labels": [],
+      "visual_url": "/api/moon/visual/2025-06-26.svg?profile=dark"
+    }
+  ],
+  "status": "complete",
+  "cached_count": 7,
+  "pending_dates": []
+}

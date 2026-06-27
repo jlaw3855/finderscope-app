@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import forecast, star_chart
+from app.routers import forecast, moon_enrichment, star_chart
 
 settings = get_settings()
 
@@ -23,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(forecast.router)
+app.include_router(moon_enrichment.router)
 app.include_router(star_chart.router)
 
 

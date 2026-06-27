@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import type { HourlyScore } from '../types/forecast'
 import {
   formatCloudCover,
@@ -5,14 +7,14 @@ import {
   formatHourlyTooltip,
   formatPrecipitationMm,
   formatPrecipitationProbability,
-  formatTemperature,
-  formatVisibility,
   formatMoonAltitude,
   formatMoonIlluminationEffective,
+  formatVisibility,
   averageHourlyWeather,
 } from '../lib/weather-format'
 import { CloudBreakdown } from './CloudBreakdown'
-import { DewPointChart } from './DewPointChart'
+import { DewPointChart, DewPointChartAxis } from './DewPointChart'
+import { shouldShowTimeLabel } from './hourly-chart-layout'
 import { PrecipitationBreakdownView } from './PrecipitationBreakdownView'
 
 interface HourlyScoreChartProps {
@@ -24,56 +26,88 @@ interface HourlyScoreChartProps {
 interface HourlyMetricRow {
   id: string
   label: string
+  title: string
+  group: string
   format: (entry: HourlyScore) => string
 }
+
+type HourlyChartRow =
+  | { kind: 'group'; id: string; label: string }
+  | { kind: 'metric'; row: HourlyMetricRow }
 
 const HOURLY_METRIC_ROWS: HourlyMetricRow[] = [
   {
     id: 'cloud-total',
-    label: 'Total cloud cover',
+    label: 'Total clouds',
+    title: 'Total cloud cover',
+    group: 'Clouds',
     format: (entry) => formatCloudCover(entry.cloud_cover),
   },
   {
     id: 'cloud-low',
-    label: 'Low-altitude clouds',
+    label: 'Low clouds',
+    title: 'Low-altitude clouds',
+    group: 'Clouds',
     format: (entry) => formatCloudCover(entry.cloud_cover_low),
   },
   {
     id: 'cloud-mid',
-    label: 'Mid-altitude clouds',
+    label: 'Mid clouds',
+    title: 'Mid-altitude clouds',
+    group: 'Clouds',
     format: (entry) => formatCloudCover(entry.cloud_cover_mid),
   },
   {
     id: 'cloud-high',
-    label: 'High-altitude clouds',
+    label: 'High clouds',
+    title: 'High-altitude clouds',
+    group: 'Clouds',
     format: (entry) => formatCloudCover(entry.cloud_cover_high),
   },
   {
     id: 'precip-amount',
-    label: 'Precipitation amount',
+    label: 'Precip amount',
+    title: 'Precipitation amount',
+    group: 'Precipitation',
     format: (entry) => formatPrecipitationMm(entry.precipitation),
   },
   {
     id: 'precip-chance',
-    label: 'Chance of precipitation',
+    label: 'Precip chance',
+    title: 'Chance of precipitation',
+    group: 'Precipitation',
     format: (entry) => formatPrecipitationProbability(entry.precipitation_probability),
   },
   {
     id: 'moon-light',
-    label: 'Effective moon sky glow',
+    label: 'Moon glow',
+    title: 'Effective moon sky glow',
+    group: 'Moon',
     format: (entry) => formatMoonIlluminationEffective(entry),
   },
   {
     id: 'moon-altitude',
     label: 'Moon altitude',
+    title: 'Moon altitude',
+    group: 'Moon',
     format: (entry) => formatMoonAltitude(entry),
   },
-  {
-    id: 'dew-point',
-    label: 'Dew point',
-    format: (entry) => formatTemperature(entry.dew_point),
-  },
 ]
+
+function buildHourlyChartRows(): HourlyChartRow[] {
+  const rows: HourlyChartRow[] = []
+  let lastGroup: string | null = null
+
+  for (const row of HOURLY_METRIC_ROWS) {
+    if (row.group !== lastGroup) {
+      rows.push({ kind: 'group', id: `group-${row.group}`, label: row.group })
+      lastGroup = row.group
+    }
+    rows.push({ kind: 'metric', row })
+  }
+
+  return rows
+}
 
 function formatDate(dateStr: string): string {
   const date = new Date(`${dateStr}T12:00:00`)
@@ -116,14 +150,30 @@ function summarizePrecipitation(hourly: HourlyScore[]) {
   }
 }
 
-function shouldShowTimeLabel(index: number, total: number, stepMinutes: number): boolean {
-  if (stepMinutes !== 30) {
-    return true
-  }
-  if (index === total - 1) {
-    return true
-  }
-  return index % 2 === 0
+function hasDewPointData(hourly: HourlyScore[]): boolean {
+  return hourly.some((entry) => entry.dew_point != null)
+}
+
+function HourlyTimeRow({
+  hourly,
+  stepMinutes,
+}: {
+  hourly: HourlyScore[]
+  stepMinutes: number
+}) {
+  return (
+    <div className="hourly-time-row">
+      {hourly.map((entry, index) => {
+        const label = formatHour12(entry.time)
+        const showLabel = shouldShowTimeLabel(index, hourly.length, stepMinutes)
+        return (
+          <div key={`time-${entry.at}`} className="hourly-column">
+            <span className="hourly-time-label">{showLabel ? label : ''}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export function HourlyScoreChart({
@@ -138,6 +188,8 @@ export function HourlyScoreChart({
   const averages = averageHourlyWeather(hourly)
   const cloudSummary = averageCloudBreakdown(hourly)
   const precipSummary = summarizePrecipitation(hourly)
+  const showTempChart = hasDewPointData(hourly)
+  const chartRows = buildHourlyChartRows()
 
   if (hourly.length === 0) {
     return (
@@ -161,52 +213,108 @@ export function HourlyScoreChart({
         <PrecipitationBreakdownView precipitation={precipSummary} />
       </div>
 
-      <DewPointChart hourly={hourly} />
-
       <div
-        className={`hourly-chart-layout${stepMinutes === 30 ? ' hourly-chart-layout--half-hour' : ''}`}
+        className={`hourly-chart-layout${stepMinutes === 30 ? ' hourly-chart-layout--half-hour' : ''}${showTempChart ? ' hourly-chart-layout--with-temp' : ''}`}
       >
-        <div className="hourly-metric-labels" aria-hidden="true">
-          <div className="hourly-metric-labels-spacer" />
-          {HOURLY_METRIC_ROWS.map((row) => (
-            <span key={row.id} className="hourly-metric-label">
-              {row.label}
-            </span>
-          ))}
+        {showTempChart && (
+          <>
+            <div className="hourly-grid-label hourly-grid-row--temp-header">
+              <span className="hourly-section-label">Dew point &amp; temp</span>
+              <div className="hourly-temp-legend hourly-temp-legend--header">
+                <span className="hourly-temp-legend-item">
+                  <span className="hourly-temp-legend-swatch hourly-temp-legend-swatch--dew" />
+                  Dew point
+                </span>
+                <span className="hourly-temp-legend-item">
+                  <span className="hourly-temp-legend-swatch hourly-temp-legend-swatch--air" />
+                  Air temp
+                </span>
+              </div>
+            </div>
+            <div
+              className="hourly-grid-data hourly-grid-row--temp-header"
+              aria-hidden="true"
+            />
+          </>
+        )}
+
+        {showTempChart && (
+          <>
+            <div className="hourly-grid-label hourly-grid-row--temp-plot" aria-hidden="true">
+              <DewPointChartAxis hourly={hourly} />
+            </div>
+            <div className="hourly-grid-data hourly-grid-row--temp-plot">
+              <DewPointChart hourly={hourly} stepMinutes={stepMinutes} />
+            </div>
+          </>
+        )}
+
+        <div className="hourly-grid-label hourly-grid-row--time">
+          <span className="hourly-section-label">Time</span>
+        </div>
+        <div className="hourly-grid-data hourly-grid-row--time">
+          <HourlyTimeRow hourly={hourly} stepMinutes={stepMinutes} />
         </div>
 
-        <div className="hourly-chart-scroll">
+        <div className="hourly-grid-label hourly-grid-row--score">
+          <span className="hourly-section-label hourly-section-label--score">Score (0–100)</span>
+        </div>
+        <div className="hourly-grid-data hourly-grid-row--score">
           <div className="hourly-bars-row">
-            {hourly.map((entry, index) => {
+            {hourly.map((entry) => {
               const label = formatHour12(entry.time)
-              const showLabel = shouldShowTimeLabel(index, hourly.length, stepMinutes)
               return (
-                <div key={entry.at} className="hourly-bar-group">
-                  <div className="hourly-bar-track">
-                    <div
-                      className="hourly-bar-fill"
-                      style={{ height: `${entry.score}%` }}
-                      title={formatHourlyTooltip(label, entry)}
-                    />
+                <div key={entry.at} className="hourly-column">
+                  <div className="hourly-bar-track" title={formatHourlyTooltip(label, entry)}>
+                    <div className="hourly-bar-gridline hourly-bar-gridline--100" />
+                    <div className="hourly-bar-gridline hourly-bar-gridline--50" />
+                    <div className="hourly-bar-gridline hourly-bar-gridline--0" />
+                    <span className="hourly-score-value">{entry.score}</span>
+                    <div className="hourly-bar-fill" style={{ height: `${entry.score}%` }} />
                   </div>
-                  <span className="hourly-label">{showLabel ? label : ''}</span>
                 </div>
               )
             })}
           </div>
-
-          <div className="hourly-metrics-row">
-            {hourly.map((entry) => (
-              <div key={entry.at} className="hourly-metric-column">
-                {HOURLY_METRIC_ROWS.map((row) => (
-                  <span key={row.id} className="hourly-metric-value">
-                    {row.format(entry)}
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
         </div>
+
+        {chartRows.map((chartRow) => {
+          if (chartRow.kind === 'group') {
+            return (
+              <Fragment key={chartRow.id}>
+                <div className="hourly-grid-label hourly-grid-row--metric-group">
+                  <span className="hourly-metric-group-label">{chartRow.label}</span>
+                </div>
+                <div
+                  className="hourly-grid-data hourly-grid-row--metric-group"
+                  aria-hidden="true"
+                />
+              </Fragment>
+            )
+          }
+
+          const row = chartRow.row
+          return (
+            <Fragment key={row.id}>
+              <div className="hourly-grid-label hourly-grid-row--metric">
+                <span className="hourly-metric-label" title={row.title}>
+                  {row.label}
+                </span>
+              </div>
+              <div className="hourly-grid-data hourly-grid-row--metric">
+                <div className="hourly-metrics-row">
+                  {hourly.map((entry) => (
+                    <div key={`${row.id}-${entry.at}`} className="hourly-column">
+                      <span className="hourly-metric-value" title={row.title}>
+                        {row.format(entry)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Fragment>
+          )
+        })}
       </div>
     </section>
   )

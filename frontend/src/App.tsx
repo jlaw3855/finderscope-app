@@ -6,6 +6,7 @@ import { HourlyScoreChart } from './components/HourlyScoreChart'
 import { NightForecastCard } from './components/NightForecastCard'
 import { StarChartPanel } from './components/StarChartPanel'
 import { useForecast } from './hooks/useForecast'
+import { useMoonEnrichment } from './hooks/useMoonEnrichment'
 import { useStarChart } from './hooks/useStarChart'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
     generate,
   } = useStarChart()
   const [selectedNightIndex, setSelectedNightIndex] = useState(0)
+  const { byDate: moonByDate, status: moonEnrichmentStatus } = useMoonEnrichment(forecast)
 
   const handleSearch = async (address: string) => {
     const result = await search(address)
@@ -69,6 +71,12 @@ function App() {
                 night={night}
                 selected={index === selectedNightIndex}
                 onSelect={() => setSelectedNightIndex(index)}
+                moonEnrichment={moonByDate[night.date] ?? null}
+                moonEnrichmentLoading={
+                  moonEnrichmentStatus === 'loading' ||
+                  moonEnrichmentStatus === 'partial' ||
+                  moonEnrichmentStatus === 'pending'
+                }
               />
             ))}
           </section>

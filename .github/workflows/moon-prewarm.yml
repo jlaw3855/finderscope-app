@@ -1,0 +1,26 @@
+name: Moon cache prewarm
+
+on:
+  schedule:
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  prewarm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Prewarm moon cache
+        run: python3 scripts/prewarm_moon_cache.py
+        env:
+          FREEASTRO_API_KEY: ${{ secrets.FREEASTRO_API_KEY }}
+          MOON_ENRICHMENT_ENABLED: 'true'

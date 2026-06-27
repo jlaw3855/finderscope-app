@@ -6,6 +6,7 @@ backend/.venv/
 backend/.pytest_cache/
 backend/htmlcov/
 backend/data/ephemeris/
+backend/data/moon_cache/
 *.pyc
 
 # Node

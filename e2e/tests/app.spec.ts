@@ -6,6 +6,11 @@ import { expect, test } from '@playwright/test'
 const fixturesDir = join(process.cwd(), 'fixtures')
 const forecastFixture = readFileSync(join(fixturesDir, 'forecast-response.json'), 'utf8')
 const starChartFixture = readFileSync(join(fixturesDir, 'star-chart-response.json'), 'utf8')
+const moonEnrichmentFixture = readFileSync(
+  join(fixturesDir, 'moon-enrichment-response.json'),
+  'utf8',
+)
+const moonVisualFixture = readFileSync(join(fixturesDir, 'moon-visual.svg'), 'utf8')
 const forecastData = JSON.parse(forecastFixture) as {
   location: { label: string }
 }
@@ -28,6 +33,22 @@ test.beforeEach(async ({ page }) => {
       body: starChartFixture,
     })
   })
+
+  await page.route('**/api/moon/enrichment**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: moonEnrichmentFixture,
+    })
+  })
+
+  await page.route('**/api/moon/visual/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: moonVisualFixture,
+    })
+  })
 })
 
 test('search shows forecast cards for the location', async ({ page }) => {
@@ -38,6 +59,7 @@ test('search shows forecast cards for the location', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: forecastData.location.label })).toBeVisible()
   await expect(page.getByTestId('night-card')).toHaveCount(7)
+  await expect(page.getByTestId('moon-visual').first()).toBeVisible()
 })
 
 test('selecting another night updates the hourly chart', async ({ page }) => {
@@ -47,6 +69,8 @@ test('selecting another night updates the hourly chart', async ({ page }) => {
 
   const cards = page.getByTestId('night-card')
   await expect(cards).toHaveCount(7)
+
+  await expect(page.locator('.hourly-score-value').first()).toBeVisible()
 
   await cards.nth(1).click()
   await expect(page.getByRole('heading', { name: /scores during darkness/ })).toBeVisible()

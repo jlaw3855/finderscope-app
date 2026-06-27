@@ -1,4 +1,5 @@
 import type { NightForecast } from '../types/forecast'
+import type { MoonEnrichmentEntry } from '../types/moon-enrichment'
 import {
   formatCloudCover,
   formatHour12,
@@ -14,6 +15,8 @@ interface NightForecastCardProps {
   night: NightForecast
   selected: boolean
   onSelect: () => void
+  moonEnrichment?: MoonEnrichmentEntry | null
+  moonEnrichmentLoading?: boolean
 }
 
 const MOON_PHASE_LABELS: Record<string, string> = {
@@ -44,8 +47,16 @@ function formatBestHourRange(start: string, end: string): string {
   return `${formatHour12(start)}–${formatHour12(end)}`
 }
 
-export function NightForecastCard({ night, selected, onSelect }: NightForecastCardProps) {
-  const moonLabel = MOON_PHASE_LABELS[night.moon_phase] ?? night.moon_phase.replace(/_/g, ' ')
+export function NightForecastCard({
+  night,
+  selected,
+  onSelect,
+  moonEnrichment,
+  moonEnrichmentLoading = false,
+}: NightForecastCardProps) {
+  const fallbackMoonLabel =
+    MOON_PHASE_LABELS[night.moon_phase] ?? night.moon_phase.replace(/_/g, ' ')
+  const displayPhaseName = moonEnrichment?.phase_name ?? fallbackMoonLabel
   const weatherAverages = averageHourlyWeather(night.hourly)
 
   return (
@@ -64,12 +75,46 @@ export function NightForecastCard({ night, selected, onSelect }: NightForecastCa
         <p className="night-detail muted">No astronomical darkness this night.</p>
       ) : (
         <>
+          <div className="night-moon-row">
+            <div className="night-moon-visual" aria-hidden={!moonEnrichment?.visual_url}>
+              {moonEnrichment?.visual_url ? (
+                <img
+                  src={moonEnrichment.visual_url}
+                  alt=""
+                  className="night-moon-image"
+                  data-testid="moon-visual"
+                />
+              ) : (
+                <div
+                  className={`night-moon-placeholder${moonEnrichmentLoading ? ' loading' : ''}`}
+                  data-testid="moon-visual-placeholder"
+                />
+              )}
+            </div>
+            <div className="night-moon-copy">
+              <p className="night-detail night-phase-name">{displayPhaseName}</p>
+              <p className="night-detail">
+                {Math.round(night.moon_illumination)}% disk lit
+                {moonEnrichment?.age_days != null && (
+                  <> · {moonEnrichment.age_days.toFixed(1)} day lunar age</>
+                )}
+              </p>
+              {moonEnrichment?.special_labels && moonEnrichment.special_labels.length > 0 && (
+                <div className="moon-label-badges">
+                  {moonEnrichment.special_labels.map((label) => (
+                    <span key={label} className="moon-label-badge">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
           <p className="night-score">{night.score ?? '—'}/100</p>
           <p className="night-temps">
             High {formatTemperature(night.temperature_high)} · Low{' '}
             {formatTemperature(night.temperature_low)}
           </p>
-          <p className="night-detail">{moonLabel} · {Math.round(night.moon_illumination)}% disk lit</p>
           {night.moon_sky_glow_avg != null && (
             <p className="night-detail">
               Avg moon sky glow during darkness: {formatMoonSkyGlowAvg(night.moon_sky_glow_avg)}

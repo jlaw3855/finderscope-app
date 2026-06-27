@@ -13,7 +13,7 @@ const CONSTELLATIONS = [
   { id: 'gem', label: 'Gemini' },
 ]
 
-type TimeInputMode = 'dropdown' | 'custom'
+const CUSTOM_TIME_PRESET = ''
 
 interface StarChartPanelProps {
   location: LocationInfo
@@ -48,6 +48,10 @@ function formatTimeOption(time: string, night: NightForecast | undefined): strin
   return isBest ? `${label} (best)` : label
 }
 
+function toTimeInputValue(time: string): string {
+  return time.length >= 5 ? time.slice(0, 5) : time
+}
+
 export function StarChartPanel({
   location,
   nights,
@@ -58,7 +62,6 @@ export function StarChartPanel({
 }: StarChartPanelProps) {
   const firstNight = nights[0]
   const [selectedDate, setSelectedDate] = useState(firstNight?.date ?? '')
-  const [timeMode, setTimeMode] = useState<TimeInputMode>('dropdown')
   const [time, setTime] = useState(defaultTime(firstNight))
   const [viewType, setViewType] = useState<StarChartViewType>('all-sky')
   const [constellation, setConstellation] = useState('ori')
@@ -73,6 +76,8 @@ export function StarChartPanel({
     [selectedNight],
   )
 
+  const presetValue = timeOptions.includes(time) ? time : CUSTOM_TIME_PRESET
+
   useEffect(() => {
     if (firstNight) {
       setSelectedDate(firstNight.date)
@@ -80,19 +85,16 @@ export function StarChartPanel({
     }
   }, [firstNight])
 
-  useEffect(() => {
-    if (timeMode !== 'dropdown' || timeOptions.length === 0) {
-      return
-    }
-    if (!timeOptions.includes(time)) {
-      setTime(timeOptions[0])
-    }
-  }, [timeMode, timeOptions, time])
-
   const handleDateChange = (date: string) => {
     setSelectedDate(date)
     const night = nights.find((entry) => entry.date === date)
     setTime(defaultTime(night))
+  }
+
+  const handlePresetChange = (presetTime: string) => {
+    if (presetTime) {
+      setTime(presetTime)
+    }
   }
 
   const handleGenerate = () => {
@@ -127,48 +129,35 @@ export function StarChartPanel({
           </select>
         </label>
 
-        <label>
-          Time input
-          <select
-            value={timeMode}
-            onChange={(e) => setTimeMode(e.target.value as TimeInputMode)}
-            disabled={loading}
-          >
-            <option value="dropdown">Dark hours dropdown</option>
-            <option value="custom">Custom time</option>
-          </select>
-        </label>
-
-        {timeMode === 'dropdown' ? (
-          <label>
-            Time
+        <label className="chart-time-field">
+          Time
+          <div className="chart-time-controls">
             <select
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+              value={presetValue}
+              onChange={(e) => handlePresetChange(e.target.value)}
               disabled={loading || timeOptions.length === 0}
+              aria-label="Quick pick dark hour"
+              data-testid="chart-time-preset"
             >
-              {timeOptions.length === 0 ? (
-                <option value={time}>No dark hours available</option>
-              ) : (
-                timeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {formatTimeOption(option, selectedNight)}
-                  </option>
-                ))
-              )}
+              <option value={CUSTOM_TIME_PRESET}>
+                {timeOptions.length === 0 ? 'No dark hours available' : 'Quick pick…'}
+              </option>
+              {timeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {formatTimeOption(option, selectedNight)}
+                </option>
+              ))}
             </select>
-          </label>
-        ) : (
-          <label>
-            Time
             <input
               type="time"
-              value={time}
+              value={toTimeInputValue(time)}
               onChange={(e) => setTime(e.target.value)}
               disabled={loading}
+              aria-label="Custom chart time"
+              data-testid="chart-time-custom"
             />
-          </label>
-        )}
+          </div>
+        </label>
 
         <label>
           View

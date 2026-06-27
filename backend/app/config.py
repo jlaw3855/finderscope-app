@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     astronomy_api_application_id: str
     astronomy_api_application_secret: str
     cors_origins: str = "http://localhost:5173"
+    freeastro_api_key: str = ""
+    moon_enrichment_enabled: bool = True
+    moon_visual_moon_color: str = "#E0E0E0"
+    moon_visual_shadow_color: str = "#1a2030"
 
     @property
     def cors_origin_list(self) -> list[str]:

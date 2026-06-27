@@ -1,4 +1,5 @@
 import type { ForecastRequest, ForecastResponse } from '../types/forecast'
+import type { MoonEnrichmentResponse } from '../types/moon-enrichment'
 import type { StarChartRequest, StarChartResponse } from '../types/star-chart'
 
 class BackendClientError extends Error {
@@ -47,6 +48,28 @@ export async function fetchForecast(request: ForecastRequest): Promise<ForecastR
 
 export async function fetchStarChart(request: StarChartRequest): Promise<StarChartResponse> {
   return postJson<StarChartResponse>('/api/star-chart', request)
+}
+
+export async function fetchMoonEnrichment(
+  dates: string[],
+  timezone: string,
+  sampleTimes?: string[],
+): Promise<MoonEnrichmentResponse> {
+  const params = new URLSearchParams({
+    dates: dates.join(','),
+    timezone,
+  })
+  if (sampleTimes && sampleTimes.length > 0) {
+    params.set('sample_times', sampleTimes.join(','))
+  }
+  const response = await fetch(`/api/moon/enrichment?${params.toString()}`)
+
+  if (!response.ok) {
+    const message = await parseError(response)
+    throw new BackendClientError(message, response.status)
+  }
+
+  return response.json() as Promise<MoonEnrichmentResponse>
 }
 
 export { BackendClientError }
