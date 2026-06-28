@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
-    "test:install": "playwright install chromium"
+    "test:install": "playwright install chromium",
+    "test:visual:update": "playwright test visual-baseline --update-snapshots"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"

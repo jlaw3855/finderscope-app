@@ -1,6 +1,11 @@
-import { Fragment } from 'react'
+import { Fragment, memo, useMemo } from 'react'
 
-import type { HourlyScore } from '../types/forecast'
+import type {
+  CloudCoverBreakdown,
+  HourlyScore,
+  PrecipitationBreakdown,
+} from '../types/forecast'
+import { formatForecastNightHeading } from '../lib/astronomy-format'
 import {
   formatCloudCover,
   formatHour12,
@@ -21,6 +26,8 @@ interface HourlyScoreChartProps {
   hourly: HourlyScore[]
   date: string
   stepMinutes?: number
+  cloudCover?: CloudCoverBreakdown
+  precipitation?: PrecipitationBreakdown
 }
 
 interface HourlyMetricRow {
@@ -94,7 +101,7 @@ const HOURLY_METRIC_ROWS: HourlyMetricRow[] = [
   },
 ]
 
-function buildHourlyChartRows(): HourlyChartRow[] {
+const HOURLY_CHART_ROWS: HourlyChartRow[] = (() => {
   const rows: HourlyChartRow[] = []
   let lastGroup: string | null = null
 
@@ -107,16 +114,7 @@ function buildHourlyChartRows(): HourlyChartRow[] {
   }
 
   return rows
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(`${dateStr}T12:00:00`)
-  return date.toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+})()
 
 function averageCloudBreakdown(hourly: HourlyScore[]) {
   const average = (values: Array<number | null | undefined>) => {
@@ -176,24 +174,36 @@ function HourlyTimeRow({
   )
 }
 
-export function HourlyScoreChart({
+function HourlyScoreChartComponent({
   hourly,
   date,
   stepMinutes = 60,
+  cloudCover,
+  precipitation,
 }: HourlyScoreChartProps) {
-  const heading =
-    stepMinutes === 30
-      ? `Half-hourly scores during darkness — ${formatDate(date)}`
-      : `Hourly scores during darkness — ${formatDate(date)}`
-  const averages = averageHourlyWeather(hourly)
-  const cloudSummary = averageCloudBreakdown(hourly)
-  const precipSummary = summarizePrecipitation(hourly)
-  const showTempChart = hasDewPointData(hourly)
-  const chartRows = buildHourlyChartRows()
+  const heading = useMemo(() => {
+    const formattedDate = formatForecastNightHeading(date)
+    return stepMinutes === 30
+      ? `Half-hourly scores during darkness — ${formattedDate}`
+      : `Hourly scores during darkness — ${formattedDate}`
+  }, [date, stepMinutes])
+
+  const averages = useMemo(() => averageHourlyWeather(hourly), [hourly])
+  const cloudSummary = useMemo(() => {
+    if (cloudCover) {
+      return cloudCover
+    }
+    return averageCloudBreakdown(hourly)
+  }, [cloudCover, hourly])
+  const precipSummary = useMemo(
+    () => precipitation ?? summarizePrecipitation(hourly),
+    [hourly, precipitation],
+  )
+  const showTempChart = useMemo(() => hasDewPointData(hourly), [hourly])
 
   if (hourly.length === 0) {
     return (
-      <section className="panel">
+      <section className="panel" data-testid="hourly-score-panel">
         <h2>{heading}</h2>
         <p className="muted">No hourly data during darkness for this night.</p>
       </section>
@@ -201,7 +211,7 @@ export function HourlyScoreChart({
   }
 
   return (
-    <section className="panel">
+    <section className="panel" data-testid="hourly-score-panel">
       <h2>{heading}</h2>
       <p className="hourly-summary muted">
         Avg during darkness: {formatCloudCover(averages.avgCloudCover)} clouds ·{' '}
@@ -278,7 +288,7 @@ export function HourlyScoreChart({
           </div>
         </div>
 
-        {chartRows.map((chartRow) => {
+        {HOURLY_CHART_ROWS.map((chartRow) => {
           if (chartRow.kind === 'group') {
             return (
               <Fragment key={chartRow.id}>
@@ -319,3 +329,5 @@ export function HourlyScoreChart({
     </section>
   )
 }
+
+export const HourlyScoreChart = memo(HourlyScoreChartComponent)

@@ -14,7 +14,7 @@ export function AddressSearch({ onSearch, loading }: AddressSearchProps) {
   }
 
   return (
-    <section className="panel search-panel">
+    <section className="panel search-panel" data-testid="search-panel">
       <header className="app-header">
         <h1>Finderscope</h1>
         <p className="subtitle">

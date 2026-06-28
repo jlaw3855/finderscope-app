@@ -1,4 +1,4 @@
-"""Unit tests for Skyfield moon altitude and sky-glow curve."""
+"""Unit tests for moon altitude and sky-glow curve."""
 
 from datetime import datetime
 
@@ -6,15 +6,9 @@ import pytest
 
 from app.services.moon_position import (
     effective_moon_illumination,
-    ensure_ephemeris,
     moon_altitude_deg,
     sky_brightness_factor,
 )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _load_ephemeris() -> None:
-    ensure_ephemeris()
 
 
 class TestSkyBrightnessFactor:

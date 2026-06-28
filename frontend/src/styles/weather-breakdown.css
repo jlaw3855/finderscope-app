@@ -1,0 +1,113 @@
+.cloud-breakdown {
+  margin: 0.5rem 0;
+  text-align: left;
+}
+
+.cloud-breakdown.compact {
+  font-size: 0.75rem;
+  color: #8a96ad;
+  line-height: 1.35;
+}
+
+.cloud-breakdown-total {
+  display: block;
+  color: #a8b8d0;
+}
+
+.cloud-breakdown-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
+.cloud-breakdown-header {
+  font-size: 0.85rem;
+  color: #a8b8d0;
+  margin-bottom: 0.45rem;
+}
+
+.cloud-layer-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cloud-layer-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cloud-layer-label,
+.cloud-layer-value {
+  font-size: 0.72rem;
+  color: #8a96ad;
+}
+
+.cloud-layer-track {
+  height: 8px;
+  background: rgba(8, 12, 24, 0.6);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cloud-layer-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.cloud-layer-low {
+  background: #5a8fd4;
+}
+
+.cloud-layer-mid {
+  background: #7ec8f0;
+}
+
+.cloud-layer-high {
+  background: #b8dff5;
+}
+
+.precip-breakdown {
+  margin: 0.5rem 0;
+}
+
+.precip-breakdown-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.precip-breakdown.compact {
+  display: block;
+  font-size: 0.75rem;
+  color: #8a96ad;
+  margin: 0.35rem 0 0.5rem;
+  line-height: 1.35;
+}
+
+.precip-breakdown-header {
+  font-size: 0.85rem;
+  color: #a8b8d0;
+  margin-bottom: 0.45rem;
+}
+
+.precip-stat {
+  background: rgba(8, 12, 24, 0.45);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+
+.precip-stat-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #8a96ad;
+  margin-bottom: 0.2rem;
+}
+
+.precip-stat-value {
+  font-size: 0.95rem;
+  color: #d7e0f0;
+  font-weight: 600;
+}

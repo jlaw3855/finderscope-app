@@ -2,9 +2,8 @@
 
 from datetime import date, timedelta
 
-import httpx
-
 from app.config import Settings
+from app.services.http_client import get_http_client
 
 BASE_URL = "https://api.ipgeolocation.io/v3/astronomy"
 
@@ -23,8 +22,7 @@ async def resolve_location(settings: Settings, address: str) -> dict:
         "apiKey": settings.ipgeolocation_api_key,
         "location": address,
     }
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(BASE_URL, params=params)
+    response = await get_http_client().get(BASE_URL, params=params)
 
     if response.status_code == 401:
         raise IPGeolocationError("Invalid IPGeolocation API key.", status_code=401)
@@ -54,8 +52,7 @@ async def fetch_time_series(
         "dateStart": start.isoformat(),
         "dateEnd": end.isoformat(),
     }
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(f"{BASE_URL}/timeSeries", params=params)
+    response = await get_http_client().get(f"{BASE_URL}/timeSeries", params=params)
 
     if response.status_code >= 400:
         raise IPGeolocationError(

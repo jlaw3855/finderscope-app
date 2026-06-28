@@ -44,6 +44,13 @@ npm run test:install   # first time only — installs Chromium
 npm run test
 ```
 
+Regenerate Playwright visual baselines after intentional UI/CSS changes:
+
+```bash
+cd e2e
+npm run test:visual:update
+```
+
 Regenerate mocked E2E fixtures from scoring fixtures (no API calls):
 
 ```bash
@@ -82,3 +89,5 @@ chmod +x scripts/check-integrity.sh   # first time only
 ./scripts/check-integrity.sh --fast
 ./scripts/check-integrity.sh --live   # adds live backend integration
 ```
+
+For local dev servers (uvicorn + Vite), see `.cursor/skills/run-dev/`.

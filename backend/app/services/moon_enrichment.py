@@ -89,11 +89,13 @@ async def get_moon_enrichment(
 
     theme_key = _theme_key(settings)
     sample_profile = _resolve_sample_profile(sample_times)
+    date_list = list(dates)
+    cached_by_date = moon_cache.get_cached_batch(date_list, theme_key, sample_profile)
     entries: list[MoonEnrichmentEntry] = []
     missing: list[tuple[str, str | None]] = []
 
-    for date_str in dates:
-        cached = moon_cache.get_cached(date_str, theme_key, sample_profile)
+    for date_str in date_list:
+        cached = cached_by_date.get(date_str)
         if cached is not None:
             entries.append(_entry_from_cache(cached, sample_profile))
         else:

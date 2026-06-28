@@ -1,6 +1,6 @@
 """Open-Meteo forecast API client."""
 
-import httpx
+from app.services.http_client import get_http_client
 
 BASE_URL = "https://api.open-meteo.com/v1/forecast"
 
@@ -10,8 +10,6 @@ HOURLY_VARIABLES = [
     "cloud_cover_mid",
     "cloud_cover_high",
     "visibility",
-    "relative_humidity_2m",
-    "wind_speed_10m",
     "precipitation",
     "precipitation_probability",
     "weather_code",
@@ -59,8 +57,7 @@ async def fetch_forecast(latitude: float, longitude: float, forecast_days: int =
         "timezone": "auto",
         "temperature_unit": "fahrenheit",
     }
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(BASE_URL, params=params)
+    response = await get_http_client().get(BASE_URL, params=params)
 
     if response.status_code >= 400:
         raise OpenMeteoError(

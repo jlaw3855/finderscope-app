@@ -21,7 +21,7 @@ Each score interval during astronomical darkness receives a score from 0–100 b
 |--------|--------|--------|
 | Cloud cover | 40% | Open-Meteo (15-min preferred, hourly fallback) |
 | Visibility | 25% | Open-Meteo (15-min preferred, hourly fallback) |
-| Moon sky glow | 25% | IPGeolocation phase + Skyfield altitude |
+| Moon sky glow | 25% | IPGeolocation phase + astronomy-engine altitude |
 | Precipitation / weather code | 10% | Open-Meteo (15-min preferred, hourly fallback) |
 
 **Score step:** The API returns `score_step_minutes: 30` when half-hour slots are built. Each night’s darkness window can start at times like `21:30`; half-hour steps align scores with those boundaries instead of rounding to the next full hour.
@@ -41,11 +41,11 @@ Moon impact uses two related concepts:
 | **Avg moon sky glow** | Average effective sky brightness from moonlight during darkness; drives the nightly score |
 | **Effective moon sky glow** (per interval) | Phase illumination scaled by moon altitude via `sin(altitude)`; low or below-horizon moons contribute less |
 
-Moonrise and moonset on night cards are informational. Interval scores compute moon altitude with Skyfield at each slot’s midpoint (+15 minutes for 30-min steps). On first forecast run, Skyfield downloads a JPL ephemeris file (~16 MB) into `backend/data/ephemeris/`.
+Moonrise and moonset on night cards are informational. Interval scores compute moon altitude with astronomy-engine at each slot’s midpoint (+15 minutes for 30-min steps).
 
 ### Moon enrichment (FreeAstroAPI)
 
-Night cards optionally show richer lunar display data and SVG phase graphics from [FreeAstroAPI](https://www.freeastroapi.com/moon). This is **UI-only enrichment** — forecast scores still use IPGeolocation disk illumination and Skyfield altitude.
+Night cards optionally show richer lunar display data and SVG phase graphics from [FreeAstroAPI](https://www.freeastroapi.com/moon). This is **UI-only enrichment** — forecast scores still use IPGeolocation disk illumination and astronomy-engine altitude.
 
 | Step | Behavior |
 |------|----------|
@@ -56,6 +56,8 @@ Night cards optionally show richer lunar display data and SVG phase graphics fro
 | Quota exhausted | Falls back to placeholder moon + IPGeolocation labels |
 
 Free tier limits: **80 calls/day**, **1 request/second**. The server caches phase data globally by calendar date (shared across all users). A daily prewarm script fetches the next 7 dates (~7 calls/day) so most searches never hit the live API.
+
+Moon enrichment routes are gated by `MOON_ENRICHMENT_ENABLED=true` (default) **and** a non-empty `FREEASTRO_API_KEY`. When disabled or unconfigured, the UI falls back to IPGeolocation moon labels and placeholder graphics.
 
 ```bash
 ./scripts/prewarm-moon-cache.sh   # optional; requires FREEASTRO_API_KEY in backend/.env
@@ -108,7 +110,7 @@ API keys live in `backend/.env` only; the frontend never sees them.
 finderscope/
 ├── backend/                    # FastAPI server
 │   ├── app/
-│   │   ├── main.py             # App entry, CORS, router registration, /health
+│   │   ├── main.py             # App entry, CORS, lifespan HTTP client, /health
 │   │   ├── config.py           # Settings from environment (.env)
 │   │   ├── models/
 │   │   │   ├── forecast.py     # Pydantic schemas for forecast API
@@ -121,8 +123,10 @@ finderscope/
 │   │   └── services/
 │   │       ├── ipgeolocation.py    # Astronomy API client (geocode + time series)
 │   │       ├── openmeteo.py        # Weather forecast client
+│   │       ├── http_client.py      # Shared httpx AsyncClient (app lifespan)
 │   │       ├── scoring.py          # Merge weather + astronomy into scores
-│   │       ├── moon_position.py    # Skyfield moon altitude + sky-glow curve
+│   │       ├── moon_position.py    # astronomy-engine moon altitude + sky-glow curve
+│   │       ├── astronomy_geometry.py  # Shared darkness-window and altitude helpers
 │   │       ├── astronomy_events.py # 90-day eclipse/conjunction event search
 │   │       ├── planet_visibility.py  # Sun-aware planet observing windows (civil / astronomical)
 │   │       ├── astronomy_time.py   # Timezone/time helpers for astronomy-engine
@@ -135,8 +139,11 @@ finderscope/
 │   │       ├── noctua.py           # NoctuaSky skysources client
 │   │       ├── noctua_cache.py     # Permanent skysource catalog cache
 │   │       └── astronomy_enrichment.py  # Category-aware Noctua enrichment
+│   ├── docs/
+│   │   ├── noctua_skysources.md    # NoctuaSky enrichment design notes
+│   │   ├── performance-baseline.md # Hot-path benchmark guide
+│   │   └── performance-deferred.md # Deferred optimizations (Phase 3)
 │   ├── data/iau_meteor_showers.json  # Major shower peaks (local catalog)
-│   ├── data/ephemeris/         # Cached JPL ephemeris (gitignored, auto-downloaded)
 │   ├── data/forecast_cache/    # Forecast upstream cache (gitignored)
 │   ├── data/moon_cache/        # Cached FreeAstro moon SVGs + quota state (gitignored)
 │   ├── tests/
@@ -148,6 +155,10 @@ finderscope/
 │   │   ├── test_forecast_cache.py
 │   │   ├── test_astronomy_enrichment.py
 │   │   ├── test_meteor_showers.py
+│   │   ├── test_moon_enrichment_routes.py
+│   │   ├── test_moon_cache.py
+│   │   ├── test_freeastroapi.py
+│   │   ├── test_performance_benchmarks.py  # Hot-path timing regression guards
 │   │   ├── test_routes.py      # Route tests with mocked services
 │   │   ├── test_integration_live.py  # Opt-in live API tests
 │   │   └── fixtures/           # JSON fixtures + E2E fixture generator
@@ -158,7 +169,16 @@ finderscope/
 │   ├── src/
 │   │   ├── App.tsx             # Main layout and state wiring
 │   │   ├── main.tsx            # React entry point
-│   │   ├── index.css           # Global styles
+│   │   ├── styles/             # Modular global CSS (imported via index.css)
+│   │   │   ├── index.css       # Aggregates partial stylesheets
+│   │   │   ├── base.css
+│   │   │   ├── night-cards.css
+│   │   │   ├── hourly-chart.css
+│   │   │   ├── weather-breakdown.css
+│   │   │   ├── astronomy.css
+│   │   │   ├── planet-timeline.css
+│   │   │   ├── responsive.css
+│   │   │   └── error.css
 │   │   ├── components/
 │   │   │   ├── AddressSearch.tsx
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
@@ -187,17 +207,25 @@ finderscope/
 │   └── vite.config.ts          # Dev server; proxies /api → localhost:8000
 │
 ├── e2e/                        # Playwright browser tests
-│   ├── tests/app.spec.ts
+│   ├── tests/
+│   │   ├── app.spec.ts
+│   │   ├── visual-baseline.spec.ts  # CSS regression snapshots
+│   │   └── helpers/mock-api.ts      # Browser-side /api/* mocks
 │   └── fixtures/               # Mocked API responses for offline E2E
 │
 ├── scripts/
 │   ├── check-integrity.sh      # Full test/lint/build harness
+│   ├── stop-dev-servers.sh     # Stop uvicorn (8000) and Vite (5173)
 │   ├── prewarm-moon-cache.sh   # Daily FreeAstro cache prewarm (7 calls)
+│   ├── prewarm_moon_cache.py   # Prewarm implementation (called by shell script)
 │   └── record-e2e-fixtures.sh  # Refresh E2E fixtures from live APIs
 │
 ├── .github/workflows/ci.yml    # Runs check-integrity.sh on push/PR
 ├── .github/workflows/moon-prewarm.yml  # Scheduled moon cache prewarm
-└── .cursor/skills/integrity-check/  # Agent skill for running checks
+└── .cursor/skills/             # Agent skills for local development
+    ├── dev-setup/              # Install deps and configure backend/.env
+    ├── run-dev/                # Stop stale servers and start uvicorn + Vite
+    └── integrity-check/        # Run the full integrity harness
 ```
 
 ### Request flow
@@ -227,7 +255,7 @@ flowchart LR
   ForecastCache --> OpenMeteo
   ForecastRouter --> Scoring
   Scoring --> MeteorSvc
-  Scoring --> MoonPos[moon_position Skyfield]
+  Scoring --> MoonPos[moon_position astronomy-engine]
   UI --> AstronomyRouter
   AstronomyRouter --> AstroEngine
   AstronomyRouter --> NoctuaEnrich
@@ -244,6 +272,14 @@ flowchart LR
 Open-Meteo requires no API key.
 
 ## Setup
+
+Cursor agent skills for local development:
+
+| Skill | Purpose |
+|-------|---------|
+| [`.cursor/skills/dev-setup/`](.cursor/skills/dev-setup/) | Install dependencies and configure `backend/.env` |
+| [`.cursor/skills/run-dev/`](.cursor/skills/run-dev/) | Stop stale dev servers and start uvicorn + Vite |
+| [`.cursor/skills/integrity-check/`](.cursor/skills/integrity-check/) | Run the full test/lint/build harness |
 
 ### Backend
 
@@ -270,6 +306,10 @@ Copy `backend/.env.example` to `backend/.env`. Besides `IPGEOLOCATION_API_KEY`, 
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `CORS_ORIGINS` | `http://localhost:5173` | Comma-separated allowed browser origins |
+| `MOON_ENRICHMENT_ENABLED` | `true` | Enable FreeAstro moon enrichment routes (also requires `FREEASTRO_API_KEY`) |
+| `MOON_VISUAL_MOON_COLOR` | `#E0E0E0` | Moon disk fill color in cached SVG graphics |
+| `MOON_VISUAL_SHADOW_COLOR` | `#1a2030` | Moon shadow fill color in cached SVG graphics |
 | `FORECAST_CACHE_ENABLED` | `true` | SQLite cache for geocode, astronomy time series, and weather |
 | `FORECAST_GEOCODE_TTL_HOURS` | `720` | Geocode cache TTL (~30 days) |
 | `FORECAST_ASTRONOMY_TTL_HOURS` | `24` | IPGeolocation astronomy cache TTL |
@@ -287,6 +327,17 @@ npm run dev
 ```
 
 The UI runs at `http://localhost:5173` and proxies `/api` requests to the backend.
+
+### Running dev servers
+
+Stop stale processes before restarting (avoids `Address already in use` on ports 8000 and 5173):
+
+```bash
+chmod +x scripts/stop-dev-servers.sh   # first time only
+./scripts/stop-dev-servers.sh
+```
+
+Then start the backend (`uvicorn app.main:app --reload`) and frontend (`npm run dev`) in separate terminals. Start the backend first — Vite proxies `/api` to `http://localhost:8000`. See [`.cursor/skills/run-dev/`](.cursor/skills/run-dev/) for the full workflow.
 
 ## Development testing
 
@@ -318,6 +369,17 @@ npm run test
 
 E2E tests mock `/api/forecast`, `/api/astronomy`, and `/api/moon/enrichment` in the browser — no backend or external APIs required.
 
+### Performance benchmarks
+
+Hot-path timing regression guards live in `backend/tests/test_performance_benchmarks.py` and run as part of the default pytest suite. For p50/p95 output:
+
+```bash
+cd backend
+python -m pytest tests/test_performance_benchmarks.py -s
+```
+
+See `backend/docs/performance-baseline.md` for covered paths and cache latency notes. Deferred optimizations (astronomy result cache, chart virtualization) are documented in `backend/docs/performance-deferred.md`.
+
 ## Integrity checks
 
 Run the full integrity harness from the repository root after code changes:
@@ -341,14 +403,13 @@ Live backend integration (~2 paid external API calls; requires valid `backend/.e
 
 The harness runs, in order:
 
-1. Skyfield ephemeris prefetch
-2. Backend unit and route tests (`pytest`, excludes `live`)
-3. Frontend unit tests (`vitest`)
-4. E2E browser tests (`playwright`, mocked APIs)
-5. Frontend lint (`oxlint`)
-6. TypeScript compile (`tsc -b`)
-7. Production build (`vite build`) — skipped with `--fast`
-8. Live backend integration — only with `--live`
+1. Backend unit, route, and performance benchmark tests (`pytest`, excludes `live`)
+2. Frontend unit tests (`vitest`)
+3. E2E browser tests (`playwright`, mocked APIs)
+4. Frontend lint (`oxlint`)
+5. TypeScript compile (`tsc -b`)
+6. Production build (`vite build`) — skipped with `--fast`
+7. Live backend integration — only with `--live`
 
 | Mode | External API calls |
 |------|-------------------|
@@ -369,9 +430,7 @@ cd backend
 PYTHONPATH=. python3 tests/fixtures/generate_e2e_responses.py
 ```
 
-Local-only Playwright screenshot tooling for meteor card previews (if present) is listed in `.gitignore` and is not part of CI.
-
-A project Cursor skill at `.cursor/skills/integrity-check/` instructs the agent to run these checks before completing coding tasks.
+Playwright visual baselines in `e2e/tests/visual-baseline.spec.ts` guard against CSS regressions during integrity checks. After intentional UI changes, refresh snapshots with `cd e2e && npm run test:visual:update`.
 
 ## Continuous integration
 

@@ -1,5 +1,7 @@
 """Astronomy summary routes."""
 
+import asyncio
+
 from fastapi import APIRouter, Depends
 
 from app.config import Settings, get_settings
@@ -16,12 +18,19 @@ async def get_astronomy_summary(
     request: AstronomyRequest,
     settings: Settings = Depends(get_settings),
 ) -> AstronomyResponse:
-    events = search_astronomy_events(request.latitude, request.longitude)
-    events = await enrich_astronomy_events(events, settings)
-    planet_visibility = compute_planet_visibility(
-        request.latitude,
-        request.longitude,
-        request.timezone,
-        request.dates,
+    events_task = asyncio.create_task(
+        asyncio.to_thread(search_astronomy_events, request.latitude, request.longitude)
     )
+    planet_task = asyncio.create_task(
+        asyncio.to_thread(
+            compute_planet_visibility,
+            request.latitude,
+            request.longitude,
+            request.timezone,
+            request.dates,
+        )
+    )
+    events = await events_task
+    events = await enrich_astronomy_events(events, settings)
+    planet_visibility = await planet_task
     return AstronomyResponse(events=events, planet_visibility=planet_visibility)

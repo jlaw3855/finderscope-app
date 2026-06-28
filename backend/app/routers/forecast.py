@@ -1,5 +1,7 @@
 """Forecast endpoint orchestrating IPGeolocation, Open-Meteo, and scoring."""
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import Settings, get_settings
@@ -40,6 +42,8 @@ async def get_forecast(
         forecast_days = ipgeolocation.weather_forecast_days(date_start, date_end)
 
         time_series_data = None
+        weather_data = None
+
         if settings.forecast_cache_enabled:
             ts_key = forecast_cache.astronomy_cache_key(
                 latitude,
@@ -48,12 +52,38 @@ async def get_forecast(
                 time_series_end.isoformat(),
             )
             time_series_data = forecast_cache.get_cached_entry(ts_key)
+            weather_key = forecast_cache.weather_cache_key(
+                latitude,
+                longitude,
+                date_start.isoformat(),
+                forecast_days,
+            )
+            weather_data = forecast_cache.get_cached_entry(weather_key)
 
-        if time_series_data is None:
+        if time_series_data is None and weather_data is None:
+            time_series_data, weather_data = await asyncio.gather(
+                ipgeolocation.fetch_time_series(
+                    settings, latitude, longitude, time_series_start, time_series_end
+                ),
+                openmeteo.fetch_forecast(
+                    latitude,
+                    longitude,
+                    forecast_days=forecast_days,
+                ),
+            )
+        elif time_series_data is None:
             time_series_data = await ipgeolocation.fetch_time_series(
                 settings, latitude, longitude, time_series_start, time_series_end
             )
-            if settings.forecast_cache_enabled:
+        elif weather_data is None:
+            weather_data = await openmeteo.fetch_forecast(
+                latitude,
+                longitude,
+                forecast_days=forecast_days,
+            )
+
+        if settings.forecast_cache_enabled:
+            if time_series_data is not None:
                 forecast_cache.store_cached_entry(
                     forecast_cache.astronomy_cache_key(
                         latitude,
@@ -65,24 +95,7 @@ async def get_forecast(
                     time_series_data,
                     ttl_hours=settings.forecast_astronomy_ttl_hours,
                 )
-
-        weather_data = None
-        if settings.forecast_cache_enabled:
-            weather_key = forecast_cache.weather_cache_key(
-                latitude,
-                longitude,
-                date_start.isoformat(),
-                forecast_days,
-            )
-            weather_data = forecast_cache.get_cached_entry(weather_key)
-
-        if weather_data is None:
-            weather_data = await openmeteo.fetch_forecast(
-                latitude,
-                longitude,
-                forecast_days=forecast_days,
-            )
-            if settings.forecast_cache_enabled:
+            if weather_data is not None:
                 forecast_cache.store_cached_entry(
                     forecast_cache.weather_cache_key(
                         latitude,
@@ -95,7 +108,8 @@ async def get_forecast(
                     ttl_hours=settings.forecast_weather_ttl_hours,
                 )
 
-        return scoring.build_forecast(
+        return await asyncio.to_thread(
+            scoring.build_forecast,
             location_data,
             time_series_data,
             weather_data,

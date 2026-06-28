@@ -1,5 +1,8 @@
+import { memo, useMemo } from 'react'
+
 import type { NightForecast } from '../types/forecast'
 import type { MoonEnrichmentEntry } from '../types/moon-enrichment'
+import { formatNightColumnDate } from '../lib/astronomy-format'
 import {
   formatCloudCover,
   formatHour12,
@@ -14,7 +17,8 @@ import { PrecipitationBreakdownView } from './PrecipitationBreakdownView'
 interface NightForecastCardProps {
   night: NightForecast
   selected: boolean
-  onSelect: () => void
+  onSelect: (index: number) => void
+  nightIndex: number
   moonEnrichment?: MoonEnrichmentEntry | null
   moonEnrichmentLoading?: boolean
 }
@@ -30,15 +34,6 @@ const MOON_PHASE_LABELS: Record<string, string> = {
   WANING_CRESCENT: 'Waning Crescent',
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(`${dateStr}T12:00:00`)
-  return date.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
 function ratingClass(rating: string): string {
   return rating.toLowerCase()
 }
@@ -47,27 +42,28 @@ function formatBestHourRange(start: string, end: string): string {
   return `${formatHour12(start)}–${formatHour12(end)}`
 }
 
-export function NightForecastCard({
+function NightForecastCardComponent({
   night,
   selected,
   onSelect,
+  nightIndex,
   moonEnrichment,
   moonEnrichmentLoading = false,
 }: NightForecastCardProps) {
   const fallbackMoonLabel =
     MOON_PHASE_LABELS[night.moon_phase] ?? night.moon_phase.replace(/_/g, ' ')
   const displayPhaseName = moonEnrichment?.phase_name ?? fallbackMoonLabel
-  const weatherAverages = averageHourlyWeather(night.hourly)
+  const weatherAverages = useMemo(() => averageHourlyWeather(night.hourly), [night.hourly])
 
   return (
     <button
       type="button"
       className={`night-card ${selected ? 'selected' : ''}`}
       data-testid="night-card"
-      onClick={onSelect}
+      onClick={() => onSelect(nightIndex)}
     >
       <div className="night-card-header">
-        <span className="night-date">{formatDate(night.date)}</span>
+        <span className="night-date">{formatNightColumnDate(night.date)}</span>
         <span className={`rating-badge ${ratingClass(night.rating)}`}>{night.rating}</span>
       </div>
 
@@ -172,3 +168,5 @@ export function NightForecastCard({
     </button>
   )
 }
+
+export const NightForecastCard = memo(NightForecastCardComponent)

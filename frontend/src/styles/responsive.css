@@ -1,0 +1,22 @@
+@media (max-width: 600px) {
+  .planet-timeline-detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  #root {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-form button {
+    width: 100%;
+  }
+}

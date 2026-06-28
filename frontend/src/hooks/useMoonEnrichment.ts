@@ -12,8 +12,21 @@ function entriesToMap(entries: MoonEnrichmentEntry[]): MoonEnrichmentByDate {
   return Object.fromEntries(entries.map((entry) => [entry.date, entry]))
 }
 
+function setsEqual(left: Set<string>, right: Set<string>): boolean {
+  if (left.size !== right.size) {
+    return false
+  }
+  for (const value of left) {
+    if (!right.has(value)) {
+      return false
+    }
+  }
+  return true
+}
+
 export function useMoonEnrichment(forecast: ForecastResponse | null) {
   const [byDate, setByDate] = useState<MoonEnrichmentByDate>({})
+  const [pendingDates, setPendingDates] = useState<Set<string>>(new Set())
   const [status, setStatus] = useState<'idle' | 'loading' | MoonEnrichmentStatus>('idle')
   const pollAttempts = useRef(0)
 
@@ -29,6 +42,7 @@ export function useMoonEnrichment(forecast: ForecastResponse | null) {
   useEffect(() => {
     if (!forecast || forecast.nights.length === 0) {
       setByDate({})
+      setPendingDates(new Set())
       setStatus('idle')
       pollAttempts.current = 0
       return
@@ -49,19 +63,29 @@ export function useMoonEnrichment(forecast: ForecastResponse | null) {
           return
         }
 
-        setByDate((current) => ({ ...current, ...entriesToMap(response.entries) }))
+        const nextPending = new Set(response.pending_dates)
+        setByDate((current) => {
+          const merged = { ...current, ...entriesToMap(response.entries) }
+          const unchanged =
+            Object.keys(merged).length === Object.keys(current).length &&
+            Object.entries(merged).every(([date, entry]) => current[date] === entry)
+          return unchanged ? current : merged
+        })
+        setPendingDates((current) => (setsEqual(current, nextPending) ? current : nextPending))
         setStatus(response.status)
 
         if (
+          nextPending.size > 0 &&
           (response.status === 'pending' || response.status === 'partial') &&
           pollAttempts.current < MAX_POLL_ATTEMPTS
         ) {
           pollAttempts.current += 1
-          window.setTimeout(load, POLL_INTERVAL_MS)
+          window.setTimeout(load, POLL_INTERVAL_MS * pollAttempts.current)
         }
       } catch {
         if (!cancelled) {
           setStatus('unavailable')
+          setPendingDates(new Set())
         }
       }
     }
@@ -73,5 +97,5 @@ export function useMoonEnrichment(forecast: ForecastResponse | null) {
     }
   }, [forecast, requestKey])
 
-  return { byDate, status }
+  return { byDate, pendingDates, status }
 }

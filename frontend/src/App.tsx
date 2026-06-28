@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { AddressSearch } from './components/AddressSearch'
 import { AstronomyEventsPanel } from './components/AstronomyEventsPanel'
@@ -14,7 +14,8 @@ function App() {
   const { data: astronomy, loading: astronomyLoading, error: astronomyError } =
     useAstronomySummary(forecast)
   const [selectedNightIndex, setSelectedNightIndex] = useState(0)
-  const { byDate: moonByDate, status: moonEnrichmentStatus } = useMoonEnrichment(forecast)
+  const { byDate: moonByDate, pendingDates: moonPendingDates, status: moonEnrichmentStatus } =
+    useMoonEnrichment(forecast)
 
   const handleSearch = async (address: string) => {
     const result = await search(address)
@@ -25,6 +26,30 @@ function App() {
 
   const selectedNight = forecast?.nights[selectedNightIndex]
 
+  const handleSelectNight = useCallback((index: number) => {
+    setSelectedNightIndex(index)
+  }, [])
+
+  const handlePlanetTimelineDateChange = useCallback(
+    (date: string) => {
+      if (!forecast) {
+        return
+      }
+      const index = forecast.nights.findIndex((night) => night.date === date)
+      if (index >= 0) {
+        setSelectedNightIndex(index)
+      }
+    },
+    [forecast],
+  )
+
+  const moonLoadingDates = useMemo(() => {
+    if (moonEnrichmentStatus === 'loading') {
+      return new Set(forecast?.nights.map((night) => night.date) ?? [])
+    }
+    return moonPendingDates
+  }, [forecast, moonEnrichmentStatus, moonPendingDates])
+
   return (
     <div className="app">
       <AddressSearch onSearch={handleSearch} loading={forecastLoading} />
@@ -32,7 +57,7 @@ function App() {
 
       {forecast && (
         <>
-          <section className="panel location-panel">
+          <section className="panel location-panel" data-testid="location-panel">
             <h2>{forecast.location.label}</h2>
             <p className="muted">
               {forecast.location.timezone} · {forecast.location.latitude.toFixed(4)},{' '}
@@ -40,19 +65,16 @@ function App() {
             </p>
           </section>
 
-          <section className="nights-grid">
+          <section className="nights-grid" data-testid="nights-grid">
             {forecast.nights.map((night, index) => (
               <NightForecastCard
                 key={night.date}
                 night={night}
                 selected={index === selectedNightIndex}
-                onSelect={() => setSelectedNightIndex(index)}
+                onSelect={handleSelectNight}
+                nightIndex={index}
                 moonEnrichment={moonByDate[night.date] ?? null}
-                moonEnrichmentLoading={
-                  moonEnrichmentStatus === 'loading' ||
-                  moonEnrichmentStatus === 'partial' ||
-                  moonEnrichmentStatus === 'pending'
-                }
+                moonEnrichmentLoading={moonLoadingDates.has(night.date)}
               />
             ))}
           </section>
@@ -62,6 +84,8 @@ function App() {
               hourly={selectedNight.hourly}
               date={selectedNight.date}
               stepMinutes={forecast.score_step_minutes ?? 60}
+              cloudCover={selectedNight.cloud_cover}
+              precipitation={selectedNight.precipitation}
             />
           )}
 
@@ -73,6 +97,7 @@ function App() {
             loading={astronomyLoading}
             error={astronomyError}
             selectedNightDate={selectedNight?.date ?? null}
+            onSelectedNightDateChange={handlePlanetTimelineDateChange}
           />
         </>
       )}

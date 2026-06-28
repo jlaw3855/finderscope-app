@@ -1,5 +1,6 @@
 """Merge astronomy darkness windows with hourly weather into stargazing scores."""
 
+import bisect
 import math
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -15,6 +16,8 @@ from app.models.forecast import (
     TimeWindow,
 )
 from app.services import moon_position, meteor_showers
+from app.services.astronomy_geometry import is_in_nights_darkness as _is_in_nights_darkness
+from app.services.astronomy_geometry import time_to_minutes as _time_to_minutes
 
 # * WMO weather codes that indicate poor stargazing conditions.
 BAD_WEATHER_CODES = {
@@ -365,39 +368,46 @@ def _hour_score(
     return int(round(max(0.0, min(100.0, total))))
 
 
-def _time_to_minutes(time_str: str) -> int:
-    hour, minute = _parse_time(time_str)
-    return hour * 60 + minute
-
-
-def _is_in_nights_darkness(
-    hour_dt: datetime,
+def _night_darkness_bounds(
     day_date: str,
     night_begin: str,
     night_end: str,
-) -> bool:
-    """
-    Return True when the hour belongs to this night's darkness window only.
-
-    Includes evening hours on day_date from night_begin onward and early-morning
-    hours on the next calendar day before night_end. Excludes the previous
-    night's tail that falls on day_date before night_begin.
-    """
-    begin_minutes = _time_to_minutes(night_begin)
-    end_minutes = _time_to_minutes(night_end)
-    hour_minutes = hour_dt.hour * 60 + hour_dt.minute
-    hour_date = hour_dt.date()
+) -> tuple[datetime, datetime]:
     day = datetime.fromisoformat(day_date).date()
-    next_day = day + timedelta(days=1)
+    begin_h, begin_m = _parse_time(night_begin)
+    end_h, end_m = _parse_time(night_end)
+    begin_minutes = begin_h * 60 + begin_m
+    end_minutes = end_h * 60 + end_m
 
+    start = datetime.combine(day, datetime.min.time()).replace(hour=begin_h, minute=begin_m)
     if begin_minutes <= end_minutes:
-        return hour_date == day and begin_minutes <= hour_minutes < end_minutes
+        end = datetime.combine(day, datetime.min.time()).replace(hour=end_h, minute=end_m)
+    else:
+        end = datetime.combine(day + timedelta(days=1), datetime.min.time()).replace(
+            hour=end_h, minute=end_m
+        )
+    return start, end
 
-    if hour_date == day and hour_minutes >= begin_minutes:
-        return True
-    if hour_date == next_day and hour_minutes < end_minutes:
-        return True
-    return False
+
+def _darkness_slots_for_night(
+    day_date: str,
+    night_begin: str,
+    night_end: str,
+    score_slots: list[datetime],
+) -> list[datetime]:
+    """Return score grid slots belonging to this night's darkness window."""
+    if not score_slots:
+        return []
+
+    dark_start, dark_end = _night_darkness_bounds(day_date, night_begin, night_end)
+    start_idx = bisect.bisect_left(score_slots, dark_start)
+    end_idx = bisect.bisect_right(score_slots, dark_end)
+
+    return [
+        slot_dt
+        for slot_dt in score_slots[start_idx:end_idx]
+        if _is_in_nights_darkness(slot_dt, day_date, night_begin, night_end)
+    ]
 
 
 def _find_best_hours(hourly: list[HourlyScore], threshold: int = 70) -> list[BestHourWindow]:
@@ -687,11 +697,14 @@ def build_forecast(
             night_end,
         )
         hourly_scores: list[HourlyScore] = []
+        night_slots = _darkness_slots_for_night(
+            day_date,
+            night_begin,
+            night_end,
+            score_slots,
+        )
 
-        for slot_dt in score_slots:
-            if not _is_in_nights_darkness(slot_dt, day_date, night_begin, night_end):
-                continue
-
+        for slot_dt in night_slots:
             wx = _weather_at_slot(slot_dt, minutely_by_time, hourly_by_time)
             if not any(wx.get(field) is not None for field in HOURLY_WEATHER_FIELDS):
                 continue

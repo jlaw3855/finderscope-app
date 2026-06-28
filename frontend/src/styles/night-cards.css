@@ -1,0 +1,178 @@
+.nights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.875rem;
+}
+
+.night-card {
+  text-align: left;
+  background: rgba(18, 24, 42, 0.85);
+  border: 1px solid rgba(100, 130, 200, 0.15);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+  color: inherit;
+  font: inherit;
+}
+
+.night-card:hover {
+  border-color: rgba(100, 150, 255, 0.35);
+}
+
+.night-card.selected {
+  border-color: #5a7fd4;
+  transform: translateY(-2px);
+}
+
+.night-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.night-moon-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.night-moon-visual {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.night-moon-image {
+  width: 56px;
+  height: 56px;
+  display: block;
+}
+
+.night-moon-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d8deea 0%, #4a5568 55%, #1a2030 100%);
+  opacity: 0.85;
+}
+
+.night-moon-placeholder.loading {
+  animation: moon-placeholder-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes moon-placeholder-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.night-moon-copy {
+  min-width: 0;
+}
+
+.night-phase-name {
+  font-weight: 600;
+  color: #d7e0f2;
+}
+
+.moon-label-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.moon-label-badge {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(126, 200, 240, 0.15);
+  color: #9fd6f7;
+}
+
+.meteor-shower-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.meteor-shower-badge {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.18);
+  color: #e8c96a;
+  border: 1px solid rgba(201, 162, 39, 0.35);
+}
+
+.night-date {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.rating-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.rating-badge.excellent {
+  background: rgba(50, 180, 100, 0.25);
+  color: #6ee7a0;
+}
+
+.rating-badge.good {
+  background: rgba(80, 160, 220, 0.25);
+  color: #7ec8f0;
+}
+
+.rating-badge.fair {
+  background: rgba(200, 160, 60, 0.25);
+  color: #f0d080;
+}
+
+.rating-badge.poor {
+  background: rgba(180, 80, 80, 0.25);
+  color: #f0a0a0;
+}
+
+.night-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.night-temps {
+  font-size: 0.88rem;
+  color: #c5d0e4;
+  margin: 0 0 0.35rem;
+  font-weight: 500;
+}
+
+.night-detail {
+  font-size: 0.82rem;
+  color: #9aa8c0;
+  margin: 0.15rem 0;
+}
+
+.best-hours {
+  color: #7ec8f0;
+}
+
+.night-weather {
+  color: #a8b8d0;
+}

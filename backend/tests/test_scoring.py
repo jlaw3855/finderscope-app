@@ -8,8 +8,10 @@ import pytest
 from app.models.forecast import HourlyScore
 from app.services.scoring import (
     MoonIlluminationAnchor,
+    _darkness_slots_for_night,
     _effective_moon_illumination,
     _find_best_hours,
+    _half_hour_slots_from_hourly_times,
     _hour_score,
     _interpolate_illumination,
     _is_moon_up,
@@ -27,13 +29,6 @@ from app.services.scoring import (
 DENVER_LAT = 39.7392
 DENVER_LON = -104.9903
 DENVER_TZ = "America/Denver"
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _load_ephemeris() -> None:
-    from app.services.moon_position import ensure_ephemeris
-
-    ensure_ephemeris()
 
 
 class TestParseTime:
@@ -105,6 +100,29 @@ class TestNightsDarkness:
     def test_excludes_morning_after_window(self) -> None:
         hour_dt = datetime.fromisoformat("2025-06-21T06:00")
         assert not _is_in_nights_darkness(hour_dt, "2025-06-20", "21:30", "04:45")
+
+    def test_darkness_slot_narrowing_matches_global_scan(self, load_fixture) -> None:
+        weather_data = load_fixture("weather.json")
+        time_series_data = load_fixture("time_series.json")
+        hourly_times = weather_data.get("hourly", {}).get("time", [])
+        score_slots = _half_hour_slots_from_hourly_times(hourly_times)
+
+        for day in time_series_data["astronomy"]:
+            day_date = day.get("date", "")
+            night_begin = day.get("night_begin")
+            night_end = day.get("night_end") or day.get("morning", {}).get(
+                "astronomical_twilight_end"
+            )
+            if not night_begin or not night_end:
+                continue
+
+            filtered = [
+                slot_dt
+                for slot_dt in score_slots
+                if _is_in_nights_darkness(slot_dt, day_date, night_begin, night_end)
+            ]
+            narrowed = _darkness_slots_for_night(day_date, night_begin, night_end, score_slots)
+            assert narrowed == filtered
 
 
 class TestFindBestHours:
@@ -209,14 +227,14 @@ class TestMoonriseMoonset:
         assert high_up is True
         assert 0 < low_effective < high_effective < 72.5
 
-    def test_effective_illumination_falls_back_when_skyfield_fails(self) -> None:
+    def test_effective_illumination_falls_back_when_altitude_unavailable(self) -> None:
         astronomy = {
             "2025-06-20": {"date": "2025-06-20", "moonrise": "22:00", "moonset": "04:00"},
         }
         hour_dt = datetime.fromisoformat("2025-06-20T23:00")
         with patch(
             "app.services.scoring.moon_position.moon_altitude_deg",
-            side_effect=RuntimeError("ephemeris unavailable"),
+            side_effect=RuntimeError("moon altitude unavailable"),
         ):
             effective, moon_up, altitude = _effective_moon_illumination(
                 hour_dt,

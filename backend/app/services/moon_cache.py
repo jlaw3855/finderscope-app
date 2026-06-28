@@ -70,6 +70,39 @@ def svg_filename(date: str, theme_key: str) -> str:
     return f"{date}_{theme_key}.svg"
 
 
+def get_cached_batch(
+    dates: list[str],
+    theme_key: str,
+    sample_profile: str = "noon",
+) -> dict[str, CachedMoonEntry]:
+    if not dates:
+        return {}
+
+    keys = [cache_key(date_str, theme_key, sample_profile) for date_str in dates]
+    placeholders = ",".join("?" * len(keys))
+    with _connect() as conn:
+        rows = conn.execute(
+            f"SELECT * FROM moon_entries WHERE cache_key IN ({placeholders})",
+            keys,
+        ).fetchall()
+
+    results: dict[str, CachedMoonEntry] = {}
+    for row in rows:
+        labels = json.loads(row["special_labels"])
+        entry = CachedMoonEntry(
+            date=row["date"],
+            theme_key=row["theme_key"],
+            phase_name=row["phase_name"],
+            illumination_pct=row["illumination_pct"],
+            age_days=row["age_days"],
+            is_waxing=bool(row["is_waxing"]) if row["is_waxing"] is not None else None,
+            special_labels=labels,
+            svg_path=row["svg_path"],
+        )
+        results[entry.date] = entry
+    return results
+
+
 def get_cached(date: str, theme_key: str, sample_profile: str = "noon") -> CachedMoonEntry | None:
     key = cache_key(date, theme_key, sample_profile)
     with _connect() as conn:

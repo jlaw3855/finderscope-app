@@ -5,6 +5,7 @@ from __future__ import annotations
 import httpx
 
 from app.config import Settings
+from app.services.http_client import get_http_client
 from app.services import noctua_cache
 
 BASE_URL = "https://api.noctuasky.com/api/v1"
@@ -22,8 +23,10 @@ async def fetch_skysource_by_name(settings: Settings, name: str) -> dict | None:
 
     url = f"{settings.noctua_base_url.rstrip('/')}/skysources/name/{name}"
     try:
-        async with httpx.AsyncClient(timeout=settings.noctua_request_timeout_seconds) as client:
-            response = await client.get(url)
+        response = await get_http_client().get(
+            url,
+            timeout=settings.noctua_request_timeout_seconds,
+        )
     except httpx.HTTPError:
         return None
 
@@ -47,8 +50,11 @@ async def search_skysources(settings: Settings, query: str, *, limit: int = 3) -
     url = f"{settings.noctua_base_url.rstrip('/')}/skysources/"
     params = {"q": query, "limit": limit}
     try:
-        async with httpx.AsyncClient(timeout=settings.noctua_request_timeout_seconds) as client:
-            response = await client.get(url, params=params)
+        response = await get_http_client().get(
+            url,
+            params=params,
+            timeout=settings.noctua_request_timeout_seconds,
+        )
     except httpx.HTTPError:
         return []
 

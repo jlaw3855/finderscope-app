@@ -17,6 +17,8 @@ Run integrity checks when any of these apply:
 - You are about to mark a coding task complete
 - The user asks to verify integrity, run tests, or confirm the build
 
+For starting local dev servers (uvicorn + Vite), use the **run-dev** skill instead — not this harness.
+
 ## Command
 
 From the repository root:

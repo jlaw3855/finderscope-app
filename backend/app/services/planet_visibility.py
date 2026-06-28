@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from astronomy import Body, Direction, Equator, Horizon, Illumination, Observer, Refraction, SearchAltitude, SearchRiseSet, Time
+from astronomy import Body, Direction, Illumination, Observer, SearchAltitude, SearchRiseSet, Time
 
 from app.models.astronomy import PlanetDayVisibility, PlanetVisibilityRow, VisibilityWindow
+from app.services.astronomy_geometry import altitude_deg
 from app.services.astronomy_time import (
     calendar_day_bounds,
     time_to_local_hhmm,
@@ -30,12 +31,6 @@ CIVIL_TWILIGHT_SUN_ALTITUDE_DEG = -6.0
 ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG = -18.0
 
 
-def _altitude_deg(body: Body, observer: Observer, moment: Time) -> float:
-    equator = Equator(body, moment, observer, ofdate=True, aberration=True)
-    horizon = Horizon(moment, observer, equator.ra, equator.dec, Refraction.Normal)
-    return horizon.altitude
-
-
 def _clip_window(
     window_start: Time,
     window_end: Time,
@@ -58,7 +53,7 @@ def _collect_above_horizon_windows(
     span_days = max((day_end.ut - day_start.ut) + 1.0, 1.5)
     windows: list[tuple[Time, Time]] = []
 
-    alt_at_start = _altitude_deg(body, observer, day_start)
+    alt_at_start = altitude_deg(body, observer, day_start)
     cursor = day_start
 
     if alt_at_start > 0:
@@ -101,7 +96,7 @@ def _collect_sun_below_windows(
     span_days = max((day_end.ut - day_start.ut) + 1.0, 1.5)
     windows: list[tuple[Time, Time]] = []
 
-    alt_at_start = _altitude_deg(Body.Sun, observer, day_start)
+    alt_at_start = altitude_deg(Body.Sun, observer, day_start)
     cursor = day_start
 
     if alt_at_start < altitude_limit:
@@ -200,7 +195,7 @@ def _peak_within_windows(
     for window_start, window_end in windows:
         sample = window_start
         while sample.ut <= window_end.ut:
-            alt = _altitude_deg(body, observer, sample)
+            alt = altitude_deg(body, observer, sample)
             if best_alt is None or alt > best_alt:
                 best_alt = alt
                 best_time = sample
@@ -209,8 +204,8 @@ def _peak_within_windows(
     if best_time is None or best_alt is None:
         return None, None, None
 
-    magnitude = Illumination(body, best_time).mag
-    return best_alt, time_to_local_hhmm(best_time, timezone_name), magnitude
+    magnitude = round(Illumination(body, best_time).mag, 1)
+    return round(best_alt, 1), time_to_local_hhmm(best_time, timezone_name), magnitude
 
 
 def _visibility_row(
@@ -220,14 +215,11 @@ def _visibility_row(
     day_start: Time,
     day_end: Time,
     timezone_name: str,
+    *,
+    civil_sun_windows: list[tuple[Time, Time]],
+    astronomical_sun_windows: list[tuple[Time, Time]],
 ) -> PlanetVisibilityRow:
     horizon_windows = _collect_above_horizon_windows(body, observer, day_start, day_end)
-    civil_sun_windows = _collect_sun_below_windows(
-        observer, day_start, day_end, CIVIL_TWILIGHT_SUN_ALTITUDE_DEG
-    )
-    astronomical_sun_windows = _collect_sun_below_windows(
-        observer, day_start, day_end, ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
-    )
 
     civil_windows = _merge_time_windows(_intersect_windows(horizon_windows, civil_sun_windows))
     astronomical_windows = _merge_time_windows(
@@ -266,8 +258,23 @@ def compute_planet_visibility(
     results: list[PlanetDayVisibility] = []
     for date_str in dates:
         day_start, day_end = calendar_day_bounds(date_str, timezone_name)
+        civil_sun_windows = _collect_sun_below_windows(
+            observer, day_start, day_end, CIVIL_TWILIGHT_SUN_ALTITUDE_DEG
+        )
+        astronomical_sun_windows = _collect_sun_below_windows(
+            observer, day_start, day_end, ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
+        )
         planets = [
-            _visibility_row(body, label, observer, day_start, day_end, timezone_name)
+            _visibility_row(
+                body,
+                label,
+                observer,
+                day_start,
+                day_end,
+                timezone_name,
+                civil_sun_windows=civil_sun_windows,
+                astronomical_sun_windows=astronomical_sun_windows,
+            )
             for body, label in bodies
         ]
         results.append(PlanetDayVisibility(date=date_str, planets=planets))

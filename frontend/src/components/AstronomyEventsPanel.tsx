@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useMemo } from 'react'
 
 import type { AstronomyResponse } from '../types/astronomy'
 import {
@@ -29,9 +29,10 @@ interface AstronomyEventsPanelProps {
   loading: boolean
   error: string | null
   selectedNightDate?: string | null
+  onSelectedNightDateChange?: (date: string) => void
 }
 
-export function AstronomyEventsPanel({
+function AstronomyEventsPanelComponent({
   timezone,
   nights,
   priorDayDarkWindow,
@@ -39,48 +40,33 @@ export function AstronomyEventsPanel({
   loading,
   error,
   selectedNightDate,
+  onSelectedNightDateChange,
 }: AstronomyEventsPanelProps) {
-  const events = sortEventsByStart(data?.events ?? [])
-  const planetDays = data?.planet_visibility ?? []
-  const availableDatesKey = useMemo(
-    () => data?.planet_visibility.map((day) => day.date).join(',') ?? '',
-    [data],
-  )
+  const events = useMemo(() => sortEventsByStart(data?.events ?? []), [data?.events])
   const availableDates = useMemo(
-    () => (availableDatesKey ? availableDatesKey.split(',') : []),
-    [availableDatesKey],
+    () => data?.planet_visibility.map((day) => day.date) ?? [],
+    [data?.planet_visibility],
   )
-  const [selectedDate, setSelectedDate] = useState<string>('')
+  const planetDays = data?.planet_visibility ?? []
 
-  useEffect(() => {
-    if (availableDates.length === 0) {
-      setSelectedDate('')
-      return
-    }
-
-    const defaultDate =
-      selectedNightDate && availableDates.includes(selectedNightDate)
-        ? selectedNightDate
-        : availableDates[0]
-    setSelectedDate(defaultDate)
-  }, [availableDatesKey])
-
-  useEffect(() => {
-    if (!selectedNightDate || !availableDates.includes(selectedNightDate)) {
-      return
-    }
-    setSelectedDate(selectedNightDate)
-  }, [selectedNightDate, availableDatesKey])
+  const selectedDate =
+    selectedNightDate && availableDates.includes(selectedNightDate)
+      ? selectedNightDate
+      : availableDates[0] ?? ''
 
   const selectedDay = planetDays.find((day) => day.date === selectedDate)
   const selectedNight = nights.find((night) => night.date === selectedDate)
   const firstForecastDate = nights[0]?.date
-  const darknessSegments = selectedDate
-    ? darknessSegmentsForCalendarDay(selectedDate, nights, {
-        priorDayDarkWindow,
-        firstForecastDate,
-      })
-    : []
+  const darknessSegments = useMemo(
+    () =>
+      selectedDate
+        ? darknessSegmentsForCalendarDay(selectedDate, nights, {
+            priorDayDarkWindow,
+            firstForecastDate,
+          })
+        : [],
+    [firstForecastDate, nights, priorDayDarkWindow, selectedDate],
+  )
   const showNextDaySpilloverHint =
     availableDates.length > 0 &&
     selectedDate === availableDates[0] &&
@@ -180,7 +166,7 @@ export function AstronomyEventsPanel({
                       className="planet-timeline-select"
                       data-testid="planet-timeline-date-select"
                       value={selectedDate}
-                      onChange={(event) => setSelectedDate(event.target.value)}
+                      onChange={(event) => onSelectedNightDateChange?.(event.target.value)}
                     >
                       {availableDates.map((date) => (
                         <option key={date} value={date}>
@@ -209,3 +195,5 @@ export function AstronomyEventsPanel({
     </section>
   )
 }
+
+export const AstronomyEventsPanel = memo(AstronomyEventsPanelComponent)

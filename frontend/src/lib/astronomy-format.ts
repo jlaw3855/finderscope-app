@@ -34,6 +34,15 @@ export function formatNightColumnDate(dateStr: string): string {
   })
 }
 
+export function formatForecastNightHeading(dateStr: string): string {
+  const date = new Date(`${dateStr}T12:00:00`)
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
 export function formatVisibilityWindows(
   civil: { start: string; end: string }[],
   astronomical: { start: string; end: string }[],
@@ -99,11 +108,4 @@ export function sortEventsByStart(events: AstronomyEvent[]): AstronomyEvent[] {
   return [...events].sort(
     (left, right) => new Date(left.start_at).getTime() - new Date(right.start_at).getTime(),
   )
-}
-
-export function altitudeBarPercent(altitude: number | null): number {
-  if (altitude == null) {
-    return 0
-  }
-  return Math.max(0, Math.min(100, (altitude / 90) * 100))
 }

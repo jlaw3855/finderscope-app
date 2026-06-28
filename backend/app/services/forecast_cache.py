@@ -52,10 +52,7 @@ def ensure_cache_dirs() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def _connect() -> sqlite3.Connection:
-    ensure_cache_dirs()
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+def _init_schema(conn: sqlite3.Connection) -> None:
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS forecast_entries (
@@ -67,11 +64,38 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_forecast_entries_expires_at ON forecast_entries(expires_at)"
+    )
+
+
+def _connect() -> sqlite3.Connection:
+    ensure_cache_dirs()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    _init_schema(conn)
     return conn
 
 
 def _expires_at(hours: float) -> str:
     return (datetime.now(UTC) + timedelta(hours=hours)).isoformat()
+
+
+def purge_expired_entries(*, conn: sqlite3.Connection | None = None) -> int:
+    now = datetime.now(UTC).isoformat()
+    if conn is not None:
+        cursor = conn.execute(
+            "DELETE FROM forecast_entries WHERE expires_at <= ?",
+            (now,),
+        )
+        return cursor.rowcount
+
+    with _connect() as connection:
+        cursor = connection.execute(
+            "DELETE FROM forecast_entries WHERE expires_at <= ?",
+            (now,),
+        )
+        return cursor.rowcount
 
 
 def get_cached_entry(cache_key: str) -> dict | None:
@@ -111,3 +135,4 @@ def store_cached_entry(
                 _expires_at(ttl_hours),
             ),
         )
+        purge_expired_entries(conn=conn)

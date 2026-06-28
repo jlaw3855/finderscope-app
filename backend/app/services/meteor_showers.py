@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime, time, timedelta
+from functools import lru_cache
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
-from astronomy import Body, Equator, Horizon, Observer, Refraction, Time
+from astronomy import Body, Horizon, Observer, Refraction, Time
 
 from app.models.forecast import MeteorShowerHighlight
-from app.services.astronomy_time import local_datetime_to_time
+from app.services.astronomy_geometry import altitude_deg, is_in_nights_darkness, time_to_minutes
+from app.services.astronomy_time import cached_zoneinfo, local_datetime_to_time
 
 ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG = -18.0
 SAMPLE_STEP_MINUTES = 30
@@ -19,10 +20,12 @@ METEOR_SHOWER_CATALOG_PATH = (
 )
 
 
-def load_meteor_shower_catalog() -> list[dict]:
+@lru_cache(maxsize=1)
+def load_meteor_shower_catalog() -> tuple[dict, ...]:
     if not METEOR_SHOWER_CATALOG_PATH.exists():
-        return []
-    return json.loads(METEOR_SHOWER_CATALOG_PATH.read_text(encoding="utf-8"))
+        return ()
+    showers = json.loads(METEOR_SHOWER_CATALOG_PATH.read_text(encoding="utf-8"))
+    return tuple(showers)
 
 
 def showers_peaking_on(calendar_date: date) -> list[dict]:
@@ -34,24 +37,8 @@ def showers_peaking_on(calendar_date: date) -> list[dict]:
     ]
 
 
-def _parse_hhmm(value: str) -> tuple[int, int]:
-    hour, minute = value.split(":")
-    return int(hour), int(minute)
-
-
-def _time_to_minutes(value: str) -> int:
-    hour, minute = _parse_hhmm(value)
-    return hour * 60 + minute
-
-
 def _minutes_to_time(total_minutes: int) -> time:
     return time(total_minutes // 60, total_minutes % 60)
-
-
-def _altitude_deg(body: Body, observer: Observer, moment: Time) -> float:
-    equator = Equator(body, moment, observer, ofdate=True, aberration=True)
-    horizon = Horizon(moment, observer, equator.ra, equator.dec, Refraction.Normal)
-    return horizon.altitude
 
 
 def radiant_altitude(
@@ -65,30 +52,7 @@ def radiant_altitude(
 
 
 def sun_below_astronomical_twilight(observer: Observer, moment: Time) -> bool:
-    return _altitude_deg(Body.Sun, observer, moment) < ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
-
-
-def _is_in_nights_darkness(
-    hour_dt: datetime,
-    day_date: str,
-    night_begin: str,
-    night_end: str,
-) -> bool:
-    begin_minutes = _time_to_minutes(night_begin)
-    end_minutes = _time_to_minutes(night_end)
-    hour_minutes = hour_dt.hour * 60 + hour_dt.minute
-    hour_date = hour_dt.date()
-    day = date.fromisoformat(day_date)
-    next_day = day + timedelta(days=1)
-
-    if begin_minutes <= end_minutes:
-        return hour_date == day and begin_minutes <= hour_minutes < end_minutes
-
-    if hour_date == day and hour_minutes >= begin_minutes:
-        return True
-    if hour_date == next_day and hour_minutes < end_minutes:
-        return True
-    return False
+    return altitude_deg(Body.Sun, observer, moment) < ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
 
 
 def _dark_window_sample_datetimes(
@@ -97,10 +61,10 @@ def _dark_window_sample_datetimes(
     night_end: str,
     timezone_name: str,
 ) -> list[datetime]:
-    tz = ZoneInfo(timezone_name)
+    tz = cached_zoneinfo(timezone_name)
     day = date.fromisoformat(day_date)
-    begin_minutes = _time_to_minutes(night_begin)
-    end_minutes = _time_to_minutes(night_end)
+    begin_minutes = time_to_minutes(night_begin)
+    end_minutes = time_to_minutes(night_end)
 
     if begin_minutes <= end_minutes:
         start = datetime.combine(day, _minutes_to_time(begin_minutes), tzinfo=tz)
@@ -117,7 +81,7 @@ def _dark_window_sample_datetimes(
     current = start
     while current <= end:
         naive = current.replace(tzinfo=None)
-        if _is_in_nights_darkness(naive, day_date, night_begin, night_end):
+        if is_in_nights_darkness(naive, day_date, night_begin, night_end):
             samples.append(current)
         current += timedelta(minutes=SAMPLE_STEP_MINUTES)
     return samples

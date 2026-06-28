@@ -8,6 +8,8 @@ from datetime import date
 
 import httpx
 
+from app.services.http_client import get_http_client
+
 BASE_URL = "https://api.freeastroapi.com/api/v1/moon/phase"
 
 SYNODIC_MONTH_DAYS = 29.53059
@@ -142,8 +144,7 @@ async def fetch_moon_phase(
         ),
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(BASE_URL, params=params, headers=headers)
+    response = await get_http_client().get(BASE_URL, params=params, headers=headers)
 
     rate_headers = {
         key: value

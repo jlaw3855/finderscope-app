@@ -300,7 +300,7 @@ def _dedupe_events(events: list[AstronomyEvent]) -> list[AstronomyEvent]:
 
 
 def _load_meteor_shower_catalog() -> list[dict]:
-    return load_meteor_shower_catalog()
+    return list(load_meteor_shower_catalog())
 
 
 def _altitude_deg(body: Body, observer: Observer, moment: Time) -> float:
