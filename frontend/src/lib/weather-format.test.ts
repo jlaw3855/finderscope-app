@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { CloudCoverBreakdown, HourlyScore, PrecipitationBreakdown } from '../types/forecast'
 import {
   averageHourlyWeather,
+  createWeatherFormatters,
   formatCloudCover,
   formatCloudLayers,
   formatHour12,
@@ -46,12 +47,64 @@ describe('formatVisibility', () => {
     expect(formatVisibility(undefined)).toBe('—')
   })
 
-  it('uses one decimal below 10 km', () => {
-    expect(formatVisibility(5500)).toBe('5.5 km')
+  it('uses one decimal below 10 mi (imperial default)', () => {
+    expect(formatVisibility(5500)).toBe('3.4 mi')
   })
 
-  it('rounds at or above 10 km', () => {
-    expect(formatVisibility(12500)).toBe('13 km')
+  it('rounds at or above 10 mi (imperial default)', () => {
+    expect(formatVisibility(20000)).toBe('12 mi')
+  })
+})
+
+describe('createWeatherFormatters', () => {
+  const imperial = createWeatherFormatters('imperial')
+  const metric = createWeatherFormatters('metric')
+
+  describe('temperature', () => {
+    it('formats imperial Fahrenheit', () => {
+      expect(imperial.formatTemperature(72.4)).toBe('72°F')
+    })
+
+    it('formats metric Celsius with rounding', () => {
+      expect(metric.formatTemperature(72.4)).toBe('22°C')
+    })
+
+    it('uses one decimal for small metric Celsius values', () => {
+      expect(metric.formatTemperature(46)).toBe('7.8°C')
+    })
+  })
+
+  describe('visibility', () => {
+    it('formats metric kilometers', () => {
+      expect(metric.formatVisibility(5500)).toBe('5.5 km')
+      expect(metric.formatVisibility(12500)).toBe('13 km')
+    })
+
+    it('formats imperial miles', () => {
+      expect(imperial.formatVisibility(5500)).toBe('3.4 mi')
+      expect(imperial.formatVisibility(20000)).toBe('12 mi')
+    })
+  })
+
+  describe('precipitation', () => {
+    it('formats metric millimeters', () => {
+      expect(metric.formatPrecipitation(0)).toBe('0 mm')
+      expect(metric.formatPrecipitation(0.05)).toBe('<0.1 mm')
+      expect(metric.formatPrecipitation(0.4)).toBe('0.4 mm')
+    })
+
+    it('formats imperial inches', () => {
+      expect(imperial.formatPrecipitation(0)).toBe('0 in')
+      expect(imperial.formatPrecipitation(0.05)).toBe('<0.01 in')
+      expect(imperial.formatPrecipitation(6.35)).toBe('0.3 in')
+    })
+  })
+
+  describe('temperatureUnitLabel', () => {
+    it('returns unit labels for axis titles', () => {
+      expect(imperial.temperatureUnitLabel).toBe('°F')
+      expect(metric.temperatureUnitLabel).toBe('°C')
+    })
   })
 })
 
@@ -66,12 +119,12 @@ describe('formatTemperature', () => {
 })
 
 describe('formatPrecipitationMm', () => {
-  it('formats zero', () => {
-    expect(formatPrecipitationMm(0)).toBe('0 mm')
+  it('formats zero (imperial default)', () => {
+    expect(formatPrecipitationMm(0)).toBe('0 in')
   })
 
-  it('formats trace amounts', () => {
-    expect(formatPrecipitationMm(0.05)).toBe('<0.1 mm')
+  it('formats trace amounts (imperial default)', () => {
+    expect(formatPrecipitationMm(0.05)).toBe('<0.01 in')
   })
 
   it('returns em dash for null', () => {
@@ -125,13 +178,13 @@ describe('formatCloudLayers', () => {
 })
 
 describe('formatPrecipitationSummary', () => {
-  it('joins precipitation summary fields', () => {
+  it('joins precipitation summary fields (imperial default)', () => {
     const precip: PrecipitationBreakdown = {
-      total_mm: 0.4,
-      max_hourly_mm: 0.2,
+      total_mm: 6.35,
+      max_hourly_mm: 2.54,
       max_probability: 25,
     }
-    expect(formatPrecipitationSummary(precip)).toBe('0.4 mm total · 0.2 mm max/hr · 25% chance')
+    expect(formatPrecipitationSummary(precip)).toBe('0.3 in total · 0.1 in max/hr · 25% chance')
   })
 })
 

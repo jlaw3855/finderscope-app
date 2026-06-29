@@ -1,3 +1,6 @@
+import telescopeIcon from '../assets/telescope-title-icon.svg'
+import { UnitToggle } from './UnitToggle'
+
 interface AddressSearchProps {
   onSearch: (address: string) => void
   loading: boolean
@@ -16,7 +19,20 @@ export function AddressSearch({ onSearch, loading }: AddressSearchProps) {
   return (
     <section className="panel search-panel" data-testid="search-panel">
       <header className="app-header">
-        <h1>Finderscope</h1>
+        <div className="app-header-top">
+          <div className="title-row">
+            <img
+              className="title-telescope"
+              src={telescopeIcon}
+              width={48}
+              height={52}
+              alt=""
+              aria-hidden
+            />
+            <h1>Finderscope</h1>
+          </div>
+          <UnitToggle />
+        </div>
         <p className="subtitle">
           Enter an address for a 7-night stargazing forecast and local astronomy summary at
           your location.

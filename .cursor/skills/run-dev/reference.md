@@ -33,6 +33,8 @@ Prefer the project venv when present (same as `scripts/check-integrity.sh`):
 | CORS errors in browser | Origin not in `CORS_ORIGINS` | Default `http://localhost:5173` in `.env.example`; add your origin if needed |
 | 401/403 from IPGeolocation | Missing or invalid API key | Set `IPGEOLOCATION_API_KEY` in `backend/.env` |
 | Moon SVGs never appear | No FreeAstro key or quota | Optional; set `FREEASTRO_API_KEY` or use forecast without enrichment |
+| Seeing/transparency always show visibility fallback | Outside 7timer ~3-day window or API miss | Expected for forecast nights 4–7; check `SEVENTIMER_ENABLED=true` and network to `7timer.info` |
+| `ZoneInfoNotFoundError` on Windows | Missing `tzdata` | Re-run `pip install -r requirements.txt` in `backend/` (installs `tzdata` on win32) |
 | Stop script finds no PIDs but port busy | Process owned by another user or different bind | `lsof -i :8000` / `:5173` manually; adjust `BACKEND_PORT` / `FRONTEND_PORT` |
 
 ## Related skills

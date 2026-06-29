@@ -53,6 +53,13 @@ cd backend
 python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
+Windows (activated venv):
+
+```bash
+cd backend
+.venv\Scripts\python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
 API base: `http://127.0.0.1:8000`
 
 ## Frontend (background terminal)

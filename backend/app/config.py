@@ -24,10 +24,14 @@ class Settings(BaseSettings):
     forecast_geocode_ttl_hours: float = 24 * 30
     forecast_astronomy_ttl_hours: float = 24
     forecast_weather_ttl_hours: float = 3
+    seventimer_enabled: bool = True
+    forecast_astro_ttl_hours: float = 3
+    seventimer_altitude_correction: int = 0
     noctua_enrichment_enabled: bool = False
     noctua_base_url: str = "https://api.noctuasky.com/api/v1"
     noctua_request_timeout_seconds: float = 12.0
     noctua_enrichment_budget_seconds: float = 5.0
+    nasa_api_key: str = "DEMO_KEY"
 
     @property
     def cors_origin_list(self) -> list[str]:

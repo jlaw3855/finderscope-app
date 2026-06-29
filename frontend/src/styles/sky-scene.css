@@ -1,0 +1,53 @@
+/* * Fixed decorative sky layer — Milky Way, stars, moon, shooting stars. */
+
+.sky-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sky-milky-way,
+.sky-stars,
+.sky-moon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sky-milky-way {
+  opacity: 0.9;
+}
+
+.sky-moon {
+  opacity: 0.95;
+}
+
+.shooting-star {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.shooting-star-trail {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shooting-star-head {
+  fill: #fff;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shooting-star {
+    display: none;
+  }
+}

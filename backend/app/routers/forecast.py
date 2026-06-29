@@ -1,14 +1,35 @@
-"""Forecast endpoint orchestrating IPGeolocation, Open-Meteo, and scoring."""
+"""Forecast endpoint orchestrating IPGeolocation, Open-Meteo, 7timer, and scoring."""
 
 import asyncio
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import Settings, get_settings
 from app.models.forecast import ForecastRequest, ForecastResponse
-from app.services import forecast_cache, ipgeolocation, openmeteo, scoring
+from app.services import forecast_cache, ipgeolocation, openmeteo, scoring, seventimer
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["forecast"])
+
+
+async def _fetch_astro_if_enabled(
+    settings: Settings,
+    latitude: float,
+    longitude: float,
+) -> dict | None:
+    if not settings.seventimer_enabled:
+        return None
+    try:
+        return await seventimer.fetch_astro_forecast(
+            latitude,
+            longitude,
+            altitude_correction=settings.seventimer_altitude_correction,
+        )
+    except seventimer.SevenTimerError as exc:
+        logger.warning("7timer astro fetch failed (fail-open): %s", exc)
+        return None
 
 
 @router.post("/forecast", response_model=ForecastResponse)
@@ -43,6 +64,7 @@ async def get_forecast(
 
         time_series_data = None
         weather_data = None
+        astro_data = None
 
         if settings.forecast_cache_enabled:
             ts_key = forecast_cache.astronomy_cache_key(
@@ -59,6 +81,9 @@ async def get_forecast(
                 forecast_days,
             )
             weather_data = forecast_cache.get_cached_entry(weather_key)
+            astro_data = forecast_cache.get_cached_entry(
+                forecast_cache.astro_cache_key(latitude, longitude)
+            )
 
         if time_series_data is None and weather_data is None:
             time_series_data, weather_data = await asyncio.gather(
@@ -81,6 +106,9 @@ async def get_forecast(
                 longitude,
                 forecast_days=forecast_days,
             )
+
+        if astro_data is None:
+            astro_data = await _fetch_astro_if_enabled(settings, latitude, longitude)
 
         if settings.forecast_cache_enabled:
             if time_series_data is not None:
@@ -107,6 +135,13 @@ async def get_forecast(
                     weather_data,
                     ttl_hours=settings.forecast_weather_ttl_hours,
                 )
+            if astro_data is not None:
+                forecast_cache.store_cached_entry(
+                    forecast_cache.astro_cache_key(latitude, longitude),
+                    forecast_cache.LAYER_ASTRO,
+                    astro_data,
+                    ttl_hours=settings.forecast_astro_ttl_hours,
+                )
 
         return await asyncio.to_thread(
             scoring.build_forecast,
@@ -115,6 +150,8 @@ async def get_forecast(
             weather_data,
             forecast_start=date_start,
             forecast_end=date_end,
+            astro_data=astro_data,
+            seventimer_enabled=settings.seventimer_enabled,
         )
     except ipgeolocation.IPGeolocationError as exc:
         raise HTTPException(

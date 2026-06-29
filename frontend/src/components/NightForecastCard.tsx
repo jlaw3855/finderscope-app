@@ -6,11 +6,12 @@ import { formatNightColumnDate } from '../lib/astronomy-format'
 import {
   formatCloudCover,
   formatHour12,
-  formatTemperature,
-  formatVisibility,
   formatMoonSkyGlowAvg,
+  formatSeeing,
+  formatTransparency,
   averageHourlyWeather,
 } from '../lib/weather-format'
+import { useWeatherFormat } from '../hooks/useWeatherFormat'
 import { CloudBreakdown } from './CloudBreakdown'
 import { PrecipitationBreakdownView } from './PrecipitationBreakdownView'
 
@@ -42,6 +43,26 @@ function formatBestHourRange(start: string, end: string): string {
   return `${formatHour12(start)}–${formatHour12(end)}`
 }
 
+function averageSeeing(hourly: NightForecast['hourly']): string {
+  const values = hourly.map((entry) => entry.seeing).filter((v): v is number => v != null)
+  if (values.length === 0) {
+    return '—'
+  }
+  const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
+  return formatSeeing(avg)
+}
+
+function averageTransparency(hourly: NightForecast['hourly']): string {
+  const values = hourly
+    .map((entry) => entry.transparency)
+    .filter((v): v is number => v != null)
+  if (values.length === 0) {
+    return '—'
+  }
+  const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
+  return formatTransparency(avg)
+}
+
 function NightForecastCardComponent({
   night,
   selected,
@@ -50,6 +71,7 @@ function NightForecastCardComponent({
   moonEnrichment,
   moonEnrichmentLoading = false,
 }: NightForecastCardProps) {
+  const fmt = useWeatherFormat()
   const fallbackMoonLabel =
     MOON_PHASE_LABELS[night.moon_phase] ?? night.moon_phase.replace(/_/g, ' ')
   const displayPhaseName = moonEnrichment?.phase_name ?? fallbackMoonLabel
@@ -126,8 +148,8 @@ function NightForecastCardComponent({
           </div>
           <p className="night-score">{night.score ?? '—'}/100</p>
           <p className="night-temps">
-            High {formatTemperature(night.temperature_high)} · Low{' '}
-            {formatTemperature(night.temperature_low)}
+            High {fmt.formatTemperature(night.temperature_high)} · Low{' '}
+            {fmt.formatTemperature(night.temperature_low)}
           </p>
           {night.moon_sky_glow_avg != null && (
             <p className="night-detail">
@@ -144,7 +166,14 @@ function NightForecastCardComponent({
           {night.hourly.length > 0 && (
             <p className="night-detail night-weather">
               {formatCloudCover(weatherAverages.avgCloudCover)} avg clouds ·{' '}
-              {formatVisibility(weatherAverages.avgVisibility)} avg visibility
+              {fmt.formatVisibility(weatherAverages.avgVisibility)} avg visibility
+              {!night.astro_forecast_limited && (
+                <>
+                  {' '}
+                  · {averageSeeing(night.hourly)} avg seeing ·{' '}
+                  {averageTransparency(night.hourly)} avg transparency
+                </>
+              )}
             </p>
           )}
           <CloudBreakdown cloud={night.cloud_cover} compact />

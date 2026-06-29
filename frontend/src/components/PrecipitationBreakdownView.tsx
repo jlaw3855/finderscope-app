@@ -1,8 +1,6 @@
 import type { PrecipitationBreakdown } from '../types/forecast'
-import {
-  formatPrecipitationMm,
-  formatPrecipitationProbability,
-} from '../lib/weather-format'
+import { formatPrecipitationProbability } from '../lib/weather-format'
+import { useWeatherFormat } from '../hooks/useWeatherFormat'
 
 interface PrecipitationBreakdownViewProps {
   precipitation: PrecipitationBreakdown
@@ -13,11 +11,13 @@ export function PrecipitationBreakdownView({
   precipitation,
   compact = false,
 }: PrecipitationBreakdownViewProps) {
+  const fmt = useWeatherFormat()
+
   if (compact) {
     return (
       <p className="precip-breakdown compact">
-        Rainfall: {formatPrecipitationMm(precipitation.total_mm)} total ·{' '}
-        {formatPrecipitationMm(precipitation.max_hourly_mm)} max/hr ·{' '}
+        Rainfall: {fmt.formatPrecipitation(precipitation.total_mm)} total ·{' '}
+        {fmt.formatPrecipitation(precipitation.max_hourly_mm)} max/hr ·{' '}
         {formatPrecipitationProbability(precipitation.max_probability)} chance of rain
       </p>
     )
@@ -29,11 +29,11 @@ export function PrecipitationBreakdownView({
       <div className="precip-breakdown-stats">
         <div className="precip-stat">
           <span className="precip-stat-label">Total precipitation during darkness</span>
-          <span className="precip-stat-value">{formatPrecipitationMm(precipitation.total_mm)}</span>
+          <span className="precip-stat-value">{fmt.formatPrecipitation(precipitation.total_mm)}</span>
         </div>
         <div className="precip-stat">
           <span className="precip-stat-label">Heaviest hourly rainfall</span>
-          <span className="precip-stat-value">{formatPrecipitationMm(precipitation.max_hourly_mm)}</span>
+          <span className="precip-stat-value">{fmt.formatPrecipitation(precipitation.max_hourly_mm)}</span>
         </div>
         <div className="precip-stat">
           <span className="precip-stat-label">Highest chance of precipitation</span>

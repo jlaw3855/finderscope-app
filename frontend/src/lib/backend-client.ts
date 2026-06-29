@@ -1,3 +1,4 @@
+import type { ApodResponse } from '../types/apod'
 import type { AstronomyRequest, AstronomyResponse } from '../types/astronomy'
 import type { ForecastRequest, ForecastResponse } from '../types/forecast'
 import type { MoonEnrichmentResponse } from '../types/moon-enrichment'
@@ -40,6 +41,18 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   }
 
   return response.json() as Promise<T>
+}
+
+export async function fetchApod(date?: string): Promise<ApodResponse> {
+  const params = date ? `?date=${encodeURIComponent(date)}` : ''
+  const response = await fetch(`/api/apod${params}`)
+
+  if (!response.ok) {
+    const message = await parseError(response)
+    throw new BackendClientError(message, response.status)
+  }
+
+  return response.json() as Promise<ApodResponse>
 }
 
 export async function fetchForecast(request: ForecastRequest): Promise<ForecastResponse> {

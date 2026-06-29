@@ -16,6 +16,13 @@ test.describe('Visual baselines', () => {
     await expect(page.getByTestId('search-panel')).toHaveScreenshot('search-panel.png')
   })
 
+  test('apod panel', async ({ page }) => {
+    await mockForecastApis(page)
+    await page.goto('/')
+
+    await expect(page.getByTestId('apod-panel')).toHaveScreenshot('apod-panel.png')
+  })
+
   test('forecast location and night cards', async ({ page }) => {
     await mockForecastApis(page)
     await submitDenverForecast(page)

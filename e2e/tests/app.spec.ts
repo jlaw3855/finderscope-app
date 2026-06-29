@@ -21,6 +21,19 @@ test('search shows forecast cards for the location', async ({ page }) => {
   await expect(page.getByTestId('moon-visual').first()).toBeVisible()
 })
 
+test('landing page shows APOD and hides it after forecast search', async ({ page }) => {
+  await page.goto('/')
+
+  const apodPanel = page.getByTestId('apod-panel')
+  await expect(apodPanel).toBeVisible()
+  await expect(apodPanel.getByText('Starlink over Orion')).toBeVisible()
+  await expect(apodPanel.getByText(/Credit & copyright:/)).toBeVisible()
+
+  await submitDenverForecast(page)
+
+  await expect(page.getByTestId('apod-panel')).toHaveCount(0)
+})
+
 test('selecting another night updates the hourly chart', async ({ page }) => {
   await submitDenverForecast(page)
 

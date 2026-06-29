@@ -1,3 +1,16 @@
+.forecast-notice-block {
+  margin: 0 0 0.75rem;
+}
+
+.forecast-notice {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.forecast-notice-block .forecast-notice + .forecast-notice {
+  margin-top: 0.35rem;
+}
+
 .nights-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

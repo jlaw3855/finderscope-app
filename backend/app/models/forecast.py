@@ -50,6 +50,8 @@ class HourlyScore(BaseModel):
     cloud_cover_mid: float | None = None
     cloud_cover_high: float | None = None
     visibility: float | None = None
+    seeing: int | None = None
+    transparency: int | None = None
     precipitation: float | None = None
     precipitation_probability: float | None = None
     dew_point: float | None = None
@@ -80,6 +82,7 @@ class NightForecast(BaseModel):
     hourly: list[HourlyScore] = Field(default_factory=list)
     no_darkness: bool = False
     meteor_showers: list[MeteorShowerHighlight] = Field(default_factory=list)
+    astro_forecast_limited: bool = True
 
 
 class ForecastResponse(BaseModel):

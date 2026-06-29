@@ -20,6 +20,10 @@ class TestForecastCache:
         key_b = forecast_cache.geocode_cache_key("  denver, co  ")
         assert key_a == key_b
 
+    def test_astro_cache_key_uses_normalized_coords(self) -> None:
+        key = forecast_cache.astro_cache_key(39.73923, -104.99031)
+        assert key == "astro:39.7392:-104.9903"
+
     def test_coordinate_normalization(self) -> None:
         assert forecast_cache.normalize_coord(39.73923) == 39.7392
 

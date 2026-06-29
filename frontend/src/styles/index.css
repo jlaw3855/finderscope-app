@@ -1,9 +1,11 @@
 /* Aggregates modular stylesheets for the Finderscope frontend. */
 @import './base.css';
+@import './sky-scene.css';
 @import './error.css';
 @import './night-cards.css';
 @import './weather-breakdown.css';
 @import './hourly-chart.css';
 @import './astronomy.css';
 @import './planet-timeline.css';
+@import './apod.css';
 @import './responsive.css';

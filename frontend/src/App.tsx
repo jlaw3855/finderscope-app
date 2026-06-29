@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { AddressSearch } from './components/AddressSearch'
+import { ApodPanel } from './components/ApodPanel'
 import { AstronomyEventsPanel } from './components/AstronomyEventsPanel'
 import { ErrorBanner } from './components/ErrorBanner'
 import { HourlyScoreChart } from './components/HourlyScoreChart'
 import { NightForecastCard } from './components/NightForecastCard'
+import { SkyScene } from './components/SkyScene'
 import { useAstronomySummary } from './hooks/useAstronomySummary'
 import { useForecast } from './hooks/useForecast'
 import { useMoonEnrichment } from './hooks/useMoonEnrichment'
@@ -51,9 +53,13 @@ function App() {
   }, [forecast, moonEnrichmentStatus, moonPendingDates])
 
   return (
-    <div className="app">
+    <>
+      <SkyScene />
+      <div className="app">
       <AddressSearch onSearch={handleSearch} loading={forecastLoading} />
       <ErrorBanner message={forecastError} />
+
+      {!forecast && <ApodPanel />}
 
       {forecast && (
         <>
@@ -64,6 +70,16 @@ function App() {
               {forecast.location.longitude.toFixed(4)}
             </p>
           </section>
+
+          <div className="forecast-notice-block">
+            <p className="forecast-notice muted" data-testid="forecast-notice">
+              Seeing and atmospheric transparency forecasts are most reliable for the first ~3 days.
+              Later nights show visibility only.
+            </p>
+            <p className="forecast-notice muted">
+              Seeing values use arcseconds (″).
+            </p>
+          </div>
 
           <section className="nights-grid" data-testid="nights-grid">
             {forecast.nights.map((night, index) => (
@@ -86,6 +102,7 @@ function App() {
               stepMinutes={forecast.score_step_minutes ?? 60}
               cloudCover={selectedNight.cloud_cover}
               precipitation={selectedNight.precipitation}
+              astroForecastLimited={selectedNight.astro_forecast_limited ?? true}
             />
           )}
 
@@ -101,7 +118,8 @@ function App() {
           />
         </>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -18,6 +18,11 @@ from app.models.forecast import (
 from app.services import moon_position, meteor_showers
 from app.services.astronomy_geometry import is_in_nights_darkness as _is_in_nights_darkness
 from app.services.astronomy_geometry import time_to_minutes as _time_to_minutes
+from app.services.seventimer import (
+    AstroIndex,
+    build_astro_index,
+    lookup_astro_at,
+)
 
 # * WMO weather codes that indicate poor stargazing conditions.
 BAD_WEATHER_CODES = {
@@ -336,6 +341,12 @@ def _resolve_night_moon_times(
     return moonrise, moonset
 
 
+def _visibility_score(visibility: float | None) -> float:
+    if visibility is None:
+        return 50.0
+    return min(visibility / 10000.0, 1.0) * 100.0
+
+
 def _hour_score(
     cloud_cover: float | None,
     visibility: float | None,
@@ -345,11 +356,6 @@ def _hour_score(
 ) -> int:
     cloud = cloud_cover if cloud_cover is not None else 100.0
     cloud_score = max(0.0, 100.0 - cloud)
-
-    if visibility is None:
-        visibility_score = 50.0
-    else:
-        visibility_score = min(visibility / 10000.0, 1.0) * 100.0
 
     moon_score = max(0.0, 100.0 - abs(moon_illumination))
 
@@ -361,7 +367,7 @@ def _hour_score(
 
     total = (
         cloud_score * 0.40
-        + visibility_score * 0.25
+        + _visibility_score(visibility) * 0.25
         + moon_score * 0.25
         + precip_score * 0.10
     )
@@ -633,13 +639,23 @@ def build_forecast(
     weather_data: dict,
     forecast_start: date | None = None,
     forecast_end: date | None = None,
+    astro_data: dict | None = None,
+    *,
+    seventimer_enabled: bool = True,
 ) -> ForecastResponse:
-    """Combine IPGeolocation and Open-Meteo data into a 7-day stargazing forecast."""
+    """Combine IPGeolocation, Open-Meteo, and optional 7timer data into a forecast."""
     location_block = location_data.get("location", {})
     label = location_block.get("location_string") or location_block.get("city") or "Unknown location"
     latitude = float(location_block.get("latitude", 0))
     longitude = float(location_block.get("longitude", 0))
     timezone = weather_data.get("timezone", "UTC")
+
+    astro_index: AstroIndex | None = None
+    if seventimer_enabled and astro_data is not None:
+        try:
+            astro_index = build_astro_index(astro_data, timezone)
+        except Exception:
+            astro_index = None
 
     hourly_times: list[str] = weather_data.get("hourly", {}).get("time", [])
     hourly_weather = weather_data.get("hourly", {})
@@ -717,6 +733,7 @@ def build_forecast(
                 longitude,
                 timezone,
             )
+            seeing, transparency = lookup_astro_at(slot_dt, astro_index)
             score = _hour_score(
                 cloud_cover=wx.get("cloud_cover"),
                 visibility=wx.get("visibility"),
@@ -737,6 +754,8 @@ def build_forecast(
                     cloud_cover_mid=wx.get("cloud_cover_mid"),
                     cloud_cover_high=wx.get("cloud_cover_high"),
                     visibility=wx.get("visibility"),
+                    seeing=seeing,
+                    transparency=transparency,
                     precipitation=wx.get("precipitation"),
                     precipitation_probability=wx.get("precipitation_probability"),
                     dew_point=wx.get("dew_point_2m"),
@@ -765,6 +784,11 @@ def build_forecast(
             rating = "Poor"
             score = 0
 
+        astro_limited = not any(
+            entry.seeing is not None or entry.transparency is not None
+            for entry in hourly_scores
+        )
+
         nights.append(
             NightForecast(
                 date=day_date,
@@ -783,6 +807,7 @@ def build_forecast(
                 best_hours=_find_best_hours(hourly_scores),
                 hourly=hourly_scores,
                 meteor_showers=night_meteor_showers,
+                astro_forecast_limited=astro_limited,
             )
         )
 

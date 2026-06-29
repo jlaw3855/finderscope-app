@@ -15,7 +15,7 @@ description: >-
 - Free API key from [IPGeolocation.io](https://ipgeolocation.io) (required for live forecast search)
 - Optional [FreeAstroAPI](https://www.freeastroapi.com/moon) key for moon SVG enrichment
 
-Open-Meteo requires no API key.
+Open-Meteo and [7timer ASTRO](https://www.7timer.info/doc.php?lang=en) require no API key. NASA APOD works with the default `DEMO_KEY`; a personal key from [api.nasa.gov](https://api.nasa.gov/) improves rate limits.
 
 ## Backend
 
@@ -36,6 +36,8 @@ source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
 
+On **Windows**, `requirements.txt` includes `tzdata` (PEP 508 marker) so `zoneinfo` timezone lookups work for forecast scoring and astronomy calculations. No extra step — it installs automatically with `pip install -r requirements.txt`.
+
 For running tests or integrity checks, also install dev dependencies:
 
 ```bash
@@ -43,6 +45,8 @@ python -m pip install -r requirements-dev.txt
 ```
 
 On macOS, if `pip` is not found, use `python3 -m pip` instead of `pip`.
+
+On Windows, prefer `python` or `py -3` inside the activated venv if `python3` is not on PATH.
 
 ## Frontend
 

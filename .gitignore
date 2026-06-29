@@ -7,6 +7,8 @@ backend/.pytest_cache/
 backend/htmlcov/
 backend/data/moon_cache/
 backend/data/forecast_cache/
+backend/data/noctua_cache/
+.cursor/debug-*.log
 *.pyc
 
 # Node

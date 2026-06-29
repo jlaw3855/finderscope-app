@@ -75,12 +75,16 @@ def main() -> None:
         start=forecast_start,
     )
 
+    astro_data = _load("seventimer_astro.json")
+    astro_data = {**astro_data, "init": f"{forecast_start.strftime('%Y%m%d')}12"}
+
     forecast = build_forecast(
         location_data,
         time_series_data,
         weather_data,
         forecast_start=forecast_start,
         forecast_end=forecast_end,
+        astro_data=astro_data,
     )
 
     E2E_FIXTURES_DIR.mkdir(parents=True, exist_ok=True)

@@ -9,14 +9,15 @@ import { formatForecastNightHeading } from '../lib/astronomy-format'
 import {
   formatCloudCover,
   formatHour12,
-  formatHourlyTooltip,
-  formatPrecipitationMm,
   formatPrecipitationProbability,
   formatMoonAltitude,
   formatMoonIlluminationEffective,
-  formatVisibility,
+  formatSeeing,
+  formatTransparency,
   averageHourlyWeather,
+  type WeatherFormatters,
 } from '../lib/weather-format'
+import { useWeatherFormat } from '../hooks/useWeatherFormat'
 import { CloudBreakdown } from './CloudBreakdown'
 import { DewPointChart, DewPointChartAxis } from './DewPointChart'
 import { shouldShowTimeLabel } from './hourly-chart-layout'
@@ -28,6 +29,7 @@ interface HourlyScoreChartProps {
   stepMinutes?: number
   cloudCover?: CloudCoverBreakdown
   precipitation?: PrecipitationBreakdown
+  astroForecastLimited?: boolean
 }
 
 interface HourlyMetricRow {
@@ -42,70 +44,114 @@ type HourlyChartRow =
   | { kind: 'group'; id: string; label: string }
   | { kind: 'metric'; row: HourlyMetricRow }
 
-const HOURLY_METRIC_ROWS: HourlyMetricRow[] = [
-  {
-    id: 'cloud-total',
-    label: 'Total clouds',
-    title: 'Total cloud cover',
-    group: 'Clouds',
-    format: (entry) => formatCloudCover(entry.cloud_cover),
-  },
-  {
-    id: 'cloud-low',
-    label: 'Low clouds',
-    title: 'Low-altitude clouds',
-    group: 'Clouds',
-    format: (entry) => formatCloudCover(entry.cloud_cover_low),
-  },
-  {
-    id: 'cloud-mid',
-    label: 'Mid clouds',
-    title: 'Mid-altitude clouds',
-    group: 'Clouds',
-    format: (entry) => formatCloudCover(entry.cloud_cover_mid),
-  },
-  {
-    id: 'cloud-high',
-    label: 'High clouds',
-    title: 'High-altitude clouds',
-    group: 'Clouds',
-    format: (entry) => formatCloudCover(entry.cloud_cover_high),
-  },
-  {
-    id: 'precip-amount',
-    label: 'Precip amount',
-    title: 'Precipitation amount',
-    group: 'Precipitation',
-    format: (entry) => formatPrecipitationMm(entry.precipitation),
-  },
-  {
-    id: 'precip-chance',
-    label: 'Precip chance',
-    title: 'Chance of precipitation',
-    group: 'Precipitation',
-    format: (entry) => formatPrecipitationProbability(entry.precipitation_probability),
-  },
-  {
-    id: 'moon-light',
-    label: 'Moon glow',
-    title: 'Effective moon sky glow',
-    group: 'Moon',
-    format: (entry) => formatMoonIlluminationEffective(entry),
-  },
-  {
-    id: 'moon-altitude',
-    label: 'Moon altitude',
-    title: 'Moon altitude',
-    group: 'Moon',
-    format: (entry) => formatMoonAltitude(entry),
-  },
-]
+function buildMetricRows(
+  astroForecastLimited: boolean,
+  fmt: WeatherFormatters,
+): HourlyMetricRow[] {
+  const skyRows: HourlyMetricRow[] = astroForecastLimited
+    ? [
+        {
+          id: 'visibility',
+          label: 'Visibility',
+          title: 'General atmospheric visibility estimate',
+          group: 'Sky clarity',
+          format: (entry) => fmt.formatVisibility(entry.visibility),
+        },
+      ]
+    : [
+        {
+          id: 'seeing',
+          label: 'Seeing',
+          title: 'Astronomical seeing (7timer, ~3 day forecast)',
+          group: 'Sky quality',
+          format: (entry) => formatSeeing(entry.seeing),
+        },
+        {
+          id: 'transparency',
+          label: 'Transparency',
+          title: 'Atmospheric transparency (7timer, ~3 day forecast)',
+          group: 'Sky quality',
+          format: (entry) => formatTransparency(entry.transparency),
+        },
+        {
+          id: 'visibility',
+          label: 'Visibility',
+          title: 'General atmospheric visibility estimate',
+          group: 'Sky clarity',
+          format: (entry) => fmt.formatVisibility(entry.visibility),
+        },
+      ]
 
-const HOURLY_CHART_ROWS: HourlyChartRow[] = (() => {
+  const baseRows: HourlyMetricRow[] = [
+    {
+      id: 'cloud-total',
+      label: 'Total clouds',
+      title: 'Total cloud cover',
+      group: 'Clouds',
+      format: (entry) => formatCloudCover(entry.cloud_cover),
+    },
+    {
+      id: 'cloud-low',
+      label: 'Low clouds',
+      title: 'Low-altitude clouds',
+      group: 'Clouds',
+      format: (entry) => formatCloudCover(entry.cloud_cover_low),
+    },
+    {
+      id: 'cloud-mid',
+      label: 'Mid clouds',
+      title: 'Mid-altitude clouds',
+      group: 'Clouds',
+      format: (entry) => formatCloudCover(entry.cloud_cover_mid),
+    },
+    {
+      id: 'cloud-high',
+      label: 'High clouds',
+      title: 'High-altitude clouds',
+      group: 'Clouds',
+      format: (entry) => formatCloudCover(entry.cloud_cover_high),
+    },
+    {
+      id: 'precip-amount',
+      label: 'Precip amount',
+      title: 'Precipitation amount',
+      group: 'Precipitation',
+      format: (entry) => fmt.formatPrecipitation(entry.precipitation),
+    },
+    {
+      id: 'precip-chance',
+      label: 'Precip chance',
+      title: 'Chance of precipitation',
+      group: 'Precipitation',
+      format: (entry) => formatPrecipitationProbability(entry.precipitation_probability),
+    },
+    {
+      id: 'moon-light',
+      label: 'Moon glow',
+      title: 'Effective moon sky glow',
+      group: 'Moon',
+      format: (entry) => formatMoonIlluminationEffective(entry),
+    },
+    {
+      id: 'moon-altitude',
+      label: 'Moon altitude',
+      title: 'Moon altitude',
+      group: 'Moon',
+      format: (entry) => formatMoonAltitude(entry),
+    },
+  ]
+
+  return [...skyRows, ...baseRows]
+}
+
+function buildHourlyChartRows(
+  astroForecastLimited: boolean,
+  fmt: WeatherFormatters,
+): HourlyChartRow[] {
   const rows: HourlyChartRow[] = []
   let lastGroup: string | null = null
 
-  for (const row of HOURLY_METRIC_ROWS) {
+  for (const row of buildMetricRows(astroForecastLimited, fmt)) {
     if (row.group !== lastGroup) {
       rows.push({ kind: 'group', id: `group-${row.group}`, label: row.group })
       lastGroup = row.group
@@ -114,7 +160,7 @@ const HOURLY_CHART_ROWS: HourlyChartRow[] = (() => {
   }
 
   return rows
-})()
+}
 
 function averageCloudBreakdown(hourly: HourlyScore[]) {
   const average = (values: Array<number | null | undefined>) => {
@@ -152,6 +198,14 @@ function hasDewPointData(hourly: HourlyScore[]): boolean {
   return hourly.some((entry) => entry.dew_point != null)
 }
 
+function averageBin(values: Array<number | null | undefined>): number | null {
+  const filtered = values.filter((value): value is number => value != null)
+  if (filtered.length === 0) {
+    return null
+  }
+  return Math.round(filtered.reduce((sum, value) => sum + value, 0) / filtered.length)
+}
+
 function HourlyTimeRow({
   hourly,
   stepMinutes,
@@ -180,7 +234,13 @@ function HourlyScoreChartComponent({
   stepMinutes = 60,
   cloudCover,
   precipitation,
+  astroForecastLimited = true,
 }: HourlyScoreChartProps) {
+  const fmt = useWeatherFormat()
+  const chartRows = useMemo(
+    () => buildHourlyChartRows(astroForecastLimited, fmt),
+    [astroForecastLimited, fmt],
+  )
   const heading = useMemo(() => {
     const formattedDate = formatForecastNightHeading(date)
     return stepMinutes === 30
@@ -215,7 +275,14 @@ function HourlyScoreChartComponent({
       <h2>{heading}</h2>
       <p className="hourly-summary muted">
         Avg during darkness: {formatCloudCover(averages.avgCloudCover)} clouds ·{' '}
-        {formatVisibility(averages.avgVisibility)} visibility
+        {fmt.formatVisibility(averages.avgVisibility)} visibility
+        {!astroForecastLimited && (
+          <>
+            {' '}
+            · {formatSeeing(averageBin(hourly.map((e) => e.seeing)))} avg seeing ·{' '}
+            {formatTransparency(averageBin(hourly.map((e) => e.transparency)))} avg transparency
+          </>
+        )}
       </p>
 
       <div className="hourly-detail-grid">
@@ -275,7 +342,7 @@ function HourlyScoreChartComponent({
               const label = formatHour12(entry.time)
               return (
                 <div key={entry.at} className="hourly-column">
-                  <div className="hourly-bar-track" title={formatHourlyTooltip(label, entry)}>
+                  <div className="hourly-bar-track" title={fmt.formatHourlyTooltip(label, entry)}>
                     <div className="hourly-bar-gridline hourly-bar-gridline--100" />
                     <div className="hourly-bar-gridline hourly-bar-gridline--50" />
                     <div className="hourly-bar-gridline hourly-bar-gridline--0" />
@@ -288,7 +355,7 @@ function HourlyScoreChartComponent({
           </div>
         </div>
 
-        {HOURLY_CHART_ROWS.map((chartRow) => {
+        {chartRows.map((chartRow) => {
           if (chartRow.kind === 'group') {
             return (
               <Fragment key={chartRow.id}>

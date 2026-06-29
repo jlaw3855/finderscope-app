@@ -1,5 +1,6 @@
 import type { HourlyScore } from '../types/forecast'
-import { formatHour12, formatTemperature } from '../lib/weather-format'
+import { formatHour12 } from '../lib/weather-format'
+import { useWeatherFormat } from '../hooks/useWeatherFormat'
 import {
   buildTemperatureScale,
   buildTemperatureTicks,
@@ -18,6 +19,7 @@ const PLOT_TOP = 12
 const PLOT_BOTTOM = 28
 
 export function DewPointChart({ hourly, stepMinutes = 60 }: DewPointChartProps) {
+  const fmt = useWeatherFormat()
   const dewPoints = hourly
     .map((entry) => entry.dew_point)
     .filter((value): value is number => value != null)
@@ -113,7 +115,7 @@ export function DewPointChart({ hourly, stepMinutes = 60 }: DewPointChartProps) 
             className="hourly-temp-dot hourly-temp-dot--air"
           >
             <title>
-              {`${formatHour12(point.entry.time)} — Dew ${formatTemperature(point.entry.dew_point)} · Air ${formatTemperature(point.entry.temperature)}`}
+              {`${formatHour12(point.entry.time)} — Dew ${fmt.formatTemperature(point.entry.dew_point)} · Air ${fmt.formatTemperature(point.entry.temperature)}`}
             </title>
           </circle>
         ))}
@@ -128,8 +130,8 @@ export function DewPointChart({ hourly, stepMinutes = 60 }: DewPointChartProps) 
           >
             <title>
               {hasTemperature
-                ? `${formatHour12(point.entry.time)} — Dew ${formatTemperature(point.entry.dew_point)} · Air ${formatTemperature(point.entry.temperature)}`
-                : `${formatHour12(point.entry.time)} — Dew ${formatTemperature(point.entry.dew_point)}`}
+                ? `${formatHour12(point.entry.time)} — Dew ${fmt.formatTemperature(point.entry.dew_point)} · Air ${fmt.formatTemperature(point.entry.temperature)}`
+                : `${formatHour12(point.entry.time)} — Dew ${fmt.formatTemperature(point.entry.dew_point)}`}
             </title>
           </circle>
         ))}
@@ -139,6 +141,7 @@ export function DewPointChart({ hourly, stepMinutes = 60 }: DewPointChartProps) 
 }
 
 export function DewPointChartAxis({ hourly }: DewPointChartProps) {
+  const fmt = useWeatherFormat()
   const dewPoints = hourly
     .map((entry) => entry.dew_point)
     .filter((value): value is number => value != null)
@@ -161,7 +164,7 @@ export function DewPointChartAxis({ hourly }: DewPointChartProps) {
 
   return (
     <div className="hourly-temp-axis" aria-hidden="true">
-      <span className="hourly-temp-axis-title">°F</span>
+      <span className="hourly-temp-axis-title">{fmt.temperatureUnitLabel}</span>
       <div className="hourly-temp-axis-ticks" style={{ height: `${CHART_HEIGHT}px` }}>
         {yTicks.map((tick) => {
           const y = valueToChartY(tick, scale, PLOT_TOP, plotHeight)
@@ -171,7 +174,7 @@ export function DewPointChartAxis({ hourly }: DewPointChartProps) {
               className="hourly-temp-axis-tick"
               style={{ top: `${(y / CHART_HEIGHT) * 100}%` }}
             >
-              {formatTemperature(tick)}
+              {fmt.formatTemperature(tick)}
             </span>
           )
         })}

@@ -83,6 +83,18 @@ class TestHourScore:
         )
         assert score == 60
 
+    def test_seeing_does_not_affect_score(self) -> None:
+        """7timer seeing/transparency are display-only; score uses visibility."""
+        base_kwargs = {
+            "cloud_cover": 0,
+            "visibility": 10000,
+            "moon_illumination": 0,
+            "precipitation": 0,
+            "weather_code": 0,
+        }
+        with_good_visibility = _hour_score(**base_kwargs)
+        assert with_good_visibility == 100
+
 
 class TestNightsDarkness:
     def test_evening_hour_in_window(self) -> None:
@@ -314,6 +326,30 @@ class TestBuildForecast:
         assert first_night.moon_sky_glow_avg == pytest.approx(expected_avg)
         assert first_night.moonrise == "23:00"
         assert first_night.moonset == "04:00"
+
+    def test_astro_data_populated_without_affecting_score(self, load_fixture) -> None:
+        location_data = load_fixture("location.json")
+        time_series_data = load_fixture("time_series.json")
+        weather_data = load_fixture("weather.json")
+        astro_data = load_fixture("seventimer_astro.json")
+        astro_data = {**astro_data, "init": "2025062012"}
+
+        without_astro = build_forecast(location_data, time_series_data, weather_data)
+        with_astro = build_forecast(
+            location_data,
+            time_series_data,
+            weather_data,
+            astro_data=astro_data,
+        )
+
+        first_without = without_astro.nights[0]
+        first_with = with_astro.nights[0]
+        assert first_with.astro_forecast_limited is False
+        assert any(entry.seeing is not None for entry in first_with.hourly)
+        assert any(entry.transparency is not None for entry in first_with.hourly)
+        assert len(first_with.hourly) == len(first_without.hourly)
+        for with_entry, without_entry in zip(first_with.hourly, first_without.hourly):
+            assert with_entry.score == without_entry.score
 
     def test_last_night_includes_post_midnight_hours(self, load_fixture) -> None:
         """The final night's darkness spans into the next calendar day."""

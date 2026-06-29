@@ -14,6 +14,7 @@ DB_PATH = CACHE_DIR / "forecast.db"
 LAYER_GEOCODE = "geocode"
 LAYER_ASTRONOMY = "astronomy"
 LAYER_WEATHER = "weather"
+LAYER_ASTRO = "astro"
 
 
 def normalize_coord(value: float) -> float:
@@ -46,6 +47,12 @@ def weather_cache_key(
     lat = normalize_coord(latitude)
     lon = normalize_coord(longitude)
     return f"weather:{lat}:{lon}:{forecast_start}:{forecast_days}"
+
+
+def astro_cache_key(latitude: float, longitude: float) -> str:
+    lat = normalize_coord(latitude)
+    lon = normalize_coord(longitude)
+    return f"astro:{lat}:{lon}"
 
 
 def ensure_cache_dirs() -> None:

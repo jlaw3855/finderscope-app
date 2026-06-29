@@ -45,6 +45,8 @@ export interface HourlyScore {
   cloud_cover_mid?: number | null
   cloud_cover_high?: number | null
   visibility?: number | null
+  seeing?: number | null
+  transparency?: number | null
   precipitation?: number | null
   precipitation_probability?: number | null
   dew_point?: number | null
@@ -75,6 +77,7 @@ export interface NightForecast {
   hourly: HourlyScore[]
   no_darkness: boolean
   meteor_showers: MeteorShowerHighlight[]
+  astro_forecast_limited?: boolean
 }
 
 export interface ForecastResponse {

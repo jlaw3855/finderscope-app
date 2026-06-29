@@ -123,6 +123,14 @@ export async function mockForecastApis(page: Page, options: MockForecastOptions 
       body: moonVisualFixture,
     })
   })
+
+  await page.route('**/api/apod**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: readFixture('apod-response.json'),
+    })
+  })
 }
 
 export async function mockMeteorPeakForecastApis(page: Page): Promise<void> {

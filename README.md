@@ -11,6 +11,10 @@ A full-stack web app for stargazers. Enter an address to get a 7-day stargazing 
 3. The UI displays one **night card** per evening, each with an overall stargazing score, rating, moon details, cloud/precipitation summaries, suggested best hours, and **meteor shower peak badges** when a major shower peaks that night and its radiant is observable during astronomical darkness at the location.
 4. Selecting a night opens a **scores panel** with half-hour (or hourly) bars during darkness, weather metrics, a dew point curve, and per-interval moon sky glow and altitude rows.
 
+Before the first forecast search, the landing page shows **NASA’s Astronomy Picture of the Day** (APOD) in a panel below the search bar. The image scales to the viewport; title, credit/copyright, explanation, and NASA API attribution are included. The panel disappears once a forecast loads. APOD “today” follows NASA’s **04:00 UTC** publish time (not midnight UTC). A full-screen **animated sky scene** (Milky Way band, stars, moon, occasional meteors) sits behind the UI.
+
+The search header includes an **Imperial / Metric** toggle (persisted in `localStorage`). It converts **display only** for temperature (°F/°C), visibility (mi/km), and precipitation (in/mm) on night cards, the hourly panel, dew chart labels, and precip summaries. Scores, percentages, moon altitude, seeing/transparency bins, and astronomy data are unchanged; API and scoring still use Open-Meteo’s stored units (°F, meters, mm).
+
 The scores panel uses a **unified left-aligned grid**: each row pairs a sticky label column with a data column so time labels, score bars, dew/air temperature lines, and metric values stay vertically aligned. Score values appear at the bottom of each bar; the dew point chart plots dew point and air temperature on a shared scale with padded Y-axis headroom. When `score_step_minutes` is `30`, columns are narrower and time labels are thinned to keep the panel readable.
 
 ### Stargazing score
@@ -23,6 +27,8 @@ Each score interval during astronomical darkness receives a score from 0–100 b
 | Visibility | 25% | Open-Meteo (15-min preferred, hourly fallback) |
 | Moon sky glow | 25% | IPGeolocation phase + astronomy-engine altitude |
 | Precipitation / weather code | 10% | Open-Meteo (15-min preferred, hourly fallback) |
+
+**7timer astro display:** When enabled, [7timer ASTRO](https://www.7timer.info/doc.php?lang=en) supplies categorical **seeing** (arcsecond stability) and **atmospheric transparency** (mag/airmass extinction) for display on night cards and the hourly panel during its ~72-hour window (typically the first ~3 forecast days). These metrics are informational only — they do not affect the stargazing score. Nights beyond that window set `astro_forecast_limited: true` and show visibility only for sky clarity. Seeing bin labels use **arcseconds** (″); a short note above the forecast grid clarifies this.
 
 **Score step:** The API returns `score_step_minutes: 30` when half-hour slots are built. Each night’s darkness window can start at times like `21:30`; half-hour steps align scores with those boundaries instead of rounding to the next full hour.
 
@@ -76,7 +82,7 @@ Planet visibility rows include **sun-aware observing windows** when the planet i
 
 Events show a local visibility badge when they are global phenomena not guaranteed to be visible at the forecast location (e.g. transits, inferior/superior conjunctions with the Sun).
 
-**Optional NoctuaSky enrichment** (`NOCTUA_ENRICHMENT_ENABLED=true`): after local event discovery, the server attaches catalog metadata (`subjects[]`: types, aliases, interest score) from [NoctuaSky](https://api.noctuasky.com/api/v1/swaggerdoc/) `skysources` for resolvable bodies. Enrichment is fail-open (events return without `subjects[]` on timeout). See `backend/docs/noctua_skysources.md`.
+**Optional NoctuaSky enrichment** (`NOCTUA_ENRICHMENT_ENABLED=true`): after local event discovery, the server attaches catalog metadata (`subjects[]`: types, aliases, interest score) from [NoctuaSky](https://api.noctuasky.com/api/v1/swaggerdoc/) `skysources` for resolvable bodies. Enrichment is fail-open (events return without `subjects[]` on timeout). Event cards show raw type codes (e.g. **Pla** = planet, **SSO** = solar system object) and an **Interest** score from the Noctua catalog. See `backend/docs/noctua_skysources.md`.
 
 ### Forecast response cache
 
@@ -87,6 +93,7 @@ Events show a local visibility badge when they are global phenomena not guarante
 | Geocode | normalized address hash | 30 days |
 | IPGeolocation astronomy time series | lat/lon (4 dp) + date range | 24 h |
 | Open-Meteo weather | lat/lon (4 dp) + forecast start + days | 3 h |
+| 7timer ASTRO | lat/lon (4 dp) | 3 h |
 
 Cached raw weather and astronomy payloads are re-scored on each request so scoring logic changes apply without invalidating weather data.
 
@@ -97,7 +104,9 @@ Night forecast cards show **meteor shower peak badges** when the catalog peak da
 | Service | Role | API key |
 |---------|------|---------|
 | [IPGeolocation.io](https://ipgeolocation.io) | Geocoding, twilight windows, moon phase/times | Required |
-| [Open-Meteo](https://open-meteo.com) | Hourly, 15-minutely, and daily weather | None |
+| [Open-Meteo](https://open-meteo.com) | Hourly, 15-minutely, and daily weather; visibility for scoring | None |
+| [7timer ASTRO](https://www.7timer.info/doc.php?lang=en) | Astronomical seeing and atmospheric transparency for display (~3-day window) | None |
+| [NASA APOD](https://api.nasa.gov/) | Astronomy Picture of the Day on the landing page | Optional (`DEMO_KEY` default) |
 | [FreeAstroAPI](https://www.freeastroapi.com/moon) | Moon phase graphics and enriched lunar labels (optional) | Optional |
 | [astronomy-engine](https://pypi.org/project/astronomy-engine/) | Local eclipse, conjunction, meteor shower, and planet visibility calculations | None (MIT library) |
 | [NoctuaSky](https://api.noctuasky.com/api/v1/swaggerdoc/) | Optional catalog metadata enrichment for astronomy events | None (public skysources) |
@@ -115,14 +124,18 @@ finderscope/
 │   │   ├── models/
 │   │   │   ├── forecast.py     # Pydantic schemas for forecast API
 │   │   │   ├── moon_enrichment.py  # Pydantic schemas for moon enrichment API
-│   │   │   └── astronomy.py    # Pydantic schemas for astronomy summary API
+│   │   │   ├── astronomy.py    # Pydantic schemas for astronomy summary API
+│   │   │   └── apod.py         # Pydantic schemas for NASA APOD proxy
 │   │   ├── routers/
 │   │   │   ├── forecast.py     # POST /api/forecast orchestration
 │   │   │   ├── moon_enrichment.py  # GET /api/moon/enrichment + SVG route
-│   │   │   └── astronomy.py    # POST /api/astronomy
+│   │   │   ├── astronomy.py    # POST /api/astronomy
+│   │   │   └── apod.py         # GET /api/apod
 │   │   └── services/
 │   │       ├── ipgeolocation.py    # Astronomy API client (geocode + time series)
 │   │       ├── openmeteo.py        # Weather forecast client
+│   │       ├── seventimer.py       # 7timer ASTRO seeing/transparency client
+│   │       ├── nasa_apod.py        # NASA APOD client + daily cache
 │   │       ├── http_client.py      # Shared httpx AsyncClient (app lifespan)
 │   │       ├── scoring.py          # Merge weather + astronomy into scores
 │   │       ├── moon_position.py    # astronomy-engine moon altitude + sky-glow curve
@@ -146,6 +159,7 @@ finderscope/
 │   ├── data/iau_meteor_showers.json  # Major shower peaks (local catalog)
 │   ├── data/forecast_cache/    # Forecast upstream cache (gitignored)
 │   ├── data/moon_cache/        # Cached FreeAstro moon SVGs + quota state (gitignored)
+│   ├── data/noctua_cache/      # Cached Noctua skysource responses (gitignored)
 │   ├── tests/
 │   │   ├── test_scoring.py     # Scoring and forecast assembly tests
 │   │   ├── test_moon_position.py
@@ -159,6 +173,8 @@ finderscope/
 │   │   ├── test_moon_cache.py
 │   │   ├── test_freeastroapi.py
 │   │   ├── test_performance_benchmarks.py  # Hot-path timing regression guards
+│   │   ├── test_seventimer.py
+│   │   ├── test_nasa_apod.py
 │   │   ├── test_routes.py      # Route tests with mocked services
 │   │   ├── test_integration_live.py  # Opt-in live API tests
 │   │   └── fixtures/           # JSON fixtures + E2E fixture generator
@@ -178,9 +194,14 @@ finderscope/
 │   │   │   ├── astronomy.css
 │   │   │   ├── planet-timeline.css
 │   │   │   ├── responsive.css
+│   │   │   ├── apod.css
+│   │   │   ├── sky-scene.css
 │   │   │   └── error.css
 │   │   ├── components/
 │   │   │   ├── AddressSearch.tsx
+│   │   │   ├── ApodPanel.tsx           # Landing-page NASA APOD
+│   │   │   ├── SkyScene.tsx            # Animated background sky layer
+│   │   │   ├── UnitToggle.tsx          # Imperial / Metric segmented control
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
 │   │   │   ├── HourlyScoreChart.tsx    # Unified grid: scores, dew/temp, metrics
 │   │   │   ├── hourly-chart-layout.ts  # Shared column width and temperature scale helpers
@@ -190,18 +211,26 @@ finderscope/
 │   │   │   ├── PrecipitationBreakdownView.tsx
 │   │   │   ├── DewPointChart.tsx
 │   │   │   └── ErrorBanner.tsx
+│   │   ├── context/
+│   │   │   └── UnitPreferenceContext.tsx  # Unit system preference + localStorage
 │   │   ├── hooks/
 │   │   │   ├── useForecast.ts  # Forecast fetch state
+│   │   │   ├── useApod.ts      # Landing-page APOD fetch
+│   │   │   ├── useWeatherFormat.ts  # Unit-aware weather formatters
 │   │   │   ├── useMoonEnrichment.ts  # Async FreeAstro moon graphics
 │   │   │   └── useAstronomySummary.ts  # Astronomy summary fetch state
 │   │   ├── lib/
 │   │   │   ├── backend-client.ts   # Typed fetch wrappers for /api
 │   │   │   ├── astronomy-format.ts # Astronomy panel display formatters
+│   │   │   ├── apod-format.ts      # APOD explanation cleanup
 │   │   │   ├── planet-timeline-layout.ts # 24h timeline segment helpers
 │   │   │   ├── moon-sample-time.ts # Dark-window sample times for moon enrichment
-│   │   │   └── weather-format.ts   # Display formatters
+│   │   │   ├── unit-system.ts      # Imperial/metric conversion helpers
+│   │   │   ├── skyScene.ts         # Sky animation (stars, Milky Way, meteors)
+│   │   │   └── weather-format.ts   # Display formatters + createWeatherFormatters()
 │   │   └── types/
 │   │       ├── forecast.ts
+│   │       ├── apod.ts
 │   │       ├── moon-enrichment.ts
 │   │       └── astronomy.ts
 │   └── vite.config.ts          # Dev server; proxies /api → localhost:8000
@@ -314,6 +343,10 @@ Copy `backend/.env.example` to `backend/.env`. Besides `IPGEOLOCATION_API_KEY`, 
 | `FORECAST_GEOCODE_TTL_HOURS` | `720` | Geocode cache TTL (~30 days) |
 | `FORECAST_ASTRONOMY_TTL_HOURS` | `24` | IPGeolocation astronomy cache TTL |
 | `FORECAST_WEATHER_TTL_HOURS` | `3` | Open-Meteo cache TTL |
+| `SEVENTIMER_ENABLED` | `true` | Fetch 7timer ASTRO seeing/transparency for display (informational; not used in scoring) |
+| `FORECAST_ASTRO_TTL_HOURS` | `3` | 7timer ASTRO cache TTL |
+| `SEVENTIMER_ALTITUDE_CORRECTION` | `0` | 7timer `ac` param (0, 2, or 7) |
+| `NASA_API_KEY` | `DEMO_KEY` | NASA Open API key for landing-page APOD (personal key improves rate limits) |
 | `NOCTUA_ENRICHMENT_ENABLED` | `false` | Attach NoctuaSky catalog metadata to astronomy events |
 | `NOCTUA_BASE_URL` | NoctuaSky API v1 | Skysources client base URL |
 | `FREEASTRO_API_KEY` | (empty) | Moon phase SVG enrichment (optional) |
@@ -367,7 +400,7 @@ npm run test:install   # first time only
 npm run test
 ```
 
-E2E tests mock `/api/forecast`, `/api/astronomy`, and `/api/moon/enrichment` in the browser — no backend or external APIs required.
+E2E tests mock `/api/forecast`, `/api/apod`, `/api/astronomy`, and `/api/moon/enrichment` in the browser — no backend or external APIs required.
 
 ### Performance benchmarks
 
@@ -445,6 +478,7 @@ Live API tests are not run in CI.
 | `POST /api/forecast` | 7-day stargazing forecast for an address | 2 IPGeolocation + 1 Open-Meteo on miss; 0 paid on geocode/astronomy cache hit |
 | `GET /api/moon/enrichment` | Cached FreeAstro moon phase labels and SVG URLs | 0 when cached; 1/date on miss (queued at 1 RPS) |
 | `GET /api/moon/visual/{date}.svg` | Cached moon phase SVG | 0 |
+| `GET /api/apod` | NASA Astronomy Picture of the Day for the landing page (day boundary 04:00 UTC) | 0 when cached; 1/day on miss |
 | `POST /api/astronomy` | 90-day event timeline + 7-night planet visibility | 0 local; optional Noctua skysources when enrichment enabled |
 
 ### Astronomy response fields
@@ -453,7 +487,7 @@ Live API tests are not run in CI.
 |-------|-------------|
 | `events[]` | Upcoming events sorted by `start_at`; categories include `lunar_eclipse`, `solar_eclipse`, `transit`, `conjunction`, `opposition`, `meteor_shower` |
 | `events[].visible_locally` | Whether the event is expected to be observable at the request coordinates |
-| `events[].subjects[]` | Optional NoctuaSky catalog metadata (types, aliases, interest) when enrichment is enabled |
+| `events[].subjects[]` | Optional NoctuaSky catalog metadata (`types` e.g. Pla/SSO, `names`, `interest`) when enrichment is enabled |
 | `planet_visibility[]` | One entry per requested forecast night date |
 | `planet_visibility[].planets[].windows_civil[]` | Planet above horizon while Sun altitude &lt; −6° (local `HH:MM`) |
 | `planet_visibility[].planets[].windows_astronomical[]` | Planet above horizon while Sun altitude &lt; −18° (local `HH:MM`) |
@@ -469,3 +503,6 @@ Live API tests are not run in CI.
 | `nights[].moon_sky_glow_avg` | Average effective moon sky glow during darkness |
 | `nights[].best_hours` | Contiguous high-score windows; may start or end at `:30` |
 | `nights[].meteor_showers[]` | Meteor shower peak badges for that calendar night (`id`, `name`, optional `zhr_nominal`) |
+| `nights[].astro_forecast_limited` | `true` when no hourly slot in the night has 7timer seeing/transparency data |
+| `nights[].hourly[].seeing` | 7timer seeing bin (1–8) when astro data is available for that slot |
+| `nights[].hourly[].transparency` | 7timer transparency bin (1–8) when astro data is available for that slot |
