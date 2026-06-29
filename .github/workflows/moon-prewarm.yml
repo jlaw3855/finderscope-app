@@ -22,5 +22,6 @@ jobs:
       - name: Prewarm moon cache
         run: python3 scripts/prewarm_moon_cache.py
         env:
+          IPGEOLOCATION_API_KEY: ci-placeholder
           FREEASTRO_API_KEY: ${{ secrets.FREEASTRO_API_KEY }}
           MOON_ENRICHMENT_ENABLED: 'true'
