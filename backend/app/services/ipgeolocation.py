@@ -25,7 +25,12 @@ async def resolve_location(settings: Settings, address: str) -> dict:
     response = await get_http_client().get(BASE_URL, params=params)
 
     if response.status_code == 401:
-        raise IPGeolocationError("Invalid IPGeolocation API key.", status_code=401)
+        raise IPGeolocationError(
+            "Invalid IPGeolocation API key. Verify IPGEOLOCATION_API_KEY in backend/.env "
+            "(no quotes or trailing spaces) and that your IPGeolocation plan includes "
+            "the Astronomy v3 API.",
+            status_code=401,
+        )
     if response.status_code == 404:
         raise IPGeolocationError("Address not found. Try a more specific location.", status_code=404)
     if response.status_code >= 400:

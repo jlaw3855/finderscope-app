@@ -17,8 +17,3 @@ def get_data_dir() -> Path:
     if configured.is_absolute():
         return configured
     return _backend_root() / configured
-
-
-def clear_data_dir_cache() -> None:
-    """Clear cached path resolution (for tests)."""
-    get_data_dir.cache_clear()

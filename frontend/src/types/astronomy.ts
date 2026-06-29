@@ -58,7 +58,3 @@ export interface AstronomyResponse {
   events: AstronomyEvent[]
   planet_visibility: PlanetDayVisibility[]
 }
-
-export const NAKED_EYE_PLANETS = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'] as const
-
-export const TELESCOPE_PLANETS = ['Uranus', 'Neptune'] as const

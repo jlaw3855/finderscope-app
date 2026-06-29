@@ -6,12 +6,15 @@ import { AstronomyEventsPanel } from './components/AstronomyEventsPanel'
 import { ErrorBanner } from './components/ErrorBanner'
 import { HourlyScoreChart } from './components/HourlyScoreChart'
 import { NightForecastCard } from './components/NightForecastCard'
+import { PanelBlurToggle } from './components/PanelBlurToggle'
 import { SkyScene } from './components/SkyScene'
+import { usePanelBlurPreference } from './context/PanelBlurPreferenceContext'
 import { useAstronomySummary } from './hooks/useAstronomySummary'
 import { useForecast } from './hooks/useForecast'
 import { useMoonEnrichment } from './hooks/useMoonEnrichment'
 
 function App() {
+  const { panelBlurEnabled } = usePanelBlurPreference()
   const { data: forecast, loading: forecastLoading, error: forecastError, search } = useForecast()
   const { data: astronomy, loading: astronomyLoading, error: astronomyError } =
     useAstronomySummary(forecast)
@@ -55,7 +58,8 @@ function App() {
   return (
     <>
       <SkyScene />
-      <div className="app">
+      <PanelBlurToggle />
+      <div className={`app${panelBlurEnabled ? '' : ' app--no-panel-blur'}`}>
       <AddressSearch onSearch={handleSearch} loading={forecastLoading} />
       <ErrorBanner message={forecastError} />
 
@@ -76,6 +80,12 @@ function App() {
               Seeing and atmospheric transparency forecasts are most reliable for the first ~3 days.
               Later nights show visibility only.
             </p>
+            {forecast.astro_data_unavailable && (
+              <p className="forecast-notice muted" data-testid="forecast-astro-unavailable-notice">
+                Seeing and atmospheric transparency data could not be retrieved for the requested
+                address/location.
+              </p>
+            )}
             <p className="forecast-notice muted">
               Seeing values use arcseconds (″).
             </p>

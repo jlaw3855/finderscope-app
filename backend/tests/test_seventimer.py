@@ -3,12 +3,15 @@
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.services.seventimer import (
+    SevenTimerError,
     build_astro_index,
     categorical_astro_score,
+    fetch_astro_forecast,
     lookup_astro_at,
     parse_init_utc,
 )
@@ -34,6 +37,21 @@ class TestParseInit:
         assert init.month == 6
         assert init.day == 28
         assert init.hour == 12
+
+
+class TestFetchAstroForecast:
+    @pytest.mark.asyncio
+    async def test_invalid_json_raises_seventimer_error(self) -> None:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
+
+        mock_client = AsyncMock()
+        mock_client.get.return_value = mock_response
+
+        with patch("app.services.seventimer.get_http_client", return_value=mock_client):
+            with pytest.raises(SevenTimerError, match="invalid or empty JSON"):
+                await fetch_astro_forecast(36.601, -121.895)
 
 
 class TestCategoricalAstroScore:

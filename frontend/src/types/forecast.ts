@@ -85,4 +85,5 @@ export interface ForecastResponse {
   nights: NightForecast[]
   score_step_minutes?: number
   prior_day_dark_window?: TimeWindow | null
+  astro_data_unavailable?: boolean
 }

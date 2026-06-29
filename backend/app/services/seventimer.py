@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -89,7 +90,13 @@ async def fetch_astro_forecast(
             status_code=response.status_code,
         )
 
-    payload = response.json()
+    try:
+        payload = response.json()
+    except json.JSONDecodeError as exc:
+        raise SevenTimerError("7timer returned invalid or empty JSON.") from exc
+
+    if not isinstance(payload, dict):
+        raise SevenTimerError("7timer response is not a JSON object.")
     if payload.get("product") != "astro":
         raise SevenTimerError("7timer response is not an astro product.")
     if "init" not in payload or "dataseries" not in payload:

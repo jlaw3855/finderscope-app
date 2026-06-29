@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.config import get_settings
+from app.config import get_settings, log_ipgeolocation_key_warnings
 from app.routers import apod, astronomy, forecast, moon_enrichment
 from app.services.http_client import close_http_client, init_http_client
 from app.version import read_version
@@ -17,6 +17,7 @@ APP_VERSION = read_version()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    log_ipgeolocation_key_warnings()
     await init_http_client()
     try:
         yield

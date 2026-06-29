@@ -44,8 +44,3 @@ def moon_altitude_deg(
 def sample_interval_midpoint(interval_dt: datetime, step_minutes: int = 30) -> datetime:
     """Sample moon position at the middle of a score interval bucket."""
     return interval_dt + timedelta(minutes=step_minutes // 2)
-
-
-def sample_hour_midpoint(hour_dt: datetime) -> datetime:
-    """Sample moon position at the middle of an hourly bucket."""
-    return sample_interval_midpoint(hour_dt, 60)

@@ -15,7 +15,9 @@ Before the first forecast search, the landing page shows **NASA’s Astronomy Pi
 
 The search header includes an **Imperial / Metric** toggle (persisted in `localStorage`). It converts **display only** for temperature (°F/°C), visibility (mi/km), and precipitation (in/mm) on night cards, the hourly panel, dew chart labels, and precip summaries. Scores, percentages, moon altitude, seeing/transparency bins, and astronomy data are unchanged; API and scoring still use Open-Meteo’s stored units (°F, meters, mm).
 
-The scores panel uses a **unified left-aligned grid**: each row pairs a sticky label column with a data column so time labels, score bars, dew/air temperature lines, and metric values stay vertically aligned. Score values appear at the bottom of each bar; the dew point chart plots dew point and air temperature on a shared scale with padded Y-axis headroom. When `score_step_minutes` is `30`, columns are narrower and time labels are thinned to keep the panel readable.
+A fixed **Panel opacity** control (bottom-right, persisted as `finderscope:panel-blur` in `localStorage`) toggles frosted panel blur on or off. **On** (default) keeps semi-transparent panels with `backdrop-filter` so the sky shows through softly; **Off** removes panel blur for smoother scrolling in Chromium on Windows at the cost of a flatter look. APOD and the half-hourly scores panel use fully opaque fills when blur is off so text and charts stay readable. Click anywhere on the control to switch states.
+
+The scores panel uses a **unified left-aligned grid**: each row pairs a sticky label column with a data column so time labels, score bars, dew/air temperature lines, and metric values stay vertically aligned. Score values appear at the bottom of each bar; the dew point chart plots dew point and air temperature on a shared scale with padded Y-axis headroom. When `score_step_minutes` is `30`, columns are narrower and time labels are thinned to keep the panel readable. The chart scrolls horizontally inside the panel when needed; document and in-panel scrollbars use a thin themed style and appear only when content overflows. The **Moon glow** row shows **Down** when the moon is below the horizon (instead of a longer label) to keep column alignment.
 
 ### Stargazing score
 
@@ -28,7 +30,7 @@ Each score interval during astronomical darkness receives a score from 0–100 b
 | Moon sky glow | 25% | IPGeolocation phase + astronomy-engine altitude |
 | Precipitation / weather code | 10% | Open-Meteo (15-min preferred, hourly fallback) |
 
-**7timer astro display:** When enabled, [7timer ASTRO](https://www.7timer.info/doc.php?lang=en) supplies categorical **seeing** (arcsecond stability) and **atmospheric transparency** (mag/airmass extinction) for display on night cards and the hourly panel during its ~72-hour window (typically the first ~3 forecast days). These metrics are informational only — they do not affect the stargazing score. Nights beyond that window set `astro_forecast_limited: true` and show visibility only for sky clarity. Seeing bin labels use **arcseconds** (″); a short note above the forecast grid clarifies this.
+**7timer astro display:** When enabled, [7timer ASTRO](https://www.7timer.info/doc.php?lang=en) supplies categorical **seeing** (arcsecond stability) and **atmospheric transparency** (mag/airmass extinction) for display on night cards and the hourly panel during its ~72-hour window (typically the first ~3 forecast days). These metrics are informational only — they do not affect the stargazing score. Nights beyond that window set `astro_forecast_limited: true` and show visibility only for sky clarity. Seeing bin labels use **arcseconds** (″); a short note above the forecast grid clarifies this. If 7timer is enabled but the upstream request fails (empty JSON, HTTP error, timeout), the forecast **fail-opens**: the API still returns 200 with visibility-only astro display, `astro_data_unavailable: true`, and a notice below the reliability disclaimer. Invalid 7timer responses are not cached.
 
 **Score step:** The API returns `score_step_minutes: 30` when half-hour slots are built. Each night’s darkness window can start at times like `21:30`; half-hour steps align scores with those boundaries instead of rounding to the next full hour.
 
@@ -188,6 +190,7 @@ finderscope/
 │   │   ├── styles/             # Modular global CSS (imported via index.css)
 │   │   │   ├── index.css       # Aggregates partial stylesheets
 │   │   │   ├── base.css
+│   │   │   ├── scrollbars.css      # Themed document + in-panel scrollbars
 │   │   │   ├── night-cards.css
 │   │   │   ├── hourly-chart.css
 │   │   │   ├── weather-breakdown.css
@@ -202,6 +205,7 @@ finderscope/
 │   │   │   ├── ApodPanel.tsx           # Landing-page NASA APOD
 │   │   │   ├── SkyScene.tsx            # Animated background sky layer
 │   │   │   ├── UnitToggle.tsx          # Imperial / Metric segmented control
+│   │   │   ├── PanelBlurToggle.tsx     # Fixed panel opacity (blur on/off) control
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
 │   │   │   ├── HourlyScoreChart.tsx    # Unified grid: scores, dew/temp, metrics
 │   │   │   ├── hourly-chart-layout.ts  # Shared column width and temperature scale helpers
@@ -212,7 +216,8 @@ finderscope/
 │   │   │   ├── DewPointChart.tsx
 │   │   │   └── ErrorBanner.tsx
 │   │   ├── context/
-│   │   │   └── UnitPreferenceContext.tsx  # Unit system preference + localStorage
+│   │   │   ├── UnitPreferenceContext.tsx  # Unit system preference + localStorage
+│   │   │   └── PanelBlurPreferenceContext.tsx  # Panel blur preference + localStorage
 │   │   ├── hooks/
 │   │   │   ├── useForecast.ts  # Forecast fetch state
 │   │   │   ├── useApod.ts      # Landing-page APOD fetch
@@ -226,6 +231,7 @@ finderscope/
 │   │   │   ├── planet-timeline-layout.ts # 24h timeline segment helpers
 │   │   │   ├── moon-sample-time.ts # Dark-window sample times for moon enrichment
 │   │   │   ├── unit-system.ts      # Imperial/metric conversion helpers
+│   │   │   ├── panel-blur-preference.ts  # Panel blur localStorage helpers
 │   │   │   ├── skyScene.ts         # Sky animation (stars, Milky Way, meteors)
 │   │   │   └── weather-format.ts   # Display formatters + createWeatherFormatters()
 │   │   └── types/
@@ -245,6 +251,7 @@ finderscope/
 ├── scripts/
 │   ├── check-integrity.sh      # Full test/lint/build harness
 │   ├── stop-dev-servers.sh     # Stop uvicorn (8000) and Vite (5173)
+│   ├── stop-dev-servers.ps1    # Windows equivalent of stop-dev-servers.sh
 │   ├── prewarm-moon-cache.sh   # Daily FreeAstro cache prewarm (7 calls)
 │   ├── prewarm_moon_cache.py   # Prewarm implementation (called by shell script)
 │   └── record-e2e-fixtures.sh  # Refresh E2E fixtures from live APIs
@@ -351,6 +358,14 @@ Copy `backend/.env.example` to `backend/.env`. Besides `IPGEOLOCATION_API_KEY`, 
 | `NOCTUA_BASE_URL` | NoctuaSky API v1 | Skysources client base URL |
 | `FREEASTRO_API_KEY` | (empty) | Moon phase SVG enrichment (optional) |
 
+#### Windows / macOS / Linux
+
+- Save `backend/.env` as **UTF-8** (Windows Notepad often writes UTF-16).
+- Do not wrap API keys in quotes; BOM, CRLF, and trailing whitespace are auto-stripped on load.
+- OS environment variables **override** `backend/.env`. On Windows, check `echo $env:IPGEOLOCATION_API_KEY` and run `Remove-Item Env:IPGEOLOCATION_API_KEY` if stale.
+- Windows needs `tzdata` from `requirements.txt` for timezone lookups; macOS/Linux use the system database.
+- After editing `.env`, restart uvicorn. If forecast search still returns 401 with a clean key, verify your IPGeolocation plan includes Astronomy v3.
+
 ### Frontend
 
 ```bash
@@ -368,6 +383,12 @@ Stop stale processes before restarting (avoids `Address already in use` on ports
 ```bash
 chmod +x scripts/stop-dev-servers.sh   # first time only
 ./scripts/stop-dev-servers.sh
+```
+
+On Windows (PowerShell):
+
+```powershell
+.\scripts\stop-dev-servers.ps1
 ```
 
 Then start the backend (`uvicorn app.main:app --reload`) and frontend (`npm run dev`) in separate terminals. Start the backend first — Vite proxies `/api` to `http://localhost:8000`. See [`.cursor/skills/run-dev/`](.cursor/skills/run-dev/) for the full workflow.
@@ -514,6 +535,7 @@ Live API tests are not run in CI.
 | Field | Description |
 |-------|-------------|
 | `score_step_minutes` | `30` when scores use half-hour slots; `60` when only hourly weather is available |
+| `astro_data_unavailable` | `true` when 7timer was enabled but seeing/transparency could not be fetched (forecast still succeeds) |
 | `nights[].hourly` | Time-series score intervals during darkness (includes `:30` times when step is 30) |
 | `prior_day_dark_window` | Previous calendar day's astronomical darkness (`night_begin`/`night_end`) for first-night pre-dawn spillover in the planet timeline |
 | `nights[].moon_sky_glow_avg` | Average effective moon sky glow during darkness |

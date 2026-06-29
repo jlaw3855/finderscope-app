@@ -25,8 +25,36 @@ Copy `backend/.env.example` to `backend/.env`. Key variables:
 
 | Platform | Notes |
 |----------|--------|
-| Windows | `tzdata` is installed via `requirements.txt` (`sys_platform == "win32"`) for `zoneinfo` |
-| macOS / Linux | System timezone database is used; `tzdata` is skipped |
+| Windows | `tzdata` is installed via `requirements.txt` (`sys_platform == "win32"`) for `zoneinfo`; save `backend/.env` as **UTF-8** (not UTF-16); CRLF line endings are auto-normalized |
+| macOS / Linux | System timezone database is used; `tzdata` is skipped; `.env` is usually UTF-8 with LF line endings |
+
+### Cross-platform `.env` troubleshooting
+
+| Issue | Windows | macOS / Linux |
+|-------|---------|---------------|
+| `.env` encoding | Notepad may save UTF-16 — use VS Code/Cursor **Save with Encoding → UTF-8** | Usually UTF-8 already |
+| Line endings | CRLF (`\r\n`) is common; keys are auto-stripped | LF; same auto-normalization |
+| OS env override | User/System `IPGEOLOCATION_API_KEY` overrides `backend/.env` | Same precedence; less common |
+| Timezone errors | Install deps so `tzdata` is present (`pip install -r requirements.txt`) | Uses system tzdata |
+
+**Check key health (does not print the key):**
+
+```bash
+cd backend
+python -c "from app.config import get_settings, describe_api_key_health, get_ipgeolocation_key_source; s=get_settings(); print(describe_api_key_health(s.ipgeolocation_api_key, source=get_ipgeolocation_key_source()))"
+```
+
+**Windows — remove a stale shell env var:**
+
+```powershell
+echo $env:IPGEOLOCATION_API_KEY
+Remove-Item Env:IPGEOLOCATION_API_KEY   # current session only
+```
+
+**Direct API probe** (paste your key locally in the browser):  
+`https://api.ipgeolocation.io/v3/astronomy?apiKey=YOUR_KEY&location=Denver,CO`
+
+If key health looks clean but the API still returns 401, the issue is account/plan (Astronomy v3), not OS formatting. Restart the backend after editing `.env`.
 
 ## Install locations
 

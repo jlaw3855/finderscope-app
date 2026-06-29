@@ -28,6 +28,7 @@
   align-items: stretch;
   justify-content: start;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0.5rem 0;
   width: fit-content;
   max-width: 100%;
@@ -362,4 +363,28 @@
   font-size: 0.72rem;
   color: #8a96ad;
   white-space: nowrap;
+}
+
+.app--no-panel-blur .hourly-score-panel {
+  background: rgb(18, 24, 42);
+}
+
+.app--no-panel-blur .hourly-score-panel .hourly-chart-layout {
+  --hourly-grid-label-bg: rgb(18, 24, 42);
+}
+
+.app--no-panel-blur .hourly-score-panel .hourly-bar-track {
+  background: rgb(8, 12, 24);
+}
+
+.app--no-panel-blur .hourly-score-panel .hourly-temp-svg {
+  background: rgb(8, 12, 24);
+}
+
+.app--no-panel-blur .hourly-score-panel .cloud-layer-track {
+  background: rgb(8, 12, 24);
+}
+
+.app--no-panel-blur .hourly-score-panel .precip-stat {
+  background: rgb(8, 12, 24);
 }

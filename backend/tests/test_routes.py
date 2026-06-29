@@ -102,7 +102,9 @@ class TestForecastRoute:
             response = client.post("/api/forecast", json={"address": "Denver, CO"})
 
         assert response.status_code == 200
-        assert response.json()["nights"][0]["astro_forecast_limited"] is True
+        payload = response.json()
+        assert payload["nights"][0]["astro_forecast_limited"] is True
+        assert payload["astro_data_unavailable"] is True
 
     def test_forecast_rejects_empty_address(self, client: TestClient) -> None:
         response = client.post("/api/forecast", json={"address": ""})

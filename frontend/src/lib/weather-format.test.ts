@@ -5,18 +5,22 @@ import {
   averageHourlyWeather,
   createWeatherFormatters,
   formatCloudCover,
-  formatCloudLayers,
   formatHour12,
-  formatHourlyTooltip,
   formatMoonAltitude,
   formatMoonIlluminationEffective,
   formatMoonSkyGlowAvg,
-  formatPrecipitationMm,
   formatPrecipitationProbability,
-  formatPrecipitationSummary,
+} from './weather-format'
+
+const imperial = createWeatherFormatters('imperial')
+const {
   formatTemperature,
   formatVisibility,
-} from './weather-format'
+  formatPrecipitation: formatPrecipitationMm,
+  formatPrecipitationSummary,
+  formatCloudLayers,
+  formatHourlyTooltip,
+} = imperial
 
 describe('formatHour12', () => {
   it('formats midnight as 12:00 AM', () => {
@@ -199,7 +203,7 @@ describe('formatMoonSkyGlowAvg', () => {
 })
 
 describe('formatMoonIlluminationEffective', () => {
-  it('shows moon down when below horizon', () => {
+  it('shows Down when below horizon', () => {
     const entry: HourlyScore = {
       time: '22:00',
       at: '2025-06-20T22:00',
@@ -207,7 +211,7 @@ describe('formatMoonIlluminationEffective', () => {
       moon_up: false,
       moon_illumination_effective: 0,
     }
-    expect(formatMoonIlluminationEffective(entry)).toBe('Moon down')
+    expect(formatMoonIlluminationEffective(entry)).toBe('Down')
   })
 
   it('shows effective sky glow percentage when moon is up', () => {

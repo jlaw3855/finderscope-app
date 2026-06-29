@@ -4,12 +4,15 @@ import '@fontsource/inter/400.css'
 import '@fontsource/inter/600.css'
 import './styles/index.css'
 import App from './App.tsx'
+import { PanelBlurPreferenceProvider } from './context/PanelBlurPreferenceContext'
 import { UnitPreferenceProvider } from './context/UnitPreferenceContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <UnitPreferenceProvider>
-      <App />
+      <PanelBlurPreferenceProvider>
+        <App />
+      </PanelBlurPreferenceProvider>
     </UnitPreferenceProvider>
   </StrictMode>,
 )

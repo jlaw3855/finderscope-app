@@ -1,0 +1,48 @@
+/* * Themed scrollbars for the document and in-panel overflow (auto = visible only when needed). */
+
+:root {
+  --scrollbar-track: rgba(8, 12, 24, 0.65);
+  --scrollbar-thumb: rgba(100, 130, 200, 0.45);
+  --scrollbar-thumb-hover: rgba(100, 130, 200, 0.65);
+}
+
+html,
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+html::-webkit-scrollbar,
+.panel-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html::-webkit-scrollbar-track,
+.panel-scroll::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb,
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+html::-webkit-scrollbar-corner,
+.panel-scroll::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html::-webkit-scrollbar-thumb,
+  .panel-scroll::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}

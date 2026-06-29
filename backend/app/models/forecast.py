@@ -90,3 +90,4 @@ class ForecastResponse(BaseModel):
     nights: list[NightForecast]
     score_step_minutes: int = 60
     prior_day_dark_window: TimeWindow | None = None
+    astro_data_unavailable: bool = False

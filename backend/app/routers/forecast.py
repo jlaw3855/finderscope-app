@@ -18,18 +18,22 @@ async def _fetch_astro_if_enabled(
     settings: Settings,
     latitude: float,
     longitude: float,
-) -> dict | None:
+) -> tuple[dict | None, bool]:
     if not settings.seventimer_enabled:
-        return None
+        return None, False
     try:
-        return await seventimer.fetch_astro_forecast(
+        payload = await seventimer.fetch_astro_forecast(
             latitude,
             longitude,
             altitude_correction=settings.seventimer_altitude_correction,
         )
+        return payload, False
     except seventimer.SevenTimerError as exc:
         logger.warning("7timer astro fetch failed (fail-open): %s", exc)
-        return None
+        return None, True
+    except Exception as exc:
+        logger.warning("7timer astro fetch failed unexpectedly (fail-open): %s", exc)
+        return None, True
 
 
 @router.post("/forecast", response_model=ForecastResponse)
@@ -65,6 +69,7 @@ async def get_forecast(
         time_series_data = None
         weather_data = None
         astro_data = None
+        astro_data_unavailable = False
 
         if settings.forecast_cache_enabled:
             ts_key = forecast_cache.astronomy_cache_key(
@@ -108,7 +113,22 @@ async def get_forecast(
             )
 
         if astro_data is None:
-            astro_data = await _fetch_astro_if_enabled(settings, latitude, longitude)
+            astro_data, astro_data_unavailable = await _fetch_astro_if_enabled(
+                settings,
+                latitude,
+                longitude,
+            )
+
+        forecast = await asyncio.to_thread(
+            scoring.build_forecast,
+            location_data,
+            time_series_data,
+            weather_data,
+            forecast_start=date_start,
+            forecast_end=date_end,
+            astro_data=astro_data,
+            seventimer_enabled=settings.seventimer_enabled,
+        )
 
         if settings.forecast_cache_enabled:
             if time_series_data is not None:
@@ -143,16 +163,10 @@ async def get_forecast(
                     ttl_hours=settings.forecast_astro_ttl_hours,
                 )
 
-        return await asyncio.to_thread(
-            scoring.build_forecast,
-            location_data,
-            time_series_data,
-            weather_data,
-            forecast_start=date_start,
-            forecast_end=date_end,
-            astro_data=astro_data,
-            seventimer_enabled=settings.seventimer_enabled,
-        )
+        if astro_data_unavailable:
+            return forecast.model_copy(update={"astro_data_unavailable": True})
+
+        return forecast
     except ipgeolocation.IPGeolocationError as exc:
         raise HTTPException(
             status_code=exc.status_code or 502,

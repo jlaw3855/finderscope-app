@@ -263,7 +263,7 @@ function HourlyScoreChartComponent({
 
   if (hourly.length === 0) {
     return (
-      <section className="panel" data-testid="hourly-score-panel">
+      <section className="panel hourly-score-panel" data-testid="hourly-score-panel">
         <h2>{heading}</h2>
         <p className="muted">No hourly data during darkness for this night.</p>
       </section>
@@ -271,7 +271,7 @@ function HourlyScoreChartComponent({
   }
 
   return (
-    <section className="panel" data-testid="hourly-score-panel">
+    <section className="panel hourly-score-panel" data-testid="hourly-score-panel">
       <h2>{heading}</h2>
       <p className="hourly-summary muted">
         Avg during darkness: {formatCloudCover(averages.avgCloudCover)} clouds ·{' '}
@@ -291,7 +291,7 @@ function HourlyScoreChartComponent({
       </div>
 
       <div
-        className={`hourly-chart-layout${stepMinutes === 30 ? ' hourly-chart-layout--half-hour' : ''}${showTempChart ? ' hourly-chart-layout--with-temp' : ''}`}
+        className={`hourly-chart-layout panel-scroll${stepMinutes === 30 ? ' hourly-chart-layout--half-hour' : ''}${showTempChart ? ' hourly-chart-layout--with-temp' : ''}`}
       >
         {showTempChart && (
           <>

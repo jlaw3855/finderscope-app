@@ -1,5 +1,6 @@
 /* Aggregates modular stylesheets for the Finderscope frontend. */
 @import './base.css';
+@import './scrollbars.css';
 @import './sky-scene.css';
 @import './error.css';
 @import './night-cards.css';

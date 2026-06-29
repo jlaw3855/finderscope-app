@@ -74,3 +74,12 @@
 .apod-footer a {
   color: #9ec0ff;
 }
+
+.app--no-panel-blur .apod-panel {
+  background: rgb(18, 24, 42);
+}
+
+.app--no-panel-blur .apod-panel .apod-image,
+.app--no-panel-blur .apod-panel .apod-video {
+  background: rgb(8, 12, 24);
+}

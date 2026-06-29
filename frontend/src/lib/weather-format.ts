@@ -62,7 +62,7 @@ export function formatMoonSkyGlowAvg(value: number | null | undefined): string {
 
 export function formatMoonIlluminationEffective(entry: HourlyScore): string {
   if (entry.moon_up === false) {
-    return 'Moon down'
+    return 'Down'
   }
   if (entry.moon_illumination_effective == null) {
     return '—'
@@ -251,13 +251,3 @@ export function createWeatherFormatters(units: UnitSystem): WeatherFormatters {
     formatHourlyTooltip,
   }
 }
-
-/** Imperial defaults — backward-compatible helpers for tests and non-React code. */
-const imperialFormatters = createWeatherFormatters('imperial')
-
-export const formatTemperature = imperialFormatters.formatTemperature
-export const formatVisibility = imperialFormatters.formatVisibility
-export const formatPrecipitationMm = imperialFormatters.formatPrecipitation
-export const formatPrecipitationSummary = imperialFormatters.formatPrecipitationSummary
-export const formatCloudLayers = imperialFormatters.formatCloudLayers
-export const formatHourlyTooltip = imperialFormatters.formatHourlyTooltip
