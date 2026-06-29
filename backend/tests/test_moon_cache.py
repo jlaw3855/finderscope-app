@@ -9,10 +9,10 @@ from app.services import moon_cache
 
 @pytest.fixture(autouse=True)
 def isolated_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(moon_cache, "CACHE_DIR", tmp_path)
-    monkeypatch.setattr(moon_cache, "DB_PATH", tmp_path / "moon.db")
-    monkeypatch.setattr(moon_cache, "QUOTA_PATH", tmp_path / "quota.json")
-    monkeypatch.setattr(moon_cache, "SVG_DIR", tmp_path / "svg")
+    monkeypatch.setattr(moon_cache, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(moon_cache, "_db_path", lambda: tmp_path / "moon.db")
+    monkeypatch.setattr(moon_cache, "_quota_path", lambda: tmp_path / "quota.json")
+    monkeypatch.setattr(moon_cache, "_svg_dir", lambda: tmp_path / "svg")
 
 
 class TestMoonCache:

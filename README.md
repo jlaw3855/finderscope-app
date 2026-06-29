@@ -413,6 +413,22 @@ python -m pytest tests/test_performance_benchmarks.py -s
 
 See `backend/docs/performance-baseline.md` for covered paths and cache latency notes. Deferred optimizations (astronomy result cache, chart virtualization) are documented in `backend/docs/performance-deferred.md`.
 
+## Production deployment
+
+Finderscope v1.0.0 ships as a **single Docker container** (API + built SPA on port 8000). See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for:
+
+- Docker Compose quick start (`docker compose up --build`)
+- Required environment variables and persistent volume (`DATA_DIR`)
+- GHCR image pull/run commands
+- Platform notes (Fly.io, Railway, Render, VPS)
+- Release tagging workflow (`v*` → GitHub Release + container publish)
+
+Local production smoke test:
+
+```bash
+./scripts/smoke-prod.sh
+```
+
 ## Integrity checks
 
 Run the full integrity harness from the repository root after code changes:

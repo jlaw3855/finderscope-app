@@ -10,8 +10,8 @@ from app.services import forecast_cache
 
 @pytest.fixture
 def isolated_forecast_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(forecast_cache, "CACHE_DIR", tmp_path)
-    monkeypatch.setattr(forecast_cache, "DB_PATH", tmp_path / "forecast.db")
+    monkeypatch.setattr(forecast_cache, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(forecast_cache, "_db_path", lambda: tmp_path / "forecast.db")
 
 
 class TestForecastCache:

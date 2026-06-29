@@ -117,8 +117,8 @@ def test_benchmark_forecast_cache_cold_vs_warm(denver_forecast_inputs, tmp_path,
     """Document cache miss vs hit latency for forecast upstream layers."""
     from app.services import forecast_cache
 
-    monkeypatch.setattr(forecast_cache, "CACHE_DIR", tmp_path)
-    monkeypatch.setattr(forecast_cache, "DB_PATH", tmp_path / "forecast.db")
+    monkeypatch.setattr(forecast_cache, "_cache_dir", lambda: tmp_path)
+    monkeypatch.setattr(forecast_cache, "_db_path", lambda: tmp_path / "forecast.db")
 
     location_data, time_series_data, weather_data = denver_forecast_inputs
     latitude = float(location_data["location"]["latitude"])

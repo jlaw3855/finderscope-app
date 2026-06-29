@@ -7,9 +7,15 @@ import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "noctua_cache"
-DB_PATH = CACHE_DIR / "noctua.db"
+from app.data_paths import get_data_dir
 
+
+def _cache_dir() -> Path:
+    return get_data_dir() / "noctua_cache"
+
+
+def _db_path() -> Path:
+    return _cache_dir() / "noctua.db"
 
 def normalize_lookup_key(value: str) -> str:
     return " ".join(value.strip().lower().split())
@@ -20,12 +26,12 @@ def cache_key(lookup: str) -> str:
 
 
 def ensure_cache_dirs() -> None:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    _cache_dir().mkdir(parents=True, exist_ok=True)
 
 
 def _connect() -> sqlite3.Connection:
     ensure_cache_dirs()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     conn.execute(
         """

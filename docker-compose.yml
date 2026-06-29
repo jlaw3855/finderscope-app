@@ -1,0 +1,18 @@
+services:
+  finderscope:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - backend/.env
+    environment:
+      SERVE_STATIC: "true"
+      STATIC_DIR: static
+      DATA_DIR: /app/data
+      CORS_ORIGINS: http://localhost:8000
+    volumes:
+      - finderscope-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  finderscope-data:

@@ -4,12 +4,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.routers import apod, astronomy, forecast, moon_enrichment
 from app.services.http_client import close_http_client, init_http_client
+from app.version import read_version
 
 settings = get_settings()
+APP_VERSION = read_version()
 
 
 @asynccontextmanager
@@ -24,7 +27,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="Finderscope API",
     description="Server-side proxy for stargazing weather and astronomy summaries.",
-    version="1.0.0",
+    version=APP_VERSION,
     lifespan=lifespan,
 )
 
@@ -44,4 +47,10 @@ app.include_router(apod.router)
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "version": APP_VERSION}
+
+
+if settings.serve_static:
+    static_root = settings.static_dir_path
+    if static_root.is_dir():
+        app.mount("/", StaticFiles(directory=static_root, html=True), name="spa")

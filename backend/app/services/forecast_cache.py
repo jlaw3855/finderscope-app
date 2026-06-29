@@ -8,8 +8,7 @@ import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "forecast_cache"
-DB_PATH = CACHE_DIR / "forecast.db"
+from app.data_paths import get_data_dir
 
 LAYER_GEOCODE = "geocode"
 LAYER_ASTRONOMY = "astronomy"
@@ -55,8 +54,16 @@ def astro_cache_key(latitude: float, longitude: float) -> str:
     return f"astro:{lat}:{lon}"
 
 
+def _cache_dir() -> Path:
+    return get_data_dir() / "forecast_cache"
+
+
+def _db_path() -> Path:
+    return _cache_dir() / "forecast.db"
+
+
 def ensure_cache_dirs() -> None:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    _cache_dir().mkdir(parents=True, exist_ok=True)
 
 
 def _init_schema(conn: sqlite3.Connection) -> None:
@@ -78,7 +85,7 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 
 def _connect() -> sqlite3.Connection:
     ensure_cache_dirs()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     _init_schema(conn)
     return conn

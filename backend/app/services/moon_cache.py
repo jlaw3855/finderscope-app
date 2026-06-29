@@ -8,10 +8,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "moon_cache"
-DB_PATH = CACHE_DIR / "moon.db"
-QUOTA_PATH = CACHE_DIR / "quota.json"
-SVG_DIR = CACHE_DIR / "svg"
+from app.data_paths import get_data_dir
+
+SVG_DIR_NAME = "svg"
 
 
 @dataclass(frozen=True)
@@ -34,14 +33,30 @@ class QuotaState:
     limit: int | None = None
 
 
+def _cache_dir() -> Path:
+    return get_data_dir() / "moon_cache"
+
+
+def _db_path() -> Path:
+    return _cache_dir() / "moon.db"
+
+
+def _quota_path() -> Path:
+    return _cache_dir() / "quota.json"
+
+
+def _svg_dir() -> Path:
+    return _cache_dir() / SVG_DIR_NAME
+
+
 def ensure_cache_dirs() -> None:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    SVG_DIR.mkdir(parents=True, exist_ok=True)
+    _cache_dir().mkdir(parents=True, exist_ok=True)
+    _svg_dir().mkdir(parents=True, exist_ok=True)
 
 
 def _connect() -> sqlite3.Connection:
     ensure_cache_dirs()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     conn.execute(
         """
@@ -143,7 +158,7 @@ def store_cached(
     svg_path: str | None = None
 
     if svg:
-        svg_file = SVG_DIR / svg_filename(date, theme_key)
+        svg_file = _svg_dir() / svg_filename(date, theme_key)
         svg_file.write_text(svg, encoding="utf-8")
         svg_path = str(svg_file)
 
@@ -193,10 +208,11 @@ def read_svg(date: str, theme_key: str, sample_profile: str = "noon") -> str | N
 
 def load_quota() -> QuotaState:
     ensure_cache_dirs()
-    if not QUOTA_PATH.exists():
+    quota_path = _quota_path()
+    if not quota_path.exists():
         return QuotaState()
 
-    data = json.loads(QUOTA_PATH.read_text(encoding="utf-8"))
+    data = json.loads(quota_path.read_text(encoding="utf-8"))
     return QuotaState(
         daily_count=int(data.get("daily_count", 0)),
         reset_at=data.get("reset_at"),
@@ -207,7 +223,7 @@ def load_quota() -> QuotaState:
 
 def save_quota(state: QuotaState) -> None:
     ensure_cache_dirs()
-    QUOTA_PATH.write_text(
+    _quota_path().write_text(
         json.dumps(
             {
                 "daily_count": state.daily_count,

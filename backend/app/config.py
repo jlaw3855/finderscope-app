@@ -32,10 +32,22 @@ class Settings(BaseSettings):
     noctua_request_timeout_seconds: float = 12.0
     noctua_enrichment_budget_seconds: float = 5.0
     nasa_api_key: str = "DEMO_KEY"
+    data_dir: str = "data"
+    serve_static: bool = False
+    static_dir: str = "static"
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def static_dir_path(self) -> "Path":
+        from pathlib import Path
+
+        configured = Path(self.static_dir)
+        if configured.is_absolute():
+            return configured
+        return Path(__file__).resolve().parents[1] / configured
 
 
 @lru_cache
