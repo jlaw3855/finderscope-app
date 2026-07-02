@@ -36,7 +36,7 @@ Workflow: [`.github/workflows/agent-review.yml`](../.github/workflows/agent-revi
 2. Add GitHub repository secret **`CURSOR_API_KEY`** (Settings → Secrets and variables → Actions).
 3. Ensure your Cursor team has **GitHub connected** to this repository (required for cloud agents).
 
-If `CURSOR_API_KEY` is not set, the workflow skips with a notice job.
+If `CURSOR_API_KEY` is not set, the workflow completes successfully after a skip notice step.
 
 ### Modes
 

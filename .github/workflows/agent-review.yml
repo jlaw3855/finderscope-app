@@ -20,28 +20,31 @@ permissions:
   pull-requests: write
 
 jobs:
-  agent-review-skipped:
-    if: github.event_name == 'pull_request' && secrets.CURSOR_API_KEY == ''
+  agent-review:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
     steps:
-      - run: |
+      - name: Skip when API key missing
+        if: env.CURSOR_API_KEY == ''
+        run: |
           echo "CURSOR_API_KEY is not configured. Skipping PR agent review."
           echo "Add the secret under Settings → Secrets and variables → Actions."
 
-  agent-review:
-    if: github.event_name == 'pull_request' && secrets.CURSOR_API_KEY != ''
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
       - uses: actions/checkout@v4
+        if: env.CURSOR_API_KEY != ''
         with:
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
+        if: env.CURSOR_API_KEY != ''
         with:
           python-version: "3.12"
 
       - name: Determine strict mode
+        if: env.CURSOR_API_KEY != ''
         id: mode
         env:
           INPUT_STRICT: ${{ github.event.inputs.strict }}
@@ -57,12 +60,13 @@ jobs:
           echo "strict=$strict" >> "$GITHUB_OUTPUT"
 
       - name: Install review script dependencies
+        if: env.CURSOR_API_KEY != ''
         run: pip install -r scripts/agent_pr_review_requirements.txt
 
       - name: Run PR agent review
+        if: env.CURSOR_API_KEY != ''
         id: review
         env:
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           AGENT_REVIEW_STRICT: ${{ steps.mode.outputs.strict }}
         run: |
           set +e
@@ -83,6 +87,7 @@ jobs:
           exit 0
 
       - name: Post or update PR comment
+        if: env.CURSOR_API_KEY != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -101,7 +106,7 @@ jobs:
           fi
 
       - name: Fail when review script exits non-zero
-        if: steps.review.outputs.exit_code != '0'
+        if: env.CURSOR_API_KEY != '' && steps.review.outputs.exit_code != '0'
         run: |
           if [ "${{ steps.mode.outputs.strict }}" = "true" ]; then
             echo "Strict mode: agent review failed or reported Critical/High findings."

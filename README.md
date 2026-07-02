@@ -537,7 +537,7 @@ When repository secret **`CURSOR_API_KEY`** is configured, the agent-review work
 
 Create a key at [Cursor Dashboard → API Keys](https://cursor.com/dashboard/api) (or a team [service account](https://cursor.com/docs/account/enterprise/service-accounts)). Connect GitHub in Cursor for cloud agents. Full setup and rollback: [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md).
 
-Without `CURSOR_API_KEY`, the agent-review workflow skips with a notice.
+Without `CURSOR_API_KEY`, the agent-review workflow prints a skip notice and succeeds.
 
 ## API reference
 
