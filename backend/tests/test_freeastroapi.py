@@ -3,7 +3,6 @@
 from datetime import date
 
 import pytest
-
 from app.services.freeastroapi import (
     local_noon_date_param,
     moon_sample_date_param,

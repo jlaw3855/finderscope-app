@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from functools import lru_cache
 from zoneinfo import ZoneInfo
 
-import astronomy
 from astronomy import Time
 
 
@@ -20,7 +19,7 @@ def parse_calendar_date(date_str: str) -> date:
 
 
 def local_datetime_to_time(value: datetime) -> Time:
-    utc = value.astimezone(timezone.utc)
+    utc = value.astimezone(UTC)
     return Time.Make(
         utc.year,
         utc.month,
@@ -32,7 +31,7 @@ def local_datetime_to_time(value: datetime) -> Time:
 
 
 def time_to_utc_datetime(value: Time) -> datetime:
-    return value.Utc().replace(tzinfo=timezone.utc)
+    return value.Utc().replace(tzinfo=UTC)
 
 
 def time_to_local_hhmm(value: Time, timezone_name: str) -> str:

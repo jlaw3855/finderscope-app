@@ -1,7 +1,7 @@
 ---
 name: integrity-check
 description: >-
-  Runs Finderscope integrity checks (pytest, vitest, Playwright E2E, lint,
+  Runs Finderscope integrity checks (ruff, pytest, vitest, Playwright E2E, lint,
   build) via scripts/check-integrity.sh. Use after modifying backend,
   frontend, e2e, or scripts code, before marking a task complete, or when
   the user asks for integrity verification or tests.
@@ -64,6 +64,7 @@ After running checks, summarize briefly:
 
 ```markdown
 ## Integrity check
+- Backend lint (ruff): pass/fail
 - Backend tests: pass/fail
 - Frontend tests: pass/fail
 - E2E browser tests: pass/fail

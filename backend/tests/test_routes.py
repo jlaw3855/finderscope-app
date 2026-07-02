@@ -3,9 +3,8 @@
 from datetime import date
 from unittest.mock import AsyncMock, patch
 
-from fastapi.testclient import TestClient
-
 from app.services import ipgeolocation
+from fastapi.testclient import TestClient
 
 
 class TestHealthRoute:

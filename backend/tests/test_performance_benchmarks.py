@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import statistics
 import time
 from datetime import date, timedelta
 from pathlib import Path
-import json
 
 import pytest
-
 from app.services.astronomy_events import search_astronomy_events
 from app.services.planet_visibility import compute_planet_visibility
 from app.services.scoring import build_forecast

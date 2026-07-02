@@ -6,6 +6,8 @@ Run these from the repository root when isolating a failing stage.
 
 ```bash
 cd backend
+ruff check app tests
+ruff format --check app tests   # optional formatting check
 python -m pytest
 python -m pytest tests/test_scoring.py -k darkness
 python -m pytest tests/test_routes.py -v

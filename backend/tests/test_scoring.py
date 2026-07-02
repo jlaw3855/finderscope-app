@@ -4,7 +4,6 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-
 from app.models.forecast import HourlyScore
 from app.services.scoring import (
     MoonIlluminationAnchor,
@@ -14,9 +13,9 @@ from app.services.scoring import (
     _half_hour_slots_from_hourly_times,
     _hour_score,
     _interpolate_illumination,
+    _is_in_nights_darkness,
     _is_moon_up,
     _is_moon_up_at_minutes,
-    _is_in_nights_darkness,
     _parse_illumination,
     _parse_time,
     _rating_from_score,

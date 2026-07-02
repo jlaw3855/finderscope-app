@@ -6,8 +6,6 @@ import hashlib
 from dataclasses import dataclass
 from datetime import date
 
-import httpx
-
 from app.services.http_client import get_http_client
 
 BASE_URL = "https://api.freeastroapi.com/api/v1/moon/phase"

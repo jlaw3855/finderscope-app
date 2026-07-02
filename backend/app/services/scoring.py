@@ -15,8 +15,10 @@ from app.models.forecast import (
     PrecipitationBreakdown,
     TimeWindow,
 )
-from app.services import moon_position, meteor_showers
-from app.services.astronomy_geometry import is_in_nights_darkness as _is_in_nights_darkness
+from app.services import meteor_showers, moon_position
+from app.services.astronomy_geometry import (
+    is_in_nights_darkness as _is_in_nights_darkness,
+)
 from app.services.astronomy_geometry import time_to_minutes as _time_to_minutes
 from app.services.seventimer import (
     AstroIndex,

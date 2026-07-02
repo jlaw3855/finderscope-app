@@ -10,7 +10,7 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [--fast] [--live]
 
-  (default)  Backend tests, frontend tests, E2E tests, lint, TypeScript compile, production build
+  (default)  Backend lint, backend tests, frontend tests, E2E tests, lint, TypeScript compile, production build
   --fast     Skip the Vite production build
   --live     Also run backend live integration tests (~4 paid external API calls)
 EOF
@@ -61,6 +61,7 @@ PYTHON_BIN="$(resolve_python)"
 
 cd "$ROOT_DIR"
 
+run_stage "Backend lint (ruff)" bash -c "cd backend && ruff check app tests"
 run_stage "Backend tests (pytest)" bash -c "cd backend && \"$PYTHON_BIN\" -m pytest"
 run_stage "Frontend unit tests (vitest)" bash -c "cd frontend && npm run test:run"
 run_stage "E2E browser tests (Playwright)" bash -c "cd e2e && npm run test"

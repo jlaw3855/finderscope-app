@@ -1,9 +1,8 @@
 """Tests for Noctua-backed astronomy event enrichment."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-
 from app.config import Settings
 from app.models.astronomy import AstronomyEvent
 from app.services import astronomy_enrichment
@@ -14,8 +13,8 @@ def _event(**kwargs) -> AstronomyEvent:
         "id": "evt-1",
         "category": "opposition",
         "title": "Mars at opposition",
-        "start_at": datetime(2026, 1, 1, tzinfo=timezone.utc),
-        "peak_at": datetime(2026, 1, 1, tzinfo=timezone.utc),
+        "start_at": datetime(2026, 1, 1, tzinfo=UTC),
+        "peak_at": datetime(2026, 1, 1, tzinfo=UTC),
         "end_at": None,
         "description": "Mars is opposite the Sun.",
         "visible_locally": True,

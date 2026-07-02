@@ -5,8 +5,8 @@ from __future__ import annotations
 import httpx
 
 from app.config import Settings
-from app.services.http_client import get_http_client
 from app.services import noctua_cache
+from app.services.http_client import get_http_client
 
 
 async def fetch_skysource_by_name(settings: Settings, name: str) -> dict | None:

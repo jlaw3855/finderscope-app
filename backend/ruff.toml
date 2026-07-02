@@ -1,0 +1,7 @@
+target-version = "py312"
+src = ["app", "tests"]
+
+[lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]  # * Line-length cleanup deferred; F/I/UP still enforced.
+exclude = ["__pycache__"]

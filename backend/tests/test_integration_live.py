@@ -1,9 +1,8 @@
 """Opt-in integration tests against real external APIs."""
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 VALID_RATINGS = {"Excellent", "Good", "Fair", "Poor"}
 

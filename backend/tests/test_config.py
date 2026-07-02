@@ -3,10 +3,9 @@
 from pathlib import Path
 
 import pytest
-
 from app.config import (
-    Settings,
     _ENV_FILE,
+    Settings,
     check_env_file_encoding,
     describe_api_key_health,
     get_ipgeolocation_key_source,

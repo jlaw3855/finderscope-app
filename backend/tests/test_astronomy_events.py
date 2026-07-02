@@ -2,10 +2,9 @@
 
 from datetime import datetime, timedelta
 
-from astronomy import Time
-
 from app.services.astronomy_events import EVENT_WINDOW_DAYS, search_astronomy_events
 from app.services.astronomy_time import time_to_utc_datetime
+from astronomy import Time
 
 
 class TestAstronomyEvents:

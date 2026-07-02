@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from app.services.nasa_apod import (
     NasaApodError,
     _current_apod_day,

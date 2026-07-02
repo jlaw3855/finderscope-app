@@ -2,9 +2,21 @@
 
 from __future__ import annotations
 
-from astronomy import Body, Direction, Illumination, Observer, SearchAltitude, SearchRiseSet, Time
+from astronomy import (
+    Body,
+    Direction,
+    Illumination,
+    Observer,
+    SearchAltitude,
+    SearchRiseSet,
+    Time,
+)
 
-from app.models.astronomy import PlanetDayVisibility, PlanetVisibilityRow, VisibilityWindow
+from app.models.astronomy import (
+    PlanetDayVisibility,
+    PlanetVisibilityRow,
+    VisibilityWindow,
+)
 from app.services.astronomy_geometry import altitude_deg
 from app.services.astronomy_time import (
     calendar_day_bounds,

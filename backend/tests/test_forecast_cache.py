@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-
 from app.services import forecast_cache
 
 

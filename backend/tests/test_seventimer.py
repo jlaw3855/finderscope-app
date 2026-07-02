@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from app.services.seventimer import (
     SevenTimerError,
     build_astro_index,

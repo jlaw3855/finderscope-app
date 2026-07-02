@@ -2,9 +2,12 @@
 
 from unittest.mock import patch
 
+from app.models.astronomy import (
+    AstronomyEvent,
+    PlanetDayVisibility,
+    PlanetVisibilityRow,
+)
 from fastapi.testclient import TestClient
-
-from app.models.astronomy import AstronomyEvent, AstronomyResponse, PlanetDayVisibility, PlanetVisibilityRow
 
 
 class TestAstronomyRoute:

@@ -1,0 +1,111 @@
+name: Agent review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+    inputs:
+      strict:
+        description: Run in strict mode (fail on Critical/High)
+        type: boolean
+        default: false
+
+concurrency:
+  group: agent-review-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  agent-review-skipped:
+    if: github.event_name == 'pull_request' && secrets.CURSOR_API_KEY == ''
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "CURSOR_API_KEY is not configured. Skipping PR agent review."
+          echo "Add the secret under Settings → Secrets and variables → Actions."
+
+  agent-review:
+    if: github.event_name == 'pull_request' && secrets.CURSOR_API_KEY != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Determine strict mode
+        id: mode
+        env:
+          INPUT_STRICT: ${{ github.event.inputs.strict }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          strict=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "$INPUT_STRICT" = "true" ]; then
+            strict=true
+          fi
+          if echo "$PR_LABELS" | grep -q 'agent-review:strict'; then
+            strict=true
+          fi
+          echo "strict=$strict" >> "$GITHUB_OUTPUT"
+
+      - name: Install review script dependencies
+        run: pip install -r scripts/agent_pr_review_requirements.txt
+
+      - name: Run PR agent review
+        id: review
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          AGENT_REVIEW_STRICT: ${{ steps.mode.outputs.strict }}
+        run: |
+          set +e
+          python scripts/agent_pr_review.py --output agent-review-report.md
+          exit_code=$?
+          set -e
+          if [ ! -f agent-review-report.md ]; then
+            {
+              echo "## Agent review summary"
+              echo "- Mode: ${{ steps.mode.outputs.strict == 'true' && 'strict' || 'advisory' }}"
+              echo "- Integrity note: CI runs check-integrity.sh separately"
+              echo ""
+              echo "Agent review failed before producing a report (exit code $exit_code)."
+              echo "Check workflow logs for Cursor SDK auth or integration errors."
+            } > agent-review-report.md
+          fi
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Post or update PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          marker='<!-- finderscope-agent-review -->'
+          {
+            printf '%s\n\n' "$marker"
+            cat agent-review-report.md
+          } > pr-comment-body.md
+          existing=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq '.[] | select(.body | contains("finderscope-agent-review")) | .id' | head -n 1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$existing" \
+              -f body="$(cat pr-comment-body.md)"
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file pr-comment-body.md
+          fi
+
+      - name: Fail when review script exits non-zero
+        if: steps.review.outputs.exit_code != '0'
+        run: |
+          if [ "${{ steps.mode.outputs.strict }}" = "true" ]; then
+            echo "Strict mode: agent review failed or reported Critical/High findings."
+          else
+            echo "Advisory mode: agent review failed (startup or empty report)."
+          fi
+          exit 1

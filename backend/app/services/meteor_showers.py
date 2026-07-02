@@ -10,7 +10,11 @@ from pathlib import Path
 from astronomy import Body, Horizon, Observer, Refraction, Time
 
 from app.models.forecast import MeteorShowerHighlight
-from app.services.astronomy_geometry import altitude_deg, is_in_nights_darkness, time_to_minutes
+from app.services.astronomy_geometry import (
+    altitude_deg,
+    is_in_nights_darkness,
+    time_to_minutes,
+)
 from app.services.astronomy_time import cached_zoneinfo, local_datetime_to_time
 
 ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG = -18.0

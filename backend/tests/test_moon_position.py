@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import pytest
-
 from app.services.moon_position import (
     effective_moon_illumination,
     moon_altitude_deg,

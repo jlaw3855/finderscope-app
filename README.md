@@ -176,12 +176,14 @@ finderscope/
 │   │   ├── test_freeastroapi.py
 │   │   ├── test_performance_benchmarks.py  # Hot-path timing regression guards
 │   │   ├── test_seventimer.py
+│   │   ├── test_agent_pr_review.py  # PR agent review findings parser tests
 │   │   ├── test_nasa_apod.py
 │   │   ├── test_routes.py      # Route tests with mocked services
 │   │   ├── test_integration_live.py  # Opt-in live API tests
 │   │   └── fixtures/           # JSON fixtures + E2E fixture generator
 │   ├── requirements.txt
-│   └── requirements-dev.txt
+│   ├── requirements-dev.txt
+│   └── ruff.toml               # Backend lint config (ruff check in integrity harness)
 │
 ├── frontend/                   # React + Vite SPA
 │   ├── src/
@@ -250,18 +252,27 @@ finderscope/
 │
 ├── scripts/
 │   ├── check-integrity.sh      # Full test/lint/build harness
+│   ├── agent_pr_review.py      # PR agent review (Cursor SDK)
+│   ├── agent_pr_review_requirements.txt
 │   ├── stop-dev-servers.sh     # Stop uvicorn (8000) and Vite (5173)
 │   ├── stop-dev-servers.ps1    # Windows equivalent of stop-dev-servers.sh
 │   ├── prewarm-moon-cache.sh   # Daily FreeAstro cache prewarm (7 calls)
 │   ├── prewarm_moon_cache.py   # Prewarm implementation (called by shell script)
 │   └── record-e2e-fixtures.sh  # Refresh E2E fixtures from live APIs
 │
+├── docs/
+│   ├── CODE_REVIEW.md          # Local + PR code review setup, modes, rollback
+│   └── DEPLOYMENT.md           # Production deployment guide
+├── AGENTS.md                   # Cursor agent pointer (run code-review before PR)
+│
 ├── .github/workflows/ci.yml    # Runs check-integrity.sh on push/PR
+├── .github/workflows/agent-review.yml  # PR agent review (optional CURSOR_API_KEY)
 ├── .github/workflows/moon-prewarm.yml  # Scheduled moon cache prewarm
 └── .cursor/skills/             # Agent skills for local development
     ├── dev-setup/              # Install deps and configure backend/.env
     ├── run-dev/                # Stop stale servers and start uvicorn + Vite
-    └── integrity-check/        # Run the full integrity harness
+    ├── integrity-check/        # Run the full integrity harness
+    └── code-review/            # Pre-merge review orchestration
 ```
 
 ### Request flow
@@ -316,6 +327,9 @@ Cursor agent skills for local development:
 | [`.cursor/skills/dev-setup/`](.cursor/skills/dev-setup/) | Install dependencies and configure `backend/.env` |
 | [`.cursor/skills/run-dev/`](.cursor/skills/run-dev/) | Stop stale dev servers and start uvicorn + Vite |
 | [`.cursor/skills/integrity-check/`](.cursor/skills/integrity-check/) | Run the full test/lint/build harness |
+| [`.cursor/skills/code-review/`](.cursor/skills/code-review/) | Pre-merge review: harness, Bugbot, Security, checklist |
+
+See [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) for PR agent review setup (`CURSOR_API_KEY`) and strict label `agent-review:strict`. Agents should read [AGENTS.md](AGENTS.md) before opening a PR.
 
 ### Backend
 
@@ -473,13 +487,14 @@ Live backend integration (~2 paid external API calls; requires valid `backend/.e
 
 The harness runs, in order:
 
-1. Backend unit, route, and performance benchmark tests (`pytest`, excludes `live`)
-2. Frontend unit tests (`vitest`)
-3. E2E browser tests (`playwright`, mocked APIs)
-4. Frontend lint (`oxlint`)
-5. TypeScript compile (`tsc -b`)
-6. Production build (`vite build`) — skipped with `--fast`
-7. Live backend integration — only with `--live`
+1. Backend lint (`ruff check app tests`)
+2. Backend unit, route, and performance benchmark tests (`pytest`, excludes `live`)
+3. Frontend unit tests (`vitest`)
+4. E2E browser tests (`playwright`, mocked APIs)
+5. Frontend lint (`oxlint`)
+6. TypeScript compile (`tsc -b`)
+7. Production build (`vite build`) — skipped with `--fast`
+8. Live backend integration — only with `--live`
 
 | Mode | External API calls |
 |------|-------------------|
@@ -504,8 +519,25 @@ Playwright visual baselines in `e2e/tests/visual-baseline.spec.ts` guard against
 
 ## Continuous integration
 
-GitHub Actions runs `./scripts/check-integrity.sh` on every push and pull request to `main`.
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Push and PR to `main` | Runs `./scripts/check-integrity.sh` (ruff, pytest, vitest, Playwright, oxlint, tsc, build) |
+| [`.github/workflows/agent-review.yml`](.github/workflows/agent-review.yml) | Pull request to `main` | Optional Cursor SDK PR review (requires `CURSOR_API_KEY`) |
+
 Live API tests are not run in CI.
+
+### Automated PR review
+
+When repository secret **`CURSOR_API_KEY`** is configured, the agent-review workflow runs on every pull request to `main`:
+
+| Mode | How | Effect |
+|------|-----|--------|
+| **Advisory** | Default | Posts or updates a review comment on the PR |
+| **Strict** | Add label **`agent-review:strict`** | Job also fails on Critical/High agent findings |
+
+Create a key at [Cursor Dashboard → API Keys](https://cursor.com/dashboard/api) (or a team [service account](https://cursor.com/docs/account/enterprise/service-accounts)). Connect GitHub in Cursor for cloud agents. Full setup and rollback: [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md).
+
+Without `CURSOR_API_KEY`, the agent-review workflow skips with a notice.
 
 ## API reference
 

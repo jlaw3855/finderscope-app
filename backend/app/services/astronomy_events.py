@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import astronomy
 from astronomy import (
@@ -21,7 +21,11 @@ from astronomy import (
 )
 
 from app.models.astronomy import AstronomyEvent
-from app.services.astronomy_time import local_datetime_to_time, time_to_utc_datetime, utc_now_time
+from app.services.astronomy_time import (
+    local_datetime_to_time,
+    time_to_utc_datetime,
+    utc_now_time,
+)
 from app.services.meteor_showers import (
     load_meteor_shower_catalog,
     radiant_altitude,
@@ -337,7 +341,7 @@ def _collect_meteor_showers(
     for shower in _load_meteor_shower_catalog():
         for year in _years_in_window(start, end):
             peak_date = date(year, shower["peak_month"], shower["peak_day"])
-            peak_dt = datetime(peak_date.year, peak_date.month, peak_date.day, 5, 0, tzinfo=timezone.utc)
+            peak_dt = datetime(peak_date.year, peak_date.month, peak_date.day, 5, 0, tzinfo=UTC)
             peak_time = local_datetime_to_time(peak_dt)
             if peak_time.ut < start.ut or peak_time.ut >= end.ut:
                 continue
