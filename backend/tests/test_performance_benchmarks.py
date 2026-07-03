@@ -112,6 +112,39 @@ def test_benchmark_compute_planet_visibility(denver_forecast_dates, capsys) -> N
     assert p50 < 5.0, f"compute_planet_visibility p50 too slow: {p50:.3f}s"
 
 
+def test_benchmark_compute_dso_visibility(denver_forecast_dates, capsys) -> None:
+    from app.models.dso_visibility import SiteSkyConditions
+    from app.services.dso_visibility import compute_dso_visibility
+
+    site = SiteSkyConditions(
+        bortle=5,
+        sqm=20.5,
+        limiting_magnitude=5.6,
+        source="fallback",
+    )
+    samples = [
+        _timed_seconds(
+            lambda: compute_dso_visibility(
+                DENVER_LAT,
+                DENVER_LON,
+                DENVER_TZ,
+                denver_forecast_dates,
+                site,
+            )
+        )
+        for _ in range(BENCHMARK_ITERATIONS)
+    ]
+
+    p50 = statistics.median(samples)
+    p95 = _percentile(samples, 95)
+    print(
+        f"\n[benchmark] compute_dso_visibility p50={p50:.3f}s p95={p95:.3f}s "
+        f"(n={BENCHMARK_ITERATIONS}, {len(denver_forecast_dates)} nights)"
+    )
+
+    assert p50 < 3.0, f"compute_dso_visibility p50 too slow: {p50:.3f}s"
+
+
 def test_benchmark_forecast_cache_cold_vs_warm(denver_forecast_inputs, tmp_path, monkeypatch) -> None:
     """Document cache miss vs hit latency for forecast upstream layers."""
     from app.services import forecast_cache

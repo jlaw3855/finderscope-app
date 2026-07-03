@@ -1,0 +1,71 @@
+{
+  "site_sky": {
+    "bortle": 5,
+    "sqm": 20.5,
+    "limiting_magnitude": 5.6,
+    "source": "lightpollutionmap"
+  },
+  "dso_visibility": [
+    {
+      "date": "2026-08-09",
+      "objects": [
+        {
+          "id": "NGC0224",
+          "name": "NGC0224",
+          "common_name": "Andromeda Galaxy",
+          "object_type": "G",
+          "visible": true,
+          "windows_astronomical": [
+            { "start": "00:00", "end": "03:29" },
+            { "start": "22:33", "end": "23:59" }
+          ],
+          "peak_altitude_deg": 74.5,
+          "peak_at": "04:00",
+          "magnitude": 3.4,
+          "contrast": 2.1,
+          "visibility_score": 3.7
+        },
+        {
+          "id": "M0045",
+          "name": "M0045",
+          "common_name": "Pleiades",
+          "object_type": "OCl",
+          "visible": true,
+          "windows_astronomical": [
+            { "start": "00:00", "end": "04:00" },
+            { "start": "22:00", "end": "23:59" }
+          ],
+          "peak_altitude_deg": 68.2,
+          "peak_at": "03:30",
+          "magnitude": 1.6,
+          "contrast": 3.8,
+          "visibility_score": 5.2
+        }
+      ]
+    },
+    {
+      "date": "2026-08-10",
+      "objects": []
+    },
+    {
+      "date": "2026-08-11",
+      "objects": []
+    },
+    {
+      "date": "2026-08-12",
+      "objects": []
+    },
+    {
+      "date": "2026-08-13",
+      "objects": []
+    },
+    {
+      "date": "2026-08-14",
+      "objects": []
+    },
+    {
+      "date": "2026-08-15",
+      "objects": []
+    }
+  ]
+}

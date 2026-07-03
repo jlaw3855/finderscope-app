@@ -1,5 +1,6 @@
 import type { ApodResponse } from '../types/apod'
 import type { AstronomyRequest, AstronomyResponse } from '../types/astronomy'
+import type { DsoVisibilityRequest, DsoVisibilityResponse } from '../types/dso-visibility'
 import type { ForecastRequest, ForecastResponse } from '../types/forecast'
 import type { MoonEnrichmentResponse } from '../types/moon-enrichment'
 
@@ -61,6 +62,12 @@ export async function fetchForecast(request: ForecastRequest): Promise<ForecastR
 
 export async function fetchAstronomySummary(request: AstronomyRequest): Promise<AstronomyResponse> {
   return postJson<AstronomyResponse>('/api/astronomy', request)
+}
+
+export async function fetchDsoVisibility(
+  request: DsoVisibilityRequest,
+): Promise<DsoVisibilityResponse> {
+  return postJson<DsoVisibilityResponse>('/api/dso-visibility', request)
 }
 
 export async function fetchMoonEnrichment(

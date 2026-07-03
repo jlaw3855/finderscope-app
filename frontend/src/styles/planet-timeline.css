@@ -169,3 +169,36 @@
 .planet-timeline-detail-meta {
   font-size: 0.78rem;
 }
+
+.dso-demo-banner {
+  margin-bottom: 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.dso-site-sky {
+  margin-bottom: 0.75rem;
+}
+
+.dso-timeline-name {
+  display: inline-block;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.dso-timeline--observing .planet-timeline-track {
+  min-height: 1.35rem;
+}
+
+.dso-timeline--observing .planet-timeline-segment {
+  min-height: 1.1rem;
+}
+
+.planet-timeline-label--dso {
+  align-items: flex-start;
+}

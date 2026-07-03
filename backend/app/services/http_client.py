@@ -19,7 +19,7 @@ def get_http_client() -> httpx.AsyncClient:
 async def init_http_client() -> None:
     global _client
     if _client is None:
-        _client = httpx.AsyncClient(timeout=30.0)
+        _client = httpx.AsyncClient(timeout=30.0, trust_env=False)
 
 
 async def close_http_client() -> None:

@@ -1,0 +1,8 @@
+Name;Type;RA;Dec;Const;MajAx;MinAx;PosAng;B-Mag;V-Mag;J-Mag;H-Mag;K-Mag;SurfBr;Hubble;Cstar U-Mag;Cstar B-Mag;Cstar V-Mag;M;NGC;IC;Cstar Names;Identifiers;Common names;NED notes;OpenNGC notes
+NGC0224;G;00:42:44.31;+41:16:09.4;And;190.5;41.7;152;5.36;3.44;;;;13.5;SA(s)b;;;;1;;;;Andromeda Galaxy;;
+NGC0652;G;01:43:42.11;+51:34:53.6;And;1.5;1.5;135;11.5;10.5;;;;;;;
+NGC5194;G;13:29:52.7;+47:11:43;CVn;11.2;6.9;163;9.6;8.4;;;;12.6;SAB(s)bc;;;;101;;;;Whirlpool Galaxy;;
+NGC7000;EmN;20:59:17.0;+44:31:44;Cyg;120;100;135;;;;;;;;
+M0045;OCl;00:22:24.0;+24:21:00;Per;80;80;0;5.6;1.6;;;;;;;45;;;;Pleiades;;
+IC0001;**;00:08:27.05;+27:43:03.6;Peg;;;;;;;;;;;;;;;;;;;;;
+NGC0001;NonEx;00:07:15.9;+27:42:30;Peg;;;;;;;;;;;;;;;;;;;;;

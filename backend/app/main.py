@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings, log_ipgeolocation_key_warnings
-from app.routers import apod, astronomy, forecast, moon_enrichment
+from app.routers import apod, astronomy, dso_visibility, forecast, moon_enrichment
 from app.services.http_client import close_http_client, init_http_client
 from app.version import read_version
 
@@ -44,6 +44,8 @@ app.include_router(forecast.router)
 app.include_router(moon_enrichment.router)
 app.include_router(astronomy.router)
 app.include_router(apod.router)
+if settings.dso_visibility_enabled:
+    app.include_router(dso_visibility.router)
 
 
 @app.get("/health")

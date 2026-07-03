@@ -145,6 +145,7 @@ class Settings(BaseSettings):
     data_dir: str = "data"
     serve_static: bool = False
     static_dir: str = "static"
+    dso_visibility_enabled: bool = True
 
     @field_validator(
         "ipgeolocation_api_key",

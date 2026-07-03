@@ -61,6 +61,13 @@ export function formatVisibilityWindows(
   return parts.length > 0 ? parts.join(' · ') : '—'
 }
 
+export function formatAstroWindows(windows: { start: string; end: string }[]): string {
+  if (windows.length === 0) {
+    return '—'
+  }
+  return windows.map((window) => `${window.start} – ${window.end}`).join('; ')
+}
+
 export function formatMagnitude(value: number | null): string {
   if (value == null) {
     return '—'
