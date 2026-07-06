@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends
 from app.config import Settings, get_settings
 from app.models.dso_visibility import DsoVisibilityRequest, DsoVisibilityResponse
 from app.services.dso_visibility import compute_dso_visibility
-from app.services.light_pollution import lookup_site_darkness
 from app.services.http_client import get_http_client
+from app.services.light_pollution import lookup_site_darkness
 
 router = APIRouter(prefix="/api", tags=["dso"])
 

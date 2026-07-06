@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from app.services import light_pollution
 from app.services.light_pollution import (
     FALLBACK_SITE,
@@ -61,3 +60,18 @@ async def test_lookup_site_darkness_fallback_on_error() -> None:
         site = await lookup_site_darkness(51.0, 10.0)
     assert site.source == "fallback"
     assert site.bortle == FALLBACK_SITE.bortle
+
+
+@pytest.mark.asyncio
+async def test_lookup_site_darkness_does_not_cache_fallback() -> None:
+    light_pollution._CACHE.clear()
+    mock_fetch = AsyncMock(side_effect=TimeoutError("timeout"))
+    with patch(
+        "app.services.light_pollution._fetch_artificial_brightness",
+        mock_fetch,
+    ):
+        first = await lookup_site_darkness(40.0, -105.0)
+        second = await lookup_site_darkness(40.0, -105.0)
+    assert first.source == "fallback"
+    assert second.source == "fallback"
+    assert mock_fetch.await_count == 2

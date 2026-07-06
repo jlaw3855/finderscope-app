@@ -7,7 +7,7 @@ import type { ForecastResponse } from '../types/forecast'
 
 export function useDsoVisibility(
   forecast: ForecastResponse | null,
-  astronomy: AstronomyResponse | null,
+  _astronomy: AstronomyResponse | null,
   astronomyLoading: boolean,
 ) {
   const [data, setData] = useState<DsoVisibilityResponse | null>(null)
@@ -16,8 +16,7 @@ export function useDsoVisibility(
 
   const enabled =
     Boolean(forecast && forecast.nights.length > 0) &&
-    !astronomyLoading &&
-    astronomy !== null
+    !astronomyLoading
 
   const requestKey = useMemo(() => {
     if (!forecast || !enabled) {

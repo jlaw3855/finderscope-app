@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from app.services.openngc_catalog import (
     load_openngc_catalog_from_path,
     max_altitude_at_latitude,

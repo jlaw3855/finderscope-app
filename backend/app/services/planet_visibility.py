@@ -6,7 +6,7 @@ from astronomy import Body, Direction, Illumination, Observer, SearchRiseSet, Ti
 
 from app.models.astronomy import PlanetDayVisibility, PlanetVisibilityRow
 from app.services.astronomy_geometry import altitude_deg
-from app.services.astronomy_time import calendar_day_bounds
+from app.services.astronomy_time import calendar_day_bounds, time_to_local_hhmm
 from app.services.visibility_windows import (
     ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG,
     CIVIL_TWILIGHT_SUN_ALTITUDE_DEG,
@@ -17,7 +17,6 @@ from app.services.visibility_windows import (
     merge_time_windows,
     to_visibility_windows,
 )
-from app.services.astronomy_time import time_to_local_hhmm
 
 NAKED_EYE_BODIES: list[tuple[Body, str]] = [
     (Body.Mercury, "Mercury"),

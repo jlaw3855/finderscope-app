@@ -16,10 +16,10 @@ def get_http_client() -> httpx.AsyncClient:
     return _client
 
 
-async def init_http_client() -> None:
+async def init_http_client(*, trust_env: bool = True) -> None:
     global _client
     if _client is None:
-        _client = httpx.AsyncClient(timeout=30.0, trust_env=False)
+        _client = httpx.AsyncClient(timeout=30.0, trust_env=trust_env)
 
 
 async def close_http_client() -> None:
@@ -30,8 +30,8 @@ async def close_http_client() -> None:
 
 
 @asynccontextmanager
-async def http_client_lifespan() -> AsyncIterator[None]:
-    await init_http_client()
+async def http_client_lifespan(*, trust_env: bool = True) -> AsyncIterator[None]:
+    await init_http_client(trust_env=trust_env)
     try:
         yield
     finally:

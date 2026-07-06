@@ -6,7 +6,11 @@ from dataclasses import dataclass
 
 from astronomy import Body, Horizon, Illumination, Observer, Refraction, Time
 
-from app.models.dso_visibility import DsoDayVisibility, DsoVisibilityRow, SiteSkyConditions
+from app.models.dso_visibility import (
+    DsoDayVisibility,
+    DsoVisibilityRow,
+    SiteSkyConditions,
+)
 from app.services.astronomy_time import calendar_day_bounds, time_to_local_hhmm
 from app.services.moon_position import effective_moon_illumination
 from app.services.openngc_catalog import (

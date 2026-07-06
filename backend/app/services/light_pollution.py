@@ -6,7 +6,6 @@ import logging
 import math
 import time
 from dataclasses import dataclass
-from typing import Literal
 
 import httpx
 
@@ -128,7 +127,7 @@ async def lookup_site_darkness(
         site = _build_site_conditions(artificial)
     except (httpx.HTTPError, ValueError, TypeError, OSError) as exc:
         logger.warning("Light pollution lookup failed for %s: %s", key, exc)
-        site = FALLBACK_SITE
+        return FALLBACK_SITE
 
     _CACHE[key] = (now, site)
     return site

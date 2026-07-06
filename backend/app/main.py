@@ -18,7 +18,7 @@ APP_VERSION = read_version()
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     log_ipgeolocation_key_warnings()
-    await init_http_client()
+    await init_http_client(trust_env=settings.http_trust_env)
     try:
         yield
     finally:

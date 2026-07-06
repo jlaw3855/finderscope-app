@@ -117,7 +117,7 @@ Night forecast cards show **meteor shower peak badges** when the catalog peak da
 
 API keys live in `backend/.env` only; the frontend never sees them.
 
-The shared outbound HTTP client sets `trust_env=False` so system proxy environment variables do not intercept upstream API calls during local development.
+The shared outbound HTTP client honors `HTTP_TRUST_ENV` (default `true`). Set `HTTP_TRUST_ENV=false` in `backend/.env` when local system proxy environment variables cause outbound API failures during development.
 
 ## File architecture
 
@@ -144,7 +144,7 @@ finderscope/
 │   │       ├── openmeteo.py        # Weather forecast client
 │   │       ├── seventimer.py       # 7timer ASTRO seeing/transparency client
 │   │       ├── nasa_apod.py        # NASA APOD client + daily cache
-│   │       ├── http_client.py      # Shared httpx AsyncClient (trust_env=False)
+│   │       ├── http_client.py      # Shared httpx AsyncClient (HTTP_TRUST_ENV)
 │   │       ├── scoring.py          # Merge weather + astronomy into scores
 │   │       ├── moon_position.py    # astronomy-engine moon altitude + sky-glow curve
 │   │       ├── astronomy_geometry.py  # Shared darkness-window and altitude helpers
@@ -581,6 +581,7 @@ The main app does not yet show deep sky visibility. Preview the feature in an is
 
 ```bash
 cd backend && python3 scripts/fetch_openngc.py   # download OpenNGC NGC.csv (once)
+# Ensure backend/.env has DSO_VISIBILITY_ENABLED=true (see .env.example)
 cd frontend && npm run dev:demo                  # http://localhost:5173/demo/dso-visibility/
 ```
 
@@ -590,7 +591,7 @@ The demo loads forecast and planet visibility first, then calls `POST /api/dso-v
 ./scripts/check-integrity.sh --demo
 ```
 
-Deep sky catalog data comes from [OpenNGC](https://github.com/mattiaverga/OpenNGC) (CC-BY-SA-4.0). Site brightness uses [lightpollutionmap.info](https://lightpollutionmap.info) QueryRaster (cached per site). Disable the endpoint in production with `DSO_VISIBILITY_ENABLED=false` until Phase 2 integration ships.
+Deep sky catalog data comes from [OpenNGC](https://github.com/mattiaverga/OpenNGC) (CC-BY-SA-4.0). Site brightness uses [lightpollutionmap.info](https://lightpollutionmap.info) QueryRaster (cached per site). The DSO endpoint is **disabled by default**; set `DSO_VISIBILITY_ENABLED=true` in `backend/.env` for the demo build until Phase 2 integration ships.
 
 ### DSO visibility response fields (demo)
 

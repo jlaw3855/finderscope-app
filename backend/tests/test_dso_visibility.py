@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from app.models.dso_visibility import SiteSkyConditions
 from app.services.dso_visibility import compute_dso_visibility
 from app.services.openngc_catalog import load_openngc_catalog_from_path
