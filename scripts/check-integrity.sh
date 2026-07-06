@@ -73,7 +73,7 @@ run_stage "Frontend unit tests (vitest)" bash -c "cd frontend && npm run test:ru
 run_stage "E2E browser tests (Playwright)" bash -c "cd e2e && npm run test"
 
 if [[ "$DEMO_MODE" == true ]]; then
-  run_stage "DSO demo E2E (Playwright)" bash -c "cd e2e && PLAYWRIGHT_DEMO=1 npx playwright test tests/dso-demo.spec.ts"
+  run_stage "DSO demo E2E (Playwright)" bash -c "cd e2e && PLAYWRIGHT_DEMO=1 npx playwright test tests/dso-demo.spec.ts tests/dso-demo-v2.spec.ts"
 else
   echo ""
   echo "SKIP  DSO demo E2E (Playwright) [use --demo to enable]"

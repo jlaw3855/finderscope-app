@@ -229,7 +229,8 @@ finderscope/
 │   │   │   ├── hourly-chart-layout.ts  # Shared column width and temperature scale helpers
 │   │   │   ├── AstronomyEventsPanel.tsx  # Events timeline + planet visibility timeline
 │   │   │   ├── PlanetVisibilityTimeline.tsx  # 24h planet bars with darkness overlay
-│   │   │   ├── DsoVisibilityTimeline.tsx     # 6 PM–6 AM DSO bars (demo)
+│   │   │   ├── DsoVisibilityTimeline.tsx     # 6 PM–6 AM DSO bars (demo v1)
+│   │   │   ├── DsoVisibilityTimelineV2.tsx   # Visual polish iteration (demo v2)
 │   │   │   ├── CloudBreakdown.tsx
 │   │   │   ├── PrecipitationBreakdownView.tsx
 │   │   │   ├── DewPointChart.tsx
@@ -261,13 +262,15 @@ finderscope/
 │   │       ├── moon-enrichment.ts
 │   │       ├── dso-visibility.ts
 │   │       └── astronomy.ts
-│   ├── demo/dso-visibility/    # Isolated DSO visibility demo entry (Vite multi-page)
+│   ├── demo/dso-visibility/       # DSO demo v1 (baseline chart)
+│   ├── demo/dso-visibility-v2/   # DSO demo v2 (visual polish iteration)
 │   └── vite.config.ts          # Dev server; proxies /api → localhost:8000
 │
 ├── e2e/                        # Playwright browser tests
 │   ├── tests/
 │   │   ├── app.spec.ts
-│   │   ├── dso-demo.spec.ts         # DSO demo progressive load (PLAYWRIGHT_DEMO=1)
+│   │   ├── dso-demo.spec.ts         # DSO demo v1 progressive load (PLAYWRIGHT_DEMO=1)
+│   │   ├── dso-demo-v2.spec.ts      # DSO demo v2 visual polish (PLAYWRIGHT_DEMO=1)
 │   │   ├── visual-baseline.spec.ts  # CSS regression snapshots
 │   │   └── helpers/
 │   │       ├── mock-api.ts           # Browser-side /api/* mocks
@@ -577,15 +580,31 @@ Without `CURSOR_API_KEY`, the agent-review workflow prints a skip notice and suc
 
 ### DSO Visibility Demo
 
-The main app does not yet show deep sky visibility. Preview the feature in an isolated demo build:
+The main app does not yet show deep sky visibility. Preview the feature in isolated demo builds:
+
+| Demo | Command | URL |
+|------|---------|-----|
+| **v1 (baseline)** | `npm run dev:demo` | `/demo/dso-visibility/` |
+| **v2 (visual polish)** | `npm run dev:demo-v2` | `/demo/dso-visibility-v2/` |
 
 ```bash
 cd backend && python3 scripts/fetch_openngc.py   # download OpenNGC NGC.csv (once)
 # Ensure backend/.env has DSO_VISIBILITY_ENABLED=true (see .env.example)
-cd frontend && npm run dev:demo                  # http://localhost:5173/demo/dso-visibility/
+cd frontend && npm run dev:demo                  # baseline chart
+cd frontend && npm run dev:demo-v2               # visual polish iteration
 ```
 
-The demo loads forecast and planet visibility first, then calls `POST /api/dso-visibility` for a ranked top-10 list. Deep sky objects use **astronomical twilight only** (Sun below −18°); civil twilight is excluded because residual sky glow is too bright for faint DSOs. The demo timeline uses a **fixed 6 PM – 6 AM** observing axis so night windows fill the chart, with a forecast darkness overlay and one bar per object (`windows_astronomical[]`). Run demo E2E with:
+**v1** is the original timeline: full object names, per-object legend entries, and separate evening/pre-dawn forecast darkness bands when a night crosses midnight.
+
+**v2** keeps the same API and data but refines the chart without changing v1:
+
+- Short catalog IDs on row labels (full names in tooltips and details)
+- Semantic-only legend (no duplicate object list)
+- Merged forecast darkness bands across midnight splits
+- Compact site-sky chip beside the section heading
+- Unified **Darkness** row label and single legend entry when forecast darkness and the union of DSO astronomical windows align exactly
+
+Both demos load forecast and planet visibility first, then call `POST /api/dso-visibility` for a ranked top-10 list. Deep sky objects use **astronomical twilight only** (Sun below −18°); civil twilight is excluded because residual sky glow is too bright for faint DSOs. The timeline uses a **fixed 6 PM – 6 AM** observing axis with a forecast darkness row and one bar per object (`windows_astronomical[]`). Run demo E2E with:
 
 ```bash
 ./scripts/check-integrity.sh --demo

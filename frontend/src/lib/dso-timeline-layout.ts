@@ -81,6 +81,87 @@ export function darknessSegmentsForObservingAxis(
     .filter((segment): segment is TimelineSegment => segment !== null)
 }
 
+export function segmentFromExtendedBounds(startExt: number, endExt: number): TimelineSegment {
+  const clippedStart = Math.max(OBSERVING_AXIS_START_MINUTES, startExt)
+  const clippedEnd = Math.min(OBSERVING_AXIS_END_MINUTES, endExt)
+  return {
+    startMinutes: clippedStart,
+    endMinutes: clippedEnd,
+    leftPercent:
+      ((clippedStart - OBSERVING_AXIS_START_MINUTES) / OBSERVING_AXIS_SPAN) * 100,
+    widthPercent: ((clippedEnd - clippedStart) / OBSERVING_AXIS_SPAN) * 100,
+  }
+}
+
+export function mergeObservingTimelineSegments(segments: TimelineSegment[]): TimelineSegment[] {
+  if (segments.length === 0) {
+    return []
+  }
+
+  const sorted = [...segments].sort((left, right) => left.startMinutes - right.startMinutes)
+  const merged: TimelineSegment[] = []
+  let current = { ...sorted[0] }
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const next = sorted[index]
+    if (next.startMinutes - current.endMinutes <= 1) {
+      current = segmentFromExtendedBounds(
+        current.startMinutes,
+        Math.max(current.endMinutes, next.endMinutes),
+      )
+    } else {
+      merged.push(current)
+      current = { ...next }
+    }
+  }
+
+  merged.push(current)
+  return merged
+}
+
+function observingSegmentSetsEquivalent(
+  left: TimelineSegment[],
+  right: TimelineSegment[],
+): boolean {
+  const mergedLeft = mergeObservingTimelineSegments(left)
+  const mergedRight = mergeObservingTimelineSegments(right)
+  if (mergedLeft.length === 0 || mergedRight.length === 0) {
+    return false
+  }
+  if (mergedLeft.length !== mergedRight.length) {
+    return false
+  }
+  return mergedLeft.every((segment, index) => {
+    const other = mergedRight[index]
+    return (
+      Math.abs(segment.startMinutes - other.startMinutes) <= 1 &&
+      Math.abs(segment.endMinutes - other.endMinutes) <= 1
+    )
+  })
+}
+
+export function astroUnionSegmentsFromObjects(
+  objects: { windows_astronomical: ObservingTimeWindow[] }[],
+): TimelineSegment[] {
+  const segments = objects.flatMap((object) =>
+    mergeObservingWindows(object.windows_astronomical)
+      .map((window) => observingWindowToSegment(window.start, window.end))
+      .filter((segment): segment is TimelineSegment => segment !== null),
+  )
+  return mergeObservingTimelineSegments(segments)
+}
+
+export function forecastAndAstroDarknessFullyOverlap(
+  objects: { windows_astronomical: ObservingTimeWindow[] }[],
+  calendarDarknessSegments: TimelineSegment[],
+): boolean {
+  const forecast = mergeObservingTimelineSegments(
+    darknessSegmentsForObservingAxis(calendarDarknessSegments),
+  )
+  const astro = astroUnionSegmentsFromObjects(objects)
+  return observingSegmentSetsEquivalent(forecast, astro)
+}
+
 const DSO_TYPE_LABELS: Record<string, string> = {
   G: 'Galaxy',
   GPair: 'Galaxy pair',
@@ -110,6 +191,50 @@ export function formatDsoLabel(row: { name: string; common_name: string | null }
     return `${row.name} · ${row.common_name}`
   }
   return row.name
+}
+
+export function formatDsoShortLabel(row: { name: string }): string {
+  return row.name
+}
+
+export interface ObservingTimeWindow {
+  start: string
+  end: string
+}
+
+function windowStartExtended(start: string): number {
+  return toExtendedMinutes(parseLocalHm(start))
+}
+
+function windowEndExtended(end: string): number {
+  const endMinutes = parseLocalHm(end)
+  return endMinutes >= MINUTES_PER_DAY ? MINUTES_PER_DAY : toExtendedMinutes(endMinutes)
+}
+
+export function mergeObservingWindows(windows: ObservingTimeWindow[]): ObservingTimeWindow[] {
+  if (windows.length === 0) {
+    return []
+  }
+
+  const sorted = [...windows].sort(
+    (left, right) => windowStartExtended(left.start) - windowStartExtended(right.start),
+  )
+  const merged: ObservingTimeWindow[] = []
+  let current = { ...sorted[0] }
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const next = sorted[index]
+    const gapMinutes = windowStartExtended(next.start) - windowEndExtended(current.end)
+    if (gapMinutes <= 1) {
+      current = { start: current.start, end: next.end }
+    } else {
+      merged.push(current)
+      current = { ...next }
+    }
+  }
+
+  merged.push(current)
+  return merged
 }
 
 export function formatContrast(value: number): string {

@@ -1,5 +1,6 @@
 """DSO visibility route tests."""
 
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from app.config import Settings
@@ -9,8 +10,10 @@ from app.routers import dso_visibility
 from fastapi.testclient import TestClient
 
 
-def test_dso_visibility_enabled_setting_default() -> None:
-    settings = Settings(ipgeolocation_api_key="test-key")
+def test_dso_visibility_enabled_setting_default(tmp_path: Path) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("IPGEOLOCATION_API_KEY=test-key\n", encoding="utf-8")
+    settings = Settings(_env_file=env_file)
     assert settings.dso_visibility_enabled is False
 
 

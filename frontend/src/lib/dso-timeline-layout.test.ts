@@ -8,7 +8,12 @@ import {
 import {
   OBSERVING_AXIS_SPAN,
   OBSERVING_AXIS_START_MINUTES,
+  astroUnionSegmentsFromObjects,
   darknessSegmentsForObservingAxis,
+  forecastAndAstroDarknessFullyOverlap,
+  formatDsoShortLabel,
+  mergeObservingTimelineSegments,
+  mergeObservingWindows,
   observingTickLeftPercent,
   observingWindowToSegment,
   toExtendedMinutes,
@@ -107,5 +112,88 @@ describe('dso-timeline-layout', () => {
       ((24 * 60 + 60 - OBSERVING_AXIS_START_MINUTES) / OBSERVING_AXIS_SPAN) * 100,
       2,
     )
+  })
+
+  it('formatDsoShortLabel returns catalog id only', () => {
+    expect(formatDsoShortLabel({ name: 'NGC7000' })).toBe('NGC7000')
+  })
+
+  it('mergeObservingWindows joins midnight-split segments', () => {
+    const merged = mergeObservingWindows([
+      { start: '22:33', end: '23:59' },
+      { start: '00:00', end: '03:29' },
+    ])
+
+    expect(merged).toEqual([{ start: '22:33', end: '03:29' }])
+
+    const segment = observingWindowToSegment(merged[0].start, merged[0].end)
+    expect(segment).not.toBeNull()
+    expect(segment!.leftPercent).toBeCloseTo(
+      ((22 * 60 + 33 - OBSERVING_AXIS_START_MINUTES) / OBSERVING_AXIS_SPAN) * 100,
+      2,
+    )
+    expect(segment!.leftPercent + segment!.widthPercent).toBeGreaterThan(50)
+  })
+
+  it('mergeObservingWindows keeps non-adjacent windows separate', () => {
+    const merged = mergeObservingWindows([
+      { start: '20:00', end: '20:30' },
+      { start: '23:00', end: '23:30' },
+    ])
+
+    expect(merged).toHaveLength(2)
+  })
+
+  it('mergeObservingTimelineSegments joins split darkness bands on the observing axis', () => {
+    const nights = [
+      night('2025-06-20', { start: '21:30', end: '04:45' }),
+      night('2025-06-21', { start: '21:30', end: '04:40' }),
+    ]
+    const calendarSegments = darknessSegmentsForCalendarDay('2025-06-21', nights)
+    const observingSegments = darknessSegmentsForObservingAxis(calendarSegments)
+    const merged = mergeObservingTimelineSegments(observingSegments)
+
+    expect(observingSegments.length).toBeGreaterThan(1)
+    expect(merged).toHaveLength(1)
+    expect(merged[0].leftPercent).toBeCloseTo(
+      ((parseLocalHm('21:30') - OBSERVING_AXIS_START_MINUTES) / OBSERVING_AXIS_SPAN) * 100,
+      2,
+    )
+  })
+
+  it('forecastAndAstroDarknessFullyOverlap detects matching spans', () => {
+    const nights = [
+      night('2025-06-20', { start: '21:30', end: '04:45' }),
+      night('2025-06-21', { start: '21:30', end: '04:40' }),
+    ]
+    const calendarSegments = darknessSegmentsForCalendarDay('2025-06-21', nights)
+    const objects = [{ windows_astronomical: [{ start: '21:30', end: '04:45' }] }]
+
+    expect(forecastAndAstroDarknessFullyOverlap(objects, calendarSegments)).toBe(true)
+    expect(
+      forecastAndAstroDarknessFullyOverlap(
+        [{ windows_astronomical: [{ start: '22:00', end: '03:00' }] }],
+        calendarSegments,
+      ),
+    ).toBe(false)
+  })
+
+  it('astroUnionSegmentsFromObjects merges object windows into one span', () => {
+    const union = astroUnionSegmentsFromObjects([
+      {
+        windows_astronomical: [
+          { start: '22:33', end: '23:59' },
+          { start: '00:00', end: '03:29' },
+        ],
+      },
+      {
+        windows_astronomical: [
+          { start: '22:00', end: '23:59' },
+          { start: '00:00', end: '04:00' },
+        ],
+      },
+    ])
+
+    expect(union).toHaveLength(1)
   })
 })

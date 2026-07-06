@@ -202,3 +202,62 @@
 .planet-timeline-label--dso {
   align-items: flex-start;
 }
+
+.dso-timeline-v2 .planet-timeline-axis-row,
+.dso-timeline-v2 .planet-timeline-row {
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+}
+
+.dso-timeline-v2 .planet-timeline-label {
+  padding-left: 0.35rem;
+}
+
+.dso-timeline-v2 .planet-timeline-rows {
+  gap: 0.35rem;
+}
+
+.dso-timeline-name--short {
+  max-width: 5.5rem;
+}
+
+.dso-timeline-darkness-label {
+  display: inline-block;
+  line-height: 1.25;
+}
+
+.dso-timeline-v2-footnote {
+  font-style: italic;
+}
+
+.dso-timeline-v2-details .planet-timeline-detail-row {
+  grid-template-columns: minmax(0, 1.4fr) 5.5rem 4.5rem minmax(0, 1fr);
+}
+
+.dso-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.dso-section-header h3 {
+  margin: 0;
+}
+
+.dso-site-sky-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 130, 200, 0.25);
+  background: rgba(8, 12, 24, 0.45);
+  font-size: 0.72rem;
+  color: #9aa8c0;
+  white-space: nowrap;
+}
+
+.dso-demo-banner--v2 {
+  border-color: color-mix(in srgb, #6dd4b0 35%, transparent);
+  background: color-mix(in srgb, #6dd4b0 10%, transparent);
+}

@@ -46,8 +46,11 @@ export async function mockDsoDemoApis(
   })
 }
 
-export async function submitDenverForecastOnDemo(page: Page): Promise<void> {
-  await page.goto('/demo/dso-visibility/')
+export async function submitDenverForecastOnDemo(
+  page: Page,
+  demoPath = '/demo/dso-visibility/',
+): Promise<void> {
+  await page.goto(demoPath)
   await page.getByLabel('Address').fill('Denver, CO')
   await page.getByRole('button', { name: 'Get Forecast' }).click()
   await page.getByTestId('night-card').first().waitFor({ state: 'visible' })
