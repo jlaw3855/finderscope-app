@@ -5,16 +5,14 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FAST_MODE=false
 LIVE_MODE=false
-DEMO_MODE=false
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") [--fast] [--live] [--demo]
+Usage: $(basename "$0") [--fast] [--live]
 
   (default)  Backend lint, backend tests, frontend tests, E2E tests, lint, TypeScript compile, production build
   --fast     Skip the Vite production build
   --live     Also run backend live integration tests (~4 paid external API calls)
-  --demo     Also run DSO demo E2E tests (e2e/tests/dso-demo.spec.ts)
 EOF
 }
 
@@ -26,10 +24,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --live)
       LIVE_MODE=true
-      shift
-      ;;
-    --demo)
-      DEMO_MODE=true
       shift
       ;;
     -h|--help)
@@ -71,13 +65,6 @@ run_stage "Backend lint (ruff)" bash -c "cd backend && ruff check app tests"
 run_stage "Backend tests (pytest)" bash -c "cd backend && \"$PYTHON_BIN\" -m pytest"
 run_stage "Frontend unit tests (vitest)" bash -c "cd frontend && npm run test:run"
 run_stage "E2E browser tests (Playwright)" bash -c "cd e2e && npm run test"
-
-if [[ "$DEMO_MODE" == true ]]; then
-  run_stage "DSO demo E2E (Playwright)" bash -c "cd e2e && PLAYWRIGHT_DEMO=1 npx playwright test tests/dso-demo.spec.ts tests/dso-demo-v2.spec.ts"
-else
-  echo ""
-  echo "SKIP  DSO demo E2E (Playwright) [use --demo to enable]"
-fi
 run_stage "Frontend lint (oxlint)" bash -c "cd frontend && npm run lint"
 run_stage "Frontend TypeScript compile (tsc)" bash -c "cd frontend && npx tsc -b"
 

@@ -10,6 +10,7 @@ import { PanelBlurToggle } from './components/PanelBlurToggle'
 import { SkyScene } from './components/SkyScene'
 import { usePanelBlurPreference } from './context/PanelBlurPreferenceContext'
 import { useAstronomySummary } from './hooks/useAstronomySummary'
+import { useDsoVisibility } from './hooks/useDsoVisibility'
 import { useForecast } from './hooks/useForecast'
 import { useMoonEnrichment } from './hooks/useMoonEnrichment'
 
@@ -18,6 +19,11 @@ function App() {
   const { data: forecast, loading: forecastLoading, error: forecastError, search } = useForecast()
   const { data: astronomy, loading: astronomyLoading, error: astronomyError } =
     useAstronomySummary(forecast)
+  const { data: dsoData, loading: dsoLoading, error: dsoError } = useDsoVisibility(
+    forecast,
+    astronomy,
+    astronomyLoading,
+  )
   const [selectedNightIndex, setSelectedNightIndex] = useState(0)
   const { byDate: moonByDate, pendingDates: moonPendingDates, status: moonEnrichmentStatus } =
     useMoonEnrichment(forecast)
@@ -123,6 +129,9 @@ function App() {
             data={astronomy}
             loading={astronomyLoading}
             error={astronomyError}
+            dsoData={dsoData}
+            dsoLoading={dsoLoading}
+            dsoError={dsoError}
             selectedNightDate={selectedNight?.date ?? null}
             onSelectedNightDateChange={handlePlanetTimelineDateChange}
           />

@@ -16,8 +16,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        dsoDemo: resolve(__dirname, 'demo/dso-visibility/index.html'),
-        dsoDemoV2: resolve(__dirname, 'demo/dso-visibility-v2/index.html'),
       },
     },
   },

@@ -1,6 +1,6 @@
 # Finderscope
 
-A full-stack web app for stargazers. Enter an address to get a 7-day stargazing weather forecast, meteor shower peak highlights on matching nights, and a local astronomy summary (90-day events, planet visibility timelines) for your location.
+A full-stack web app for stargazers. Enter an address to get a 7-day stargazing weather forecast, meteor shower peak highlights on matching nights, and a local astronomy summary (90-day events, planet visibility timelines, and a ranked deep sky top 10) for your location.
 
 ## Application functionality
 
@@ -79,8 +79,11 @@ After a forecast loads, the frontend calls `POST /api/astronomy` in parallel wit
 |---------|--------|---------|
 | **Events timeline** | Next 3 months | Lunar eclipses, local solar eclipses, Mercury/Venus transits, planetary oppositions/conjunctions, bright planet–planet conjunctions (≤ ~3° separation), and major meteor shower peaks (local IAU catalog + radiant/darkness checks) |
 | **Planet visibility** | 7 forecast nights | For each calendar night date, whether Mercury–Neptune is above the horizon at any time that day |
+| **Deep sky visibility** | 7 forecast nights | Top 10 OpenNGC objects ranked by contrast under local light pollution and moon sky glow; astronomical twilight only |
 
 Planet visibility rows include **sun-aware observing windows** when the planet is above the horizon and the Sun is below civil twilight (−6°) or astronomical twilight (−18°): `windows_civil[]` and `windows_astronomical[]` (local `HH:MM`), plus **peak altitude**, **peak time**, and **magnitude** at peak. Uranus and Neptune appear as muted telescope rows. The UI shows a **24-hour timeline** for the selected forecast night with lighter civil-twilight bars, solid astronomical bars, and a **forecast darkness overlay** clipped to that calendar day; a date dropdown switches among the seven forecast nights.
+
+After astronomy data loads, the frontend calls `POST /api/dso-visibility`. The **Deep sky visibility** section shows a **6 PM–6 AM** timeline (one bar per object during `windows_astronomical[]`), a site-sky chip (Bortle, SQM, limiting magnitude), and a details table. DSO ranking uses contrast against local sky brightness and moon penalty at each object’s peak time; civil twilight is excluded because residual sky glow is too bright for faint DSOs.
 
 Events show a local visibility badge when they are global phenomena not guaranteed to be visible at the forecast location (e.g. transits, inferior/superior conjunctions with the Sun).
 
@@ -112,7 +115,7 @@ Night forecast cards show **meteor shower peak badges** when the catalog peak da
 | [FreeAstroAPI](https://www.freeastroapi.com/moon) | Moon phase graphics and enriched lunar labels (optional) | Optional |
 | [astronomy-engine](https://pypi.org/project/astronomy-engine/) | Local eclipse, conjunction, meteor shower, and planet visibility calculations | None (MIT library) |
 | [NoctuaSky](https://api.noctuasky.com/api/v1/swaggerdoc/) | Optional catalog metadata enrichment for astronomy events | None (public skysources) |
-| [OpenNGC](https://github.com/mattiaverga/OpenNGC) | Deep sky object catalog (NGC.csv) for DSO visibility demo | None (CC-BY-SA-4.0 data) |
+| [OpenNGC](https://github.com/mattiaverga/OpenNGC) | Deep sky object catalog (NGC.csv) for DSO visibility | None (CC-BY-SA-4.0 data) |
 | [lightpollutionmap.info](https://lightpollutionmap.info) | Site SQM / Bortle for DSO contrast scoring | None (QueryRaster) |
 
 API keys live in `backend/.env` only; the frontend never sees them.
@@ -131,13 +134,13 @@ finderscope/
 │   │   │   ├── forecast.py     # Pydantic schemas for forecast API
 │   │   │   ├── moon_enrichment.py  # Pydantic schemas for moon enrichment API
 │   │   │   ├── astronomy.py    # Pydantic schemas for astronomy summary API
-│   │   │   ├── dso_visibility.py  # Pydantic schemas for DSO visibility API (demo)
+│   │   │   ├── dso_visibility.py  # Pydantic schemas for DSO visibility API
 │   │   │   └── apod.py         # Pydantic schemas for NASA APOD proxy
 │   │   ├── routers/
 │   │   │   ├── forecast.py     # POST /api/forecast orchestration
 │   │   │   ├── moon_enrichment.py  # GET /api/moon/enrichment + SVG route
 │   │   │   ├── astronomy.py    # POST /api/astronomy
-│   │   │   ├── dso_visibility.py  # POST /api/dso-visibility (demo)
+│   │   │   ├── dso_visibility.py  # POST /api/dso-visibility
 │   │   │   └── apod.py         # GET /api/apod
 │   │   └── services/
 │   │       ├── ipgeolocation.py    # Astronomy API client (geocode + time series)
@@ -227,10 +230,9 @@ finderscope/
 │   │   │   ├── NightForecastCard.tsx   # Daily night summary cards
 │   │   │   ├── HourlyScoreChart.tsx    # Unified grid: scores, dew/temp, metrics
 │   │   │   ├── hourly-chart-layout.ts  # Shared column width and temperature scale helpers
-│   │   │   ├── AstronomyEventsPanel.tsx  # Events timeline + planet visibility timeline
+│   │   │   ├── AstronomyEventsPanel.tsx  # Events, planet visibility, deep sky top 10
 │   │   │   ├── PlanetVisibilityTimeline.tsx  # 24h planet bars with darkness overlay
-│   │   │   ├── DsoVisibilityTimeline.tsx     # 6 PM–6 AM DSO bars (demo v1)
-│   │   │   ├── DsoVisibilityTimelineV2.tsx   # Visual polish iteration (demo v2)
+│   │   │   ├── DsoVisibilityTimeline.tsx   # 6 PM–6 AM deep sky bars
 │   │   │   ├── CloudBreakdown.tsx
 │   │   │   ├── PrecipitationBreakdownView.tsx
 │   │   │   ├── DewPointChart.tsx
@@ -244,7 +246,7 @@ finderscope/
 │   │   │   ├── useWeatherFormat.ts  # Unit-aware weather formatters
 │   │   │   ├── useMoonEnrichment.ts  # Async FreeAstro moon graphics
 │   │   │   ├── useAstronomySummary.ts  # Astronomy summary fetch state
-│   │   │   └── useDsoVisibility.ts     # DSO visibility fetch (demo)
+│   │   │   └── useDsoVisibility.ts     # Deep sky visibility fetch after astronomy
 │   │   ├── lib/
 │   │   │   ├── backend-client.ts   # Typed fetch wrappers for /api
 │   │   │   ├── astronomy-format.ts # Astronomy panel display formatters
@@ -262,19 +264,14 @@ finderscope/
 │   │       ├── moon-enrichment.ts
 │   │       ├── dso-visibility.ts
 │   │       └── astronomy.ts
-│   ├── demo/dso-visibility/       # DSO demo v1 (baseline chart)
-│   ├── demo/dso-visibility-v2/   # DSO demo v2 (visual polish iteration)
 │   └── vite.config.ts          # Dev server; proxies /api → localhost:8000
 │
 ├── e2e/                        # Playwright browser tests
 │   ├── tests/
-│   │   ├── app.spec.ts
-│   │   ├── dso-demo.spec.ts         # DSO demo v1 progressive load (PLAYWRIGHT_DEMO=1)
-│   │   ├── dso-demo-v2.spec.ts      # DSO demo v2 visual polish (PLAYWRIGHT_DEMO=1)
+│   │   ├── app.spec.ts              # Forecast, astronomy, deep sky visibility
 │   │   ├── visual-baseline.spec.ts  # CSS regression snapshots
 │   │   └── helpers/
-│   │       ├── mock-api.ts           # Browser-side /api/* mocks
-│   │       └── mock-dso-demo-api.ts
+│   │       └── mock-api.ts           # Browser-side /api/* mocks
 │   └── fixtures/               # Mocked API responses for offline E2E
 │
 ├── scripts/
@@ -315,13 +312,17 @@ flowchart LR
     Scoring[scoring.build_forecast]
     MeteorSvc[meteor_showers]
     AstronomyRouter["/api/astronomy"]
+    DsoRouter["/api/dso-visibility"]
     AstroEngine[astronomy-engine]
+    DsoSvc[dso_visibility OpenNGC]
+    LightPollution[lightpollutionmap lookup]
     NoctuaEnrich[astronomy_enrichment optional]
   end
   subgraph external [External APIs]
     IPGeo[IPGeolocation]
     OpenMeteo[Open-Meteo]
     Noctua[NoctuaSky skysources]
+    OpenNGC[OpenNGC catalog local]
   end
   UI --> ForecastRouter
   ForecastRouter --> ForecastCache
@@ -334,6 +335,10 @@ flowchart LR
   AstronomyRouter --> AstroEngine
   AstronomyRouter --> NoctuaEnrich
   NoctuaEnrich --> Noctua
+  UI --> DsoRouter
+  DsoRouter --> LightPollution
+  DsoRouter --> DsoSvc
+  DsoSvc --> OpenNGC
 ```
 
 ## Prerequisites
@@ -342,6 +347,7 @@ flowchart LR
 - Node.js 18+
 - Free API key from [IPGeolocation.io](https://ipgeolocation.io)
 - Optional [FreeAstroAPI](https://www.freeastroapi.com/moon) key for moon phase SVG enrichment
+- [OpenNGC](https://github.com/mattiaverga/OpenNGC) catalog file for deep sky visibility (one-time download; see Backend setup)
 
 Open-Meteo requires no API key.
 
@@ -370,6 +376,10 @@ python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 
 python -m pip install -r requirements.txt
+
+# One-time: download OpenNGC catalog for deep sky visibility
+python3 scripts/fetch_openngc.py
+
 uvicorn app.main:app --reload
 ```
 
@@ -576,43 +586,21 @@ Without `CURSOR_API_KEY`, the agent-review workflow prints a skip notice and suc
 | `GET /api/moon/visual/{date}.svg` | Cached moon phase SVG | 0 |
 | `GET /api/apod` | NASA Astronomy Picture of the Day for the landing page (day boundary 04:00 UTC) | 0 when cached; 1/day on miss |
 | `POST /api/astronomy` | 90-day event timeline + 7-night planet visibility | 0 local; optional Noctua skysources when enrichment enabled |
-| `POST /api/dso-visibility` | Top-10 deep sky visibility per forecast night (demo) | 0 local compute; 1 lightpollutionmap lookup per site (cached) |
+| `POST /api/dso-visibility` | Top-10 deep sky visibility per forecast night | 0 local compute; 1 lightpollutionmap lookup per site (cached) |
 
-### DSO Visibility Demo
+### Deep sky visibility
 
-The main app does not yet show deep sky visibility. Preview the feature in isolated demo builds:
+After forecast and astronomy data load, the Astronomy panel calls `POST /api/dso-visibility` for a ranked top-10 list per forecast night. Deep sky objects use **astronomical twilight only** (Sun below −18°). The timeline uses a **fixed 6 PM – 6 AM** observing axis with a forecast darkness row and one bar per object (`windows_astronomical[]`).
 
-| Demo | Command | URL |
-|------|---------|-----|
-| **v1 (baseline)** | `npm run dev:demo` | `/demo/dso-visibility/` |
-| **v2 (visual polish)** | `npm run dev:demo-v2` | `/demo/dso-visibility-v2/` |
+Download the OpenNGC catalog once before first use:
 
 ```bash
-cd backend && python3 scripts/fetch_openngc.py   # download OpenNGC NGC.csv (once)
-# Ensure backend/.env has DSO_VISIBILITY_ENABLED=true (see .env.example)
-cd frontend && npm run dev:demo                  # baseline chart
-cd frontend && npm run dev:demo-v2               # visual polish iteration
+cd backend && python3 scripts/fetch_openngc.py
 ```
 
-**v1** is the original timeline: full object names, per-object legend entries, and separate evening/pre-dawn forecast darkness bands when a night crosses midnight.
+Site brightness uses [lightpollutionmap.info](https://lightpollutionmap.info) QueryRaster (cached per site).
 
-**v2** keeps the same API and data but refines the chart without changing v1:
-
-- Short catalog IDs on row labels (full names in tooltips and details)
-- Semantic-only legend (no duplicate object list)
-- Merged forecast darkness bands across midnight splits
-- Compact site-sky chip beside the section heading
-- Unified **Darkness** row label and single legend entry when forecast darkness and the union of DSO astronomical windows align exactly
-
-Both demos load forecast and planet visibility first, then call `POST /api/dso-visibility` for a ranked top-10 list. Deep sky objects use **astronomical twilight only** (Sun below −18°); civil twilight is excluded because residual sky glow is too bright for faint DSOs. The timeline uses a **fixed 6 PM – 6 AM** observing axis with a forecast darkness row and one bar per object (`windows_astronomical[]`). Run demo E2E with:
-
-```bash
-./scripts/check-integrity.sh --demo
-```
-
-Deep sky catalog data comes from [OpenNGC](https://github.com/mattiaverga/OpenNGC) (CC-BY-SA-4.0). Site brightness uses [lightpollutionmap.info](https://lightpollutionmap.info) QueryRaster (cached per site). The DSO endpoint is **disabled by default**; set `DSO_VISIBILITY_ENABLED=true` in `backend/.env` for the demo build until Phase 2 integration ships.
-
-### DSO visibility response fields (demo)
+### DSO visibility response fields
 
 | Field | Description |
 |-------|-------------|

@@ -61,6 +61,8 @@ test.describe('Visual baselines', () => {
     await mockForecastApis(page)
     await submitDenverForecast(page)
 
+    await expect(page.getByTestId('dso-visibility-timeline')).toBeVisible({ timeout: 5000 })
+
     const panel = page.getByTestId('astronomy-panel')
     await panel.scrollIntoViewIfNeeded()
     await expect(panel).toHaveScreenshot('astronomy-panel.png')

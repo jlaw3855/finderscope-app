@@ -44,8 +44,7 @@ app.include_router(forecast.router)
 app.include_router(moon_enrichment.router)
 app.include_router(astronomy.router)
 app.include_router(apod.router)
-if settings.dso_visibility_enabled:
-    app.include_router(dso_visibility.router)
+app.include_router(dso_visibility.router)
 
 
 @app.get("/health")

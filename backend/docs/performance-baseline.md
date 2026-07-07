@@ -20,7 +20,7 @@ The `-s` flag prints p50/p95 timings to stdout. Thresholds in the tests act as r
 
 ## DSO visibility endpoint
 
-`POST /api/dso-visibility` is loaded by the demo build only in Phase 1. It runs after `/api/astronomy` on the client and includes a light-pollution HTTP lookup plus OpenNGC horizon scoring. Benchmark guard: `compute_dso_visibility` p50 < 3s (7 Denver nights).
+`POST /api/dso-visibility` runs after `/api/astronomy` on the client and includes a light-pollution HTTP lookup plus OpenNGC horizon scoring. Benchmark guard: `compute_dso_visibility` p50 < 3s (7 Denver nights).
 
 ## Forecast cache latency
 

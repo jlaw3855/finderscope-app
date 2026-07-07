@@ -85,6 +85,8 @@ function buildMeteorPeakMoonEnrichment(): string {
 type MockForecastOptions = {
   forecast?: ForecastResponse
   moonEnrichmentBody?: string
+  dsoDelayMs?: number
+  dsoError?: boolean
 }
 
 export async function mockForecastApis(page: Page, options: MockForecastOptions = {}): Promise<void> {
@@ -105,6 +107,29 @@ export async function mockForecastApis(page: Page, options: MockForecastOptions 
       status: 200,
       contentType: 'application/json',
       body: readFixture('astronomy-response.json'),
+    })
+  })
+
+  await page.route('**/api/dso-visibility', async (route) => {
+    if (options.dsoError) {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'DSO service unavailable' }),
+      })
+      return
+    }
+
+    if (options.dsoDelayMs && options.dsoDelayMs > 0) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, options.dsoDelayMs)
+      })
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: readFixture('dso-visibility-response.json'),
     })
   })
 

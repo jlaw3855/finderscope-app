@@ -192,41 +192,6 @@ export function PlanetVisibilityTimeline({
   )
 }
 
-export function PlanetTimelineLegend() {
-  return (
-    <div className="planet-timeline-legend" data-testid="planet-visibility-legend">
-      {ALL_PLANET_ORDER.map((planetName) => (
-        <span key={planetName} className="planet-timeline-legend-item">
-          <span
-            className="planet-timeline-swatch"
-            style={{ backgroundColor: PLANET_COLORS[planetName] }}
-            aria-hidden="true"
-          />
-          {planetName}
-        </span>
-      ))}
-      <span className="planet-timeline-legend-item">
-        <span
-          className="planet-timeline-swatch planet-timeline-swatch--civil"
-          aria-hidden="true"
-        />
-        Civil twilight (Sun &lt; −6°)
-      </span>
-      <span className="planet-timeline-legend-item">
-        <span
-          className="planet-timeline-swatch planet-timeline-swatch--astronomical"
-          aria-hidden="true"
-        />
-        Astronomical (Sun &lt; −18°)
-      </span>
-      <span className="planet-timeline-legend-item">
-        <span className="planet-timeline-swatch planet-timeline-swatch--darkness" aria-hidden="true" />
-        Forecast darkness
-      </span>
-    </div>
-  )
-}
-
 export function PlanetDayDetails({ planets }: { planets: PlanetVisibilityRow[] }) {
   return (
     <ul className="planet-timeline-details" data-testid="planet-visibility-details">

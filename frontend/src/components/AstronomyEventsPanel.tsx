@@ -11,13 +11,18 @@ import {
   eventCategoryClass,
   sortEventsByStart,
 } from '../lib/astronomy-format'
+import { formatSiteSky } from '../lib/dso-timeline-layout'
 import {
   darknessSegmentsForCalendarDay,
 } from '../lib/planet-timeline-layout'
+import type { DsoVisibilityResponse } from '../types/dso-visibility'
 import type { NightForecast, TimeWindow } from '../types/forecast'
 import {
+  DsoDayDetails,
+  DsoVisibilityTimeline,
+} from './DsoVisibilityTimeline'
+import {
   PlanetDayDetails,
-  PlanetTimelineLegend,
   PlanetVisibilityTimeline,
 } from './PlanetVisibilityTimeline'
 
@@ -28,6 +33,9 @@ interface AstronomyEventsPanelProps {
   data: AstronomyResponse | null
   loading: boolean
   error: string | null
+  dsoData: DsoVisibilityResponse | null
+  dsoLoading: boolean
+  dsoError: string | null
   selectedNightDate?: string | null
   onSelectedNightDateChange?: (date: string) => void
 }
@@ -39,15 +47,19 @@ function AstronomyEventsPanelComponent({
   data,
   loading,
   error,
+  dsoData,
+  dsoLoading,
+  dsoError,
   selectedNightDate,
   onSelectedNightDateChange,
 }: AstronomyEventsPanelProps) {
   const events = useMemo(() => sortEventsByStart(data?.events ?? []), [data?.events])
   const availableDates = useMemo(
-    () => data?.planet_visibility.map((day) => day.date) ?? [],
-    [data?.planet_visibility],
+    () => data?.planet_visibility.map((day) => day.date) ?? nights.map((night) => night.date),
+    [data?.planet_visibility, nights],
   )
   const planetDays = data?.planet_visibility ?? []
+  const dsoDays = dsoData?.dso_visibility ?? []
 
   const selectedDate =
     selectedNightDate && availableDates.includes(selectedNightDate)
@@ -55,6 +67,7 @@ function AstronomyEventsPanelComponent({
       : availableDates[0] ?? ''
 
   const selectedDay = planetDays.find((day) => day.date === selectedDate)
+  const selectedDsoDay = dsoDays.find((day) => day.date === selectedDate)
   const selectedNight = nights.find((night) => night.date === selectedDate)
   const firstForecastDate = nights[0]?.date
   const darknessSegments = useMemo(
@@ -72,13 +85,15 @@ function AstronomyEventsPanelComponent({
     selectedDate === availableDates[0] &&
     Boolean(selectedNight?.dark_window && !selectedNight.no_darkness)
 
+  const showTimelineControls = availableDates.length > 0 && selectedDate
+
   return (
     <section className="panel astronomy-panel" data-testid="astronomy-panel">
       <header className="astronomy-panel-header">
         <h2>Astronomy</h2>
         <p className="muted">
-          Next 3 months of events and a 24-hour planet visibility timeline with astronomical darkness
-          overlay.
+          Next 3 months of events, planet visibility, and a ranked deep sky top 10 with moon and light
+          pollution context.
         </p>
       </header>
 
@@ -156,7 +171,7 @@ function AstronomyEventsPanelComponent({
               clipped to that day; pre-dawn darkness from the prior night appears on the following day.
             </p>
 
-            {availableDates.length > 0 && selectedDay && (
+            {showTimelineControls && selectedDay && (
               <>
                 <div className="planet-timeline-controls">
                   <label htmlFor="planet-timeline-date-select">
@@ -185,13 +200,61 @@ function AstronomyEventsPanelComponent({
                   showNextDaySpilloverHint={showNextDaySpilloverHint}
                 />
 
-                <PlanetTimelineLegend />
                 <PlanetDayDetails planets={selectedDay.planets} />
               </>
             )}
           </section>
         </>
       )}
+
+      <section className="astronomy-section" aria-labelledby="dso-visibility-heading">
+        <div className="dso-section-header">
+          <h3 id="dso-visibility-heading">Deep sky visibility</h3>
+          {!dsoLoading && !dsoError && dsoData && (
+            <span className="dso-site-sky-chip" data-testid="dso-site-sky">
+              {formatSiteSky(dsoData.site_sky)}
+            </span>
+          )}
+        </div>
+        <p className="muted astronomy-section-note">
+          Top 10 deep sky objects ranked by visual magnitude, local Bortle scale, and moon sky glow.
+        </p>
+
+        {dsoLoading && (
+          <p className="muted astronomy-status" data-testid="dso-visibility-loading">
+            Loading deep sky visibility…
+          </p>
+        )}
+        {dsoError && (
+          <p className="error-text astronomy-status" role="alert" data-testid="dso-visibility-error">
+            {dsoError}
+          </p>
+        )}
+
+        {!dsoLoading && !dsoError && dsoData && (
+          <>
+            {showTimelineControls && selectedDsoDay && selectedDsoDay.objects.length > 0 && (
+              <>
+                <DsoVisibilityTimeline
+                  date={selectedDate}
+                  objects={selectedDsoDay.objects}
+                  darknessSegments={darknessSegments}
+                  noDarkness={selectedNight?.no_darkness === true}
+                  showNextDaySpilloverHint={showNextDaySpilloverHint}
+                />
+                <DsoDayDetails objects={selectedDsoDay.objects} />
+              </>
+            )}
+
+            {showTimelineControls && selectedDsoDay && selectedDsoDay.objects.length === 0 && (
+              <p className="muted astronomy-empty" data-testid="dso-visibility-empty">
+                No detectable deep sky objects for this night under current moon and light pollution
+                conditions.
+              </p>
+            )}
+          </>
+        )}
+      </section>
     </section>
   )
 }

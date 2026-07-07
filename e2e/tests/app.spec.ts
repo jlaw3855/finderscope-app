@@ -64,3 +64,23 @@ test('shows astronomy events and planet timeline after forecast', async ({ page 
   await expect(page.getByTestId('planet-visibility-timeline')).toBeVisible()
   await expect(page.getByTestId('planet-timeline-darkness')).toHaveCount(2)
 })
+
+test('shows deep sky visibility after astronomy loads', async ({ page }) => {
+  await mockForecastApis(page, { dsoDelayMs: 400 })
+  await submitDenverForecast(page)
+
+  await expect(page.getByTestId('planet-visibility-timeline')).toBeVisible()
+  await expect(page.getByTestId('dso-visibility-loading')).toBeVisible()
+  await expect(page.getByTestId('dso-visibility-timeline')).toBeVisible({ timeout: 5000 })
+  await expect(page.getByTestId('dso-site-sky')).toContainText('Bortle')
+  await expect(page.getByTestId('dso-timeline-segment').first()).toBeVisible()
+})
+
+test('DSO API failure leaves planet timeline visible with isolated error', async ({ page }) => {
+  await mockForecastApis(page, { dsoError: true })
+  await submitDenverForecast(page)
+
+  await expect(page.getByTestId('planet-visibility-timeline')).toBeVisible()
+  await expect(page.getByTestId('dso-visibility-error')).toBeVisible()
+  await expect(page.getByTestId('dso-visibility-timeline')).toHaveCount(0)
+})

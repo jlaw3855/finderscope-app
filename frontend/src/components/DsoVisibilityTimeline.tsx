@@ -1,7 +1,8 @@
+import { useMemo } from 'react'
+
 import type { VisibilityWindow } from '../types/astronomy'
 import type { DsoVisibilityRow } from '../types/dso-visibility'
 import {
-  formatAstroWindows,
   formatMagnitude,
   formatPeakAltitude,
 } from '../lib/astronomy-format'
@@ -9,9 +10,13 @@ import {
   OBSERVING_AXIS_TICKS,
   darknessSegmentsForObservingAxis,
   dsoRowColor,
+  forecastAndAstroDarknessFullyOverlap,
   formatContrast,
   formatDsoLabel,
+  formatDsoShortLabel,
   formatDsoType,
+  mergeObservingTimelineSegments,
+  mergeObservingWindows,
   observingTickLeftPercent,
   observingWindowToSegment,
 } from '../lib/dso-timeline-layout'
@@ -28,9 +33,9 @@ interface DsoVisibilityTimelineProps {
   showNextDaySpilloverHint?: boolean
 }
 
-function formatDarknessLabel(segment: TimelineSegment): string {
-  return `Forecast darkness · ${minutesToLocalHm(segment.startMinutes)} – ${minutesToLocalHm(segment.endMinutes)}`
-}
+const UNIFIED_DARKNESS_LABEL = 'Darkness (Sun below −18°)'
+const CHART_DARKNESS_LABEL = 'Darkness'
+const FORECAST_DARKNESS_LABEL = 'Forecast darkness'
 
 function formatDsoTooltip(row: DsoVisibilityRow, window: VisibilityWindow): string {
   const parts = [
@@ -44,7 +49,14 @@ function formatDsoTooltip(row: DsoVisibilityRow, window: VisibilityWindow): stri
   return parts.join(' · ')
 }
 
-function DarknessTrack({ segments }: { segments: TimelineSegment[] }) {
+function DarknessTrack({
+  segments,
+  unifiedDarkness,
+}: {
+  segments: TimelineSegment[]
+  unifiedDarkness: boolean
+}) {
+  const labelPrefix = unifiedDarkness ? UNIFIED_DARKNESS_LABEL : FORECAST_DARKNESS_LABEL
   return (
     <div className="planet-timeline-track">
       {segments.map((segment) => (
@@ -56,7 +68,7 @@ function DarknessTrack({ segments }: { segments: TimelineSegment[] }) {
             left: `${segment.leftPercent}%`,
             width: `${segment.widthPercent}%`,
           }}
-          title={formatDarknessLabel(segment)}
+          title={`${labelPrefix} · ${minutesToLocalHm(segment.startMinutes)} – ${minutesToLocalHm(segment.endMinutes)}`}
         />
       ))}
     </div>
@@ -73,7 +85,9 @@ function DsoWindowSegments({
   windows: VisibilityWindow[]
 }) {
   const color = dsoRowColor(rowIndex)
-  return windows.flatMap((window) => {
+  const mergedWindows = mergeObservingWindows(windows)
+
+  return mergedWindows.flatMap((window) => {
     const segment = observingWindowToSegment(window.start, window.end)
     if (!segment) {
       return []
@@ -104,16 +118,26 @@ export function DsoVisibilityTimeline({
   noDarkness = false,
   showNextDaySpilloverHint = false,
 }: DsoVisibilityTimelineProps) {
-  const observingDarknessSegments = darknessSegmentsForObservingAxis(darknessSegments)
+  const observingDarknessSegments = useMemo(
+    () =>
+      mergeObservingTimelineSegments(darknessSegmentsForObservingAxis(darknessSegments)),
+    [darknessSegments],
+  )
+  const unifiedDarkness = useMemo(
+    () => forecastAndAstroDarknessFullyOverlap(objects, darknessSegments),
+    [darknessSegments, objects],
+  )
+  const darknessRowLabel = unifiedDarkness ? CHART_DARKNESS_LABEL : FORECAST_DARKNESS_LABEL
 
   return (
     <div
-      className="planet-timeline dso-timeline dso-timeline--observing"
+      className="planet-timeline dso-timeline"
       data-testid="dso-visibility-timeline"
+      data-unified-darkness={unifiedDarkness ? 'true' : 'false'}
       role="img"
       aria-label={`Deep sky visibility timeline for ${date}, 6 PM to 6 AM`}
     >
-      <div className="planet-timeline-axis-row">
+      <div className="planet-timeline-axis-row dso-timeline-axis-row">
         <div className="planet-timeline-label planet-timeline-label--axis" aria-hidden="true" />
         <div className="planet-timeline-axis" aria-hidden="true">
           {OBSERVING_AXIS_TICKS.map((tick) => (
@@ -132,12 +156,16 @@ export function DsoVisibilityTimeline({
         <div className="planet-timeline-row planet-timeline-row--darkness">
           <div className="planet-timeline-label">
             <span
-              className="planet-timeline-swatch planet-timeline-swatch--darkness"
+              className={`planet-timeline-swatch ${
+                unifiedDarkness
+                  ? 'planet-timeline-swatch--astronomical'
+                  : 'planet-timeline-swatch--darkness'
+              }`}
               aria-hidden="true"
             />
-            Darkness
+            <span className="dso-timeline-darkness-label">{darknessRowLabel}</span>
           </div>
-          <DarknessTrack segments={observingDarknessSegments} />
+          <DarknessTrack segments={observingDarknessSegments} unifiedDarkness={unifiedDarkness} />
         </div>
 
         {objects.map((row, index) => (
@@ -148,10 +176,16 @@ export function DsoVisibilityTimeline({
                 style={{ backgroundColor: dsoRowColor(index) }}
                 aria-hidden="true"
               />
-              <span className="dso-timeline-name">{formatDsoLabel(row)}</span>
+              <span className="dso-timeline-name dso-timeline-name--short">
+                {formatDsoShortLabel(row)}
+              </span>
             </div>
             <div className="planet-timeline-track">
-              <DsoWindowSegments row={row} rowIndex={index} windows={row.windows_astronomical} />
+              <DsoWindowSegments
+                row={row}
+                rowIndex={index}
+                windows={row.windows_astronomical}
+              />
             </div>
           </div>
         ))}
@@ -165,45 +199,16 @@ export function DsoVisibilityTimeline({
           Pre-dawn darkness from this night continues on the next calendar day in the forecast.
         </p>
       )}
-      <p className="muted planet-timeline-note">
-        Observing window runs 6 PM to 6 AM local time. Deep sky visibility uses astronomical
-        twilight only (Sun below −18°).
+      <p className="muted planet-timeline-note dso-timeline-footnote">
+        6 PM–6 AM · Astronomical darkness only (Sun below −18°)
       </p>
-    </div>
-  )
-}
-
-export function DsoTimelineLegend({ objects }: { objects: DsoVisibilityRow[] }) {
-  return (
-    <div className="planet-timeline-legend" data-testid="dso-visibility-legend">
-      {objects.map((row, index) => (
-        <span key={row.id} className="planet-timeline-legend-item">
-          <span
-            className="planet-timeline-swatch"
-            style={{ backgroundColor: dsoRowColor(index) }}
-            aria-hidden="true"
-          />
-          {formatDsoLabel(row)}
-        </span>
-      ))}
-      <span className="planet-timeline-legend-item">
-        <span
-          className="planet-timeline-swatch planet-timeline-swatch--astronomical"
-          aria-hidden="true"
-        />
-        Astronomical darkness (Sun &lt; −18°)
-      </span>
-      <span className="planet-timeline-legend-item">
-        <span className="planet-timeline-swatch planet-timeline-swatch--darkness" aria-hidden="true" />
-        Forecast darkness
-      </span>
     </div>
   )
 }
 
 export function DsoDayDetails({ objects }: { objects: DsoVisibilityRow[] }) {
   return (
-    <ul className="planet-timeline-details" data-testid="dso-visibility-details">
+    <ul className="planet-timeline-details dso-timeline-details" data-testid="dso-visibility-details">
       {objects.map((row) => (
         <li key={row.id} className="planet-timeline-detail-row" data-testid="dso-visibility-detail">
           <span className="planet-timeline-detail-name">{formatDsoLabel(row)}</span>
@@ -213,9 +218,7 @@ export function DsoDayDetails({ objects }: { objects: DsoVisibilityRow[] }) {
           </span>
           {row.visible && (
             <span className="planet-timeline-detail-meta muted">
-              {formatAstroWindows(row.windows_astronomical)}
-              {' · peak '}
-              {formatPeakAltitude(row.peak_altitude_deg)}
+              peak {formatPeakAltitude(row.peak_altitude_deg)}
               {row.peak_at ? ` at ${row.peak_at}` : ''}
               {' · mag '}
               {formatMagnitude(row.magnitude)}

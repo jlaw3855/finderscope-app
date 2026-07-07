@@ -146,7 +146,6 @@ class Settings(BaseSettings):
     serve_static: bool = False
     static_dir: str = "static"
     http_trust_env: bool = True
-    dso_visibility_enabled: bool = False
 
     @field_validator(
         "ipgeolocation_api_key",

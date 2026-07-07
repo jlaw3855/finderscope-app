@@ -170,18 +170,6 @@
   font-size: 0.78rem;
 }
 
-.dso-demo-banner {
-  margin-bottom: 1rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.dso-site-sky {
-  margin-bottom: 0.75rem;
-}
-
 .dso-timeline-name {
   display: inline-block;
   max-width: 12rem;
@@ -203,16 +191,16 @@
   align-items: flex-start;
 }
 
-.dso-timeline-v2 .planet-timeline-axis-row,
-.dso-timeline-v2 .planet-timeline-row {
+.dso-timeline .planet-timeline-axis-row,
+.dso-timeline .planet-timeline-row {
   grid-template-columns: 6.5rem minmax(0, 1fr);
 }
 
-.dso-timeline-v2 .planet-timeline-label {
+.dso-timeline .planet-timeline-label {
   padding-left: 0.35rem;
 }
 
-.dso-timeline-v2 .planet-timeline-rows {
+.dso-timeline .planet-timeline-rows {
   gap: 0.35rem;
 }
 
@@ -225,11 +213,11 @@
   line-height: 1.25;
 }
 
-.dso-timeline-v2-footnote {
+.dso-timeline-footnote {
   font-style: italic;
 }
 
-.dso-timeline-v2-details .planet-timeline-detail-row {
+.dso-timeline-details .planet-timeline-detail-row {
   grid-template-columns: minmax(0, 1.4fr) 5.5rem 4.5rem minmax(0, 1fr);
 }
 
@@ -255,9 +243,4 @@
   font-size: 0.72rem;
   color: #9aa8c0;
   white-space: nowrap;
-}
-
-.dso-demo-banner--v2 {
-  border-color: color-mix(in srgb, #6dd4b0 35%, transparent);
-  background: color-mix(in srgb, #6dd4b0 10%, transparent);
 }
