@@ -116,7 +116,7 @@ Night forecast cards show **meteor shower peak badges** when the catalog peak da
 | [astronomy-engine](https://pypi.org/project/astronomy-engine/) | Local eclipse, conjunction, meteor shower, and planet visibility calculations | None (MIT library) |
 | [NoctuaSky](https://api.noctuasky.com/api/v1/swaggerdoc/) | Optional catalog metadata enrichment for astronomy events | None (public skysources) |
 | [OpenNGC](https://github.com/mattiaverga/OpenNGC) | Deep sky object catalog (NGC.csv) for DSO visibility | None (CC-BY-SA-4.0 data) |
-| [lightpollutionmap.info](https://lightpollutionmap.info) | Site SQM / Bortle for DSO contrast scoring | None (QueryRaster) |
+| [Falchi et al. 2016 World Atlas](https://doi.org/10.5880/GFZ.1.4.2016.001) | Site SQM / Bortle for DSO contrast scoring (bundled 0.1° grid) | None (CC BY-NC 4.0 data) |
 
 API keys live in `backend/.env` only; the frontend never sees them.
 
@@ -173,7 +173,9 @@ finderscope/
 │   │   └── performance-deferred.md # Deferred optimizations (Phase 3)
 │   ├── data/iau_meteor_showers.json  # Major shower peaks (local catalog)
 │   ├── data/openngc/           # OpenNGC NGC.csv (download via scripts/fetch_openngc.py)
+│   ├── data/light_pollution/   # World Atlas 2015 grid (world_atlas_grid.json, CC BY-NC 4.0)
 │   ├── scripts/fetch_openngc.py
+│   ├── scripts/build_light_pollution_grid.py  # Regenerate grid from GFZ GeoTIFF (dev only)
 │   ├── data/forecast_cache/    # Forecast upstream cache (gitignored)
 │   ├── data/moon_cache/        # Cached FreeAstro moon SVGs + quota state (gitignored)
 │   ├── data/noctua_cache/      # Cached Noctua skysource responses (gitignored)
@@ -315,7 +317,7 @@ flowchart LR
     DsoRouter["/api/dso-visibility"]
     AstroEngine[astronomy-engine]
     DsoSvc[dso_visibility OpenNGC]
-    LightPollution[lightpollutionmap lookup]
+    LightPollution[World Atlas grid lookup]
     NoctuaEnrich[astronomy_enrichment optional]
   end
   subgraph external [External APIs]
@@ -408,6 +410,7 @@ Copy `backend/.env.example` to `backend/.env`. Besides `IPGEOLOCATION_API_KEY`, 
 | `NOCTUA_ENRICHMENT_ENABLED` | `false` | Attach NoctuaSky catalog metadata to astronomy events |
 | `NOCTUA_BASE_URL` | NoctuaSky API v1 | Skysources client base URL |
 | `FREEASTRO_API_KEY` | (empty) | Moon phase SVG enrichment (optional) |
+| `LIGHT_POLLUTION_GRID_PATH` | `data/light_pollution/world_atlas_grid.json` | Bundled World Atlas 2015 grid for per-site Bortle/SQM |
 
 #### Windows / macOS / Linux
 
@@ -586,7 +589,7 @@ Without `CURSOR_API_KEY`, the agent-review workflow prints a skip notice and suc
 | `GET /api/moon/visual/{date}.svg` | Cached moon phase SVG | 0 |
 | `GET /api/apod` | NASA Astronomy Picture of the Day for the landing page (day boundary 04:00 UTC) | 0 when cached; 1/day on miss |
 | `POST /api/astronomy` | 90-day event timeline + 7-night planet visibility | 0 local; optional Noctua skysources when enrichment enabled |
-| `POST /api/dso-visibility` | Top-10 deep sky visibility per forecast night | 0 local compute; 1 lightpollutionmap lookup per site (cached) |
+| `POST /api/dso-visibility` | Top-10 deep sky visibility per forecast night | 0 external calls; local OpenNGC + World Atlas grid lookup (cached) |
 
 ### Deep sky visibility
 
@@ -598,7 +601,17 @@ Download the OpenNGC catalog once before first use:
 cd backend && python3 scripts/fetch_openngc.py
 ```
 
-Site brightness uses [lightpollutionmap.info](https://lightpollutionmap.info) QueryRaster (cached per site).
+Site brightness uses a bundled **World Atlas 2015** light pollution grid at **0.1°** resolution (~11 km cells, ~50–70 MB JSON). The first DSO request per backend worker loads the grid into memory (~50 MB); subsequent lookups are in-memory bilinear samples. No API key is required.
+
+To regenerate the grid from the official GeoTIFF ([GFZ DOI 10.5880/GFZ.1.4.2016.001](https://doi.org/10.5880/GFZ.1.4.2016.001), CC BY-NC 4.0):
+
+```bash
+cd backend
+pip install -r scripts/requirements-build.txt
+python scripts/build_light_pollution_grid.py --input /path/to/World_Atlas_2015.tif
+```
+
+If the grid file is missing, the API falls back to suburban defaults (Bortle 5 / SQM 20.5).
 
 ### DSO visibility response fields
 

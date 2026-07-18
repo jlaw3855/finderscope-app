@@ -20,6 +20,9 @@ COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
+COPY backend/data/iau_meteor_showers.json ./data/
+COPY backend/data/light_pollution ./data/light_pollution
+COPY backend/data/openngc ./data/openngc
 COPY VERSION ./VERSION
 COPY --from=frontend-build /frontend/dist ./static
 

@@ -1,6 +1,6 @@
 """DSO visibility route tests."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from app.models.dso_visibility import DsoDayVisibility, SiteSkyConditions
 from fastapi.testclient import TestClient
@@ -11,13 +11,13 @@ def test_dso_visibility_route_returns_payload(client: TestClient) -> None:
         bortle=5,
         sqm=20.5,
         limiting_magnitude=5.6,
-        source="lightpollutionmap",
+        source="world_atlas_2015",
     )
 
     with (
         patch(
             "app.routers.dso_visibility.lookup_site_darkness",
-            AsyncMock(return_value=site),
+            return_value=site,
         ),
         patch(
             "app.routers.dso_visibility.compute_dso_visibility",

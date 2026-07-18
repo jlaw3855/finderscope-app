@@ -1,17 +1,23 @@
-"""Tests for light pollution conversion and lookup."""
+"""Tests for light pollution conversion and grid lookup."""
 
-from unittest.mock import AsyncMock, patch
+from pathlib import Path
 
 import pytest
 from app.services import light_pollution
 from app.services.light_pollution import (
     FALLBACK_SITE,
+    GRID_SOURCE,
+    LightPollutionGrid,
     artificial_brightness_to_sqm,
+    clear_light_pollution_caches,
+    load_light_pollution_grid,
     lookup_site_darkness,
-    parse_query_raster_response,
+    sample_artificial_brightness,
     sqm_to_bortle,
     sqm_to_nelm,
 )
+
+FIXTURE_GRID = Path(__file__).resolve().parent / "fixtures" / "light_pollution_grid_sample.json"
 
 
 def test_sqm_to_bortle() -> None:
@@ -31,47 +37,86 @@ def test_artificial_brightness_to_sqm() -> None:
     assert 19.0 < sqm < 21.0
 
 
-def test_parse_query_raster_response() -> None:
-    assert parse_query_raster_response("0.8;1.7;7.6;26.4,205") == pytest.approx(26.4)
+def test_load_light_pollution_grid_validates_fixture() -> None:
+    clear_light_pollution_caches()
+    grid = load_light_pollution_grid(str(FIXTURE_GRID))
+    assert grid.rows == 18
+    assert grid.cols == 36
+    assert grid.resolution_deg == 10.0
 
 
-@pytest.mark.asyncio
-async def test_lookup_site_darkness_uses_cache() -> None:
-    light_pollution._CACHE.clear()
-    mock_fetch = AsyncMock(return_value=0.2)
-    with patch(
-        "app.services.light_pollution._fetch_artificial_brightness",
-        mock_fetch,
-    ):
-        first = await lookup_site_darkness(39.7392, -104.9903)
-        second = await lookup_site_darkness(39.7392, -104.9903)
-    assert first.source == "lightpollutionmap"
+def test_sample_artificial_brightness_bilinear() -> None:
+    grid = LightPollutionGrid(
+        source="test",
+        resolution_deg=1.0,
+        west=0.0,
+        south=0.0,
+        rows=2,
+        cols=2,
+        nodata=-1.0,
+        values=(0.0, 10.0, 10.0, 20.0),
+    )
+    assert sample_artificial_brightness(0.5, 0.5, grid) == pytest.approx(10.0)
+    assert sample_artificial_brightness(0.0, 0.0, grid) == pytest.approx(0.0)
+
+
+def test_sample_artificial_brightness_returns_none_for_nodata() -> None:
+    grid = LightPollutionGrid(
+        source="test",
+        resolution_deg=1.0,
+        west=0.0,
+        south=0.0,
+        rows=2,
+        cols=2,
+        nodata=-1.0,
+        values=(-1.0, 10.0, 10.0, 20.0),
+    )
+    assert sample_artificial_brightness(0.5, 0.5, grid) is None
+
+
+def test_lookup_site_darkness_uses_cache() -> None:
+    clear_light_pollution_caches()
+    first = lookup_site_darkness(39.7392, -104.9903, grid_path=str(FIXTURE_GRID))
+    second = lookup_site_darkness(39.7392, -104.9903, grid_path=str(FIXTURE_GRID))
+    assert first.source == GRID_SOURCE
     assert second == first
-    mock_fetch.assert_awaited_once()
 
 
-@pytest.mark.asyncio
-async def test_lookup_site_darkness_fallback_on_error() -> None:
-    light_pollution._CACHE.clear()
-    with patch(
-        "app.services.light_pollution._fetch_artificial_brightness",
-        AsyncMock(side_effect=TimeoutError("timeout")),
-    ):
-        site = await lookup_site_darkness(51.0, 10.0)
+def test_lookup_site_darkness_fallback_on_missing_file() -> None:
+    clear_light_pollution_caches()
+    site = lookup_site_darkness(51.0, 10.0, grid_path="data/light_pollution/does_not_exist.json")
     assert site.source == "fallback"
     assert site.bortle == FALLBACK_SITE.bortle
 
 
-@pytest.mark.asyncio
-async def test_lookup_site_darkness_does_not_cache_fallback() -> None:
-    light_pollution._CACHE.clear()
-    mock_fetch = AsyncMock(side_effect=TimeoutError("timeout"))
-    with patch(
-        "app.services.light_pollution._fetch_artificial_brightness",
-        mock_fetch,
-    ):
-        first = await lookup_site_darkness(40.0, -105.0)
-        second = await lookup_site_darkness(40.0, -105.0)
-    assert first.source == "fallback"
-    assert second.source == "fallback"
-    assert mock_fetch.await_count == 2
+def test_lookup_site_darkness_differentiates_coordinates(monkeypatch: pytest.MonkeyPatch) -> None:
+    clear_light_pollution_caches()
+    dark = lookup_site_darkness(0.0, 0.0, grid_path=str(FIXTURE_GRID))
+    bright = lookup_site_darkness(39.7392, -104.9903, grid_path=str(FIXTURE_GRID))
+    assert dark.sqm == bright.sqm
+    assert dark.bortle == bright.bortle
+
+    gradient = LightPollutionGrid(
+        source="test",
+        resolution_deg=1.0,
+        west=-180.0,
+        south=-90.0,
+        rows=180,
+        cols=360,
+        nodata=-1.0,
+        values=tuple(
+            0.05 if col < 180 else 50.0
+            for row in range(180)
+            for col in range(360)
+        ),
+    )
+    light_pollution.load_light_pollution_grid.cache_clear()
+    monkeypatch.setattr(
+        light_pollution,
+        "load_light_pollution_grid",
+        lambda _path: gradient,
+    )
+    rural = lookup_site_darkness(45.0, -120.0, grid_path="ignored")
+    urban = lookup_site_darkness(45.0, 10.0, grid_path="ignored")
+    assert rural.sqm > urban.sqm
+    assert rural.bortle < urban.bortle

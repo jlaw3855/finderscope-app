@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-18
+
+### Added
+
+- Deep sky visibility in the main Astronomy panel (top-10 DSOs per forecast night).
+- Bundled World Atlas 2015 light pollution grid (0.1°) for per-site Bortle/SQM without external API calls.
+- `build_light_pollution_grid.py` to regenerate the grid from the official GFZ GeoTIFF (dev-only).
+
+### Changed
+
+- Site sky brightness lookup replaced lightpollutionmap HTTP with local grid bilinear sampling.
+- Docker image now includes `data/light_pollution/`, `data/openngc/`, and `data/iau_meteor_showers.json`.
+
+### Removed
+
+- `LIGHT_POLLUTION_API_KEY` and lightpollutionmap QueryRaster integration.
+
 ## [1.0.0] - 2026-06-28
 
 ### Added
@@ -27,4 +44,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moon scoring migrated to astronomy-engine altitude-based sky glow.
 - Hourly score chart refactored to a unified left-aligned grid layout.
 
+[1.1.0]: https://github.com/jlaw3855/finderscope-app/releases/tag/v1.1.0
 [1.0.0]: https://github.com/jlaw3855/finderscope-app/releases/tag/v1.0.0

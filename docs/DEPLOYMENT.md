@@ -11,6 +11,16 @@ Finderscope ships as a **single Docker container** that serves the built React S
 | **HTTPS** | Terminate TLS at your platform load balancer or reverse proxy |
 | **Optional keys** | `NASA_API_KEY` (APOD), `FREEASTRO_API_KEY` (moon SVG enrichment) |
 
+Bundled read-only data is baked into the Docker image (no API key required):
+
+| Path in image | Purpose |
+|---------------|---------|
+| `data/light_pollution/world_atlas_grid.json` | Site Bortle/SQM for DSO contrast ([World Atlas 2015](https://doi.org/10.5880/GFZ.1.4.2016.001), CC BY-NC 4.0) |
+| `data/openngc/NGC.csv` | Deep sky object catalog |
+| `data/iau_meteor_showers.json` | Meteor shower peak badges |
+
+The first DSO request per worker loads the ~32 MB light pollution grid into memory; subsequent lookups are in-memory.
+
 ## Quick start (Docker Compose)
 
 1. Copy and configure secrets:
@@ -54,6 +64,7 @@ Set these in your host platform or `docker compose` `environment` block:
 | `FORECAST_CACHE_ENABLED` | `true` (recommended) |
 | `SEVENTIMER_ENABLED` | `true` (seeing/transparency display) |
 | `NOCTUA_ENRICHMENT_ENABLED` | `false` unless you want NoctuaSky event metadata |
+| `LIGHT_POLLUTION_GRID_PATH` | `data/light_pollution/world_atlas_grid.json` (default; bundled in image) |
 
 See [`backend/.env.example`](../backend/.env.example) for the full list and defaults.
 
@@ -69,7 +80,7 @@ ghcr.io/<owner>/finderscope-app:latest
 Pull and run:
 
 ```bash
-docker pull ghcr.io/<owner>/finderscope-app:1.0.0
+docker pull ghcr.io/<owner>/finderscope-app:1.1.0
 docker run -d \
   --name finderscope \
   -p 8000:8000 \
@@ -78,7 +89,7 @@ docker run -d \
   -e SERVE_STATIC=true \
   -e DATA_DIR=/app/data \
   -e CORS_ORIGINS=https://your-domain.example \
-  ghcr.io/<owner>/finderscope-app:1.0.0
+  ghcr.io/<owner>/finderscope-app:1.1.0
 ```
 
 Replace `<owner>` with your GitHub username or organization (lowercase).
@@ -119,8 +130,8 @@ From `main` after changes are merged:
 
 ```bash
 git pull origin main
-git tag -a v1.0.0 -m "v1.0.0"
-git push origin v1.0.0
+git tag -a v1.1.0 -m "v1.1.0"
+git push origin v1.1.0
 ```
 
 The [Release workflow](../.github/workflows/release.yml) runs integrity checks, pushes the container image to GHCR, and creates a GitHub Release with notes from [`CHANGELOG.md`](../CHANGELOG.md).

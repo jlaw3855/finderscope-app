@@ -146,6 +146,7 @@ class Settings(BaseSettings):
     serve_static: bool = False
     static_dir: str = "static"
     http_trust_env: bool = True
+    light_pollution_grid_path: str = "data/light_pollution/world_atlas_grid.json"
 
     @field_validator(
         "ipgeolocation_api_key",

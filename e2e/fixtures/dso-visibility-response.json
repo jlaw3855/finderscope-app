@@ -3,7 +3,7 @@
     "bortle": 5,
     "sqm": 20.5,
     "limiting_magnitude": 5.6,
-    "source": "lightpollutionmap"
+    "source": "world_atlas_2015"
   },
   "dso_visibility": [
     {
