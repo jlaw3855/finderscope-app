@@ -6,7 +6,9 @@
 **/.venv
 **/node_modules
 backend/.env
-backend/data/
+backend/data/forecast_cache/
+backend/data/moon_cache/
+backend/data/noctua_cache/
 backend/htmlcov
 frontend/dist
 frontend/coverage
