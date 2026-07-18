@@ -11,8 +11,12 @@ services:
       DATA_DIR: /app/data
       CORS_ORIGINS: http://localhost:8000
     volumes:
-      - finderscope-data:/app/data
+      - finderscope-forecast-cache:/app/data/forecast_cache
+      - finderscope-moon-cache:/app/data/moon_cache
+      - finderscope-noctua-cache:/app/data/noctua_cache
     restart: unless-stopped
 
 volumes:
-  finderscope-data:
+  finderscope-forecast-cache:
+  finderscope-moon-cache:
+  finderscope-noctua-cache:
