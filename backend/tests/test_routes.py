@@ -4,6 +4,7 @@ from datetime import date
 from unittest.mock import AsyncMock, patch
 
 from app.services import ipgeolocation
+from app.version import read_version
 from fastapi.testclient import TestClient
 
 
@@ -11,7 +12,7 @@ class TestHealthRoute:
     def test_health_returns_ok(self, client: TestClient) -> None:
         response = client.get("/health")
         assert response.status_code == 200
-        assert response.json() == {"status": "ok", "version": "1.0.0"}
+        assert response.json() == {"status": "ok", "version": read_version()}
 
 
 class TestForecastRoute:
