@@ -1,0 +1,23 @@
+# LAN-only private deployment — pull prebuilt image from GHCR.
+# See docs/DEPLOYMENT-LAN.md for setup, CORS, and verification.
+
+services:
+  finderscope:
+    image: ghcr.io/jlaw3855/finderscope-app:1.1.0
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      SERVE_STATIC: "true"
+      DATA_DIR: /app/data
+    volumes:
+      - finderscope-forecast-cache:/app/data/forecast_cache
+      - finderscope-moon-cache:/app/data/moon_cache
+      - finderscope-noctua-cache:/app/data/noctua_cache
+
+volumes:
+  finderscope-forecast-cache:
+  finderscope-moon-cache:
+  finderscope-noctua-cache:

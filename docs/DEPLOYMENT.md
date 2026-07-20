@@ -2,6 +2,8 @@
 
 Finderscope **v1.1.0** ships as a **single Docker container** that serves the built React SPA and FastAPI backend on one origin (`/` + `/api/*`). Browsers call relative `/api` paths, so no separate frontend host is required.
 
+**Private home LAN use:** see **[DEPLOYMENT-LAN.md](DEPLOYMENT-LAN.md)** and [`deploy/lan/`](../deploy/lan/) (no domain, HTTPS, or port forwarding).
+
 ## What ships in the container
 
 | Capability | Runtime dependency |

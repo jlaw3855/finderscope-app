@@ -490,15 +490,14 @@ See `backend/docs/performance-baseline.md` for covered paths and cache latency n
 
 ## Production deployment
 
-Finderscope v1.0.0 ships as a **single Docker container** (API + built SPA on port 8000). See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for:
+Finderscope v1.1.0 ships as a **single Docker container** (API + built SPA on port 8000).
 
-- Docker Compose quick start (`docker compose up --build`)
-- Required environment variables and persistent volume (`DATA_DIR`)
-- GHCR image pull/run commands
-- Platform notes (Fly.io, Railway, Render, VPS)
-- Release tagging workflow (`v*` → GitHub Release + container publish)
+| Guide | Use when |
+|-------|----------|
+| **[docs/DEPLOYMENT-LAN.md](docs/DEPLOYMENT-LAN.md)** | Private use on home Wi‑Fi ([`deploy/lan/`](deploy/lan/) templates) |
+| **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** | VPS, cloud, or public HTTPS (GHCR, persistent caches, release workflow) |
 
-Local production smoke test:
+Local production smoke test (builds from source at repo root):
 
 ```bash
 ./scripts/smoke-prod.sh
