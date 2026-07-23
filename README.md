@@ -494,7 +494,7 @@ Finderscope v1.1.0 ships as a **single Docker container** (API + built SPA on po
 
 | Guide | Use when |
 |-------|----------|
-| **[docs/DEPLOYMENT-LAN.md](docs/DEPLOYMENT-LAN.md)** | Private use on home Wi‑Fi ([`deploy/lan/`](deploy/lan/) templates) |
+| **[docs/DEPLOYMENT-LAN.md](docs/DEPLOYMENT-LAN.md)** | Private use on home Wi‑Fi (`./scripts/deploy-lan.sh` or [`deploy/lan/`](deploy/lan/)) |
 | **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** | VPS, cloud, or public HTTPS (GHCR, persistent caches, release workflow) |
 
 Local production smoke test (builds from source at repo root):

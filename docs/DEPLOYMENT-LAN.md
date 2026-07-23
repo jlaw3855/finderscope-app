@@ -43,14 +43,19 @@ flowchart LR
 
 ## Quick start (any machine)
 
-Copy the templates from this repo (or clone it), then configure secrets locally.
+From the repository root:
 
 ```bash
-# From a clone of finderscope-app:
+chmod +x scripts/deploy-lan.sh   # first time only
+./scripts/deploy-lan.sh
+```
+
+Or manually from `deploy/lan/`:
+
+```bash
 cd deploy/lan
 cp .env.example .env
 # Edit .env — set IPGEOLOCATION_API_KEY and CORS_ORIGINS (see below)
-
 docker compose pull
 docker compose up -d
 curl -s http://127.0.0.1:8000/health
@@ -62,6 +67,7 @@ Templates live in [`deploy/lan/`](../deploy/lan/):
 
 - [`docker-compose.yml`](../deploy/lan/docker-compose.yml) — pulls GHCR image, cache-only volumes
 - [`.env.example`](../deploy/lan/.env.example) — LAN-oriented defaults (no secrets)
+- [`README.md`](../deploy/lan/README.md) — short pointer to this guide
 
 ## Environment variables
 
