@@ -78,12 +78,13 @@ After a forecast loads, the frontend calls `POST /api/astronomy` in parallel wit
 | Section | Window | Content |
 |---------|--------|---------|
 | **Events timeline** | Next 3 months | Lunar eclipses, local solar eclipses, Mercury/Venus transits, planetary oppositions/conjunctions, bright planet–planet conjunctions (≤ ~3° separation), and major meteor shower peaks (local IAU catalog + radiant/darkness checks) |
+| **Rise / set / transit** | 7 forecast nights | Sun, Moon, and Mercury–Neptune rise, meridian transit, and set times (local `HH:MM`) plus transit altitude |
 | **Planet visibility** | 7 forecast nights | For each calendar night date, whether Mercury–Neptune is above the horizon at any time that day |
-| **Deep sky visibility** | 7 forecast nights | Top 10 OpenNGC objects ranked by contrast under local light pollution and moon sky glow; astronomical twilight only |
+| **Deep sky visibility** | 7 forecast nights | Top 10 OpenNGC objects ranked by contrast under local light pollution and moon sky glow; astronomical twilight only; Messier numbers shown when available |
 
-Planet visibility rows include **sun-aware observing windows** when the planet is above the horizon and the Sun is below civil twilight (−6°) or astronomical twilight (−18°): `windows_civil[]` and `windows_astronomical[]` (local `HH:MM`), plus **peak altitude**, **peak time**, and **magnitude** at peak. Uranus and Neptune appear as muted telescope rows. The UI shows a **24-hour timeline** for the selected forecast night with lighter civil-twilight bars, solid astronomical bars, and a **forecast darkness overlay** clipped to that calendar day; a date dropdown switches among the seven forecast nights.
+Planet visibility rows include **sun-aware observing windows** when the planet is above the horizon and the Sun is below civil twilight (−6°) or astronomical twilight (−18°): `windows_civil[]` and `windows_astronomical[]` (local `HH:MM`), plus **peak altitude**, **peak time**, and **magnitude** at peak. Jupiter rows add **Galilean moon offsets** (arcminutes east/north from Jupiter at peak time). Saturn rows add **ring tilt** (degrees from edge-on) with a short note. Uranus and Neptune appear as muted telescope rows. The UI shows a **rise/set/transit table**, a **24-hour timeline** for the selected forecast night with lighter civil-twilight bars, solid astronomical bars, and a **forecast darkness overlay** clipped to that calendar day; a date dropdown switches among the seven forecast nights.
 
-After astronomy data loads, the frontend calls `POST /api/dso-visibility`. The **Deep sky visibility** section shows a **6 PM–6 AM** timeline (one bar per object during `windows_astronomical[]`), a site-sky chip (Bortle, SQM, limiting magnitude), and a details table. DSO ranking uses contrast against local sky brightness and moon penalty at each object’s peak time; civil twilight is excluded because residual sky glow is too bright for faint DSOs.
+After astronomy data loads, the frontend calls `POST /api/dso-visibility`. The **Deep sky visibility** section shows a **6 PM–6 AM** timeline (one bar per object during `windows_astronomical[]`), a site-sky chip (Bortle, SQM, limiting magnitude), and a details table. Objects are labeled with `M##` when the OpenNGC `M` column is set. DSO ranking uses contrast against local sky brightness and moon penalty at each object’s peak time; civil twilight is excluded because residual sky glow is too bright for faint DSOs.
 
 Events show a local visibility badge when they are global phenomena not guaranteed to be visible at the forecast location (e.g. transits, inferior/superior conjunctions with the Sun).
 
@@ -153,6 +154,9 @@ finderscope/
 │   │       ├── astronomy_geometry.py  # Shared darkness-window and altitude helpers
 │   │       ├── astronomy_events.py # 90-day eclipse/conjunction event search
 │   │       ├── planet_visibility.py  # Sun-aware planet observing windows (civil / astronomical)
+│   │       ├── celestial_almanac.py  # Rise, transit, and set times for Sun/Moon/planets
+│   │       ├── planet_phenomena.py   # Jupiter moons and Saturn ring tilt at peak time
+│   │       ├── rise_set.py           # Shared rise/set window helpers
 │   │       ├── visibility_windows.py  # Shared twilight window helpers
 │   │       ├── dso_visibility.py   # OpenNGC ranking + DSO timeline windows (astro only)
 │   │       ├── openngc_catalog.py  # OpenNGC CSV loader
@@ -490,7 +494,7 @@ See `backend/docs/performance-baseline.md` for covered paths and cache latency n
 
 ## Production deployment
 
-Finderscope v1.1.0 ships as a **single Docker container** (API + built SPA on port 8000).
+Finderscope v1.1.1 ships as a **single Docker container** (API + built SPA on port 8000).
 
 | Guide | Use when |
 |-------|----------|

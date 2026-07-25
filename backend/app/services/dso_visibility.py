@@ -216,6 +216,7 @@ def _visibility_row(
         id=entry.name,
         name=entry.name,
         common_name=entry.common_name,
+        messier=entry.messier,
         object_type=entry.object_type,
         visible=len(astronomical_windows) > 0,
         windows_astronomical=to_visibility_windows(astronomical_windows, timezone_name),
@@ -226,6 +227,41 @@ def _visibility_row(
         visibility_score=round(score, 2),
     )
     return _ScoredDso(entry=entry, row=row, score=score)
+
+
+def _rank_visible_objects(
+    candidates: list[DsoCatalogEntry],
+    observer: Observer,
+    day_start: Time,
+    day_end: Time,
+    timezone_name: str,
+    site: SiteSkyConditions,
+    astronomical_sun_windows: list[tuple[Time, Time]],
+    *,
+    top_n: int = TOP_OBJECT_COUNT,
+) -> list[DsoVisibilityRow]:
+    scored: list[_ScoredDso] = []
+    for entry in candidates:
+        result = _visibility_row(
+            entry,
+            observer,
+            day_start,
+            day_end,
+            timezone_name,
+            site,
+            astronomical_sun_windows=astronomical_sun_windows,
+        )
+        if result is not None:
+            scored.append(result)
+
+    scored.sort(
+        key=lambda item: (
+            -item.score,
+            best_magnitude(item.entry),
+            -(item.row.peak_altitude_deg or 0.0),
+        )
+    )
+    return [item.row for item in scored[:top_n]]
 
 
 def compute_dso_visibility(
@@ -248,28 +284,15 @@ def compute_dso_visibility(
             observer, day_start, day_end, ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
         )
 
-        scored: list[_ScoredDso] = []
-        for entry in candidates:
-            result = _visibility_row(
-                entry,
-                observer,
-                day_start,
-                day_end,
-                timezone_name,
-                site,
-                astronomical_sun_windows=astronomical_sun_windows,
-            )
-            if result is not None:
-                scored.append(result)
-
-        scored.sort(
-            key=lambda item: (
-                -item.score,
-                best_magnitude(item.entry),
-                -(item.row.peak_altitude_deg or 0.0),
-            )
+        day_context = (
+            observer,
+            day_start,
+            day_end,
+            timezone_name,
+            site,
+            astronomical_sun_windows,
         )
-        top_rows = [item.row for item in scored[:TOP_OBJECT_COUNT]]
+        top_rows = _rank_visible_objects(candidates, *day_context)
         results.append(DsoDayVisibility(date=date_str, objects=top_rows))
 
     return results

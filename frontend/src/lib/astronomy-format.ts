@@ -82,6 +82,66 @@ export function formatPeakAltitude(value: number | null): string {
   return `${Math.round(value)}°`
 }
 
+export function formatAlmanacTime(
+  value: string | null,
+  alwaysUp: boolean,
+  alwaysDown: boolean,
+  kind: 'rise' | 'set' | 'transit' = 'transit',
+): string {
+  if (value) {
+    return value
+  }
+  if (alwaysUp) {
+    return kind === 'set' ? '—' : 'Always up'
+  }
+  if (alwaysDown) {
+    return kind === 'rise' ? '—' : 'Always down'
+  }
+  return '—'
+}
+
+export function formatMoonOffsetAxis(value: number, axis: 'east' | 'north'): string {
+  const abs = Math.abs(value)
+  if (abs < 0.05) {
+    return axis === 'east' ? 'on disk' : 'on disk'
+  }
+  const direction =
+    axis === 'east'
+      ? value >= 0
+        ? 'E'
+        : 'W'
+      : value >= 0
+        ? 'N'
+        : 'S'
+  return `${abs.toFixed(1)}′ ${direction}`
+}
+
+export function formatJupiterMoons(detail: {
+  sampled_at: string
+  moons: { name: string; east_arcmin: number; north_arcmin: number }[]
+}): string {
+  const moonLabels = detail.moons.map((moon) => {
+    const east = formatMoonOffsetAxis(moon.east_arcmin, 'east')
+    const north = formatMoonOffsetAxis(moon.north_arcmin, 'north')
+    if (east === 'on disk' && north === 'on disk') {
+      return `${moon.name} on disk`
+    }
+    if (east === 'on disk') {
+      return `${moon.name} ${north}`
+    }
+    if (north === 'on disk') {
+      return `${moon.name} ${east}`
+    }
+    return `${moon.name} ${east} ${north}`
+  })
+  return `Moons at ${detail.sampled_at} · ${moonLabels.join(' · ')}`
+}
+
+export function formatSaturnRings(tilt: number, note: string | null): string {
+  const noteText = note ? ` · ${note.toLowerCase()}` : ''
+  return `Ring tilt ${tilt.toFixed(1)}°${noteText}`
+}
+
 export function eventCategoryClass(category: AstronomyEventCategory): string {
   return `astronomy-event--${category.replace(/_/g, '-')}`
 }

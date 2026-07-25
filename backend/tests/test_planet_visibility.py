@@ -19,6 +19,20 @@ class TestPlanetVisibility:
         assert jupiter.peak_altitude_deg is not None
         assert jupiter.peak_altitude_deg > 0
         assert jupiter.magnitude is not None
+        assert jupiter.jupiter_moons is not None
+        assert len(jupiter.jupiter_moons.moons) == 4
+
+    def test_saturn_ring_tilt_when_visible(self) -> None:
+        results = compute_planet_visibility(
+            39.7392,
+            -104.9903,
+            "America/Denver",
+            ["2026-06-27"],
+        )
+        saturn = next(row for row in results[0].planets if row.body == "Saturn")
+        if saturn.visible and saturn.peak_at:
+            assert saturn.saturn_ring_tilt_deg is not None
+            assert saturn.saturn_ring_note is not None
 
     def test_excludes_daytime_above_horizon_windows(self) -> None:
         results = compute_planet_visibility(

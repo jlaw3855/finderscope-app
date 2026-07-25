@@ -114,7 +114,8 @@ describe('dso-timeline-layout', () => {
     )
   })
 
-  it('formatDsoShortLabel returns catalog id only', () => {
+  it('formatDsoShortLabel returns Messier number when available', () => {
+    expect(formatDsoShortLabel({ name: 'NGC0224', messier: 31 })).toBe('M31')
     expect(formatDsoShortLabel({ name: 'NGC7000' })).toBe('NGC7000')
   })
 

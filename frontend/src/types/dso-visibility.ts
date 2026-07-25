@@ -11,6 +11,7 @@ export interface DsoVisibilityRow {
   id: string
   name: string
   common_name: string | null
+  messier: number | null
   object_type: string
   visible: boolean
   windows_astronomical: VisibilityWindow[]

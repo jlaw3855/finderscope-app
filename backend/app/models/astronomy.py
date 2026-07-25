@@ -48,6 +48,17 @@ class VisibilityWindow(BaseModel):
     end: str
 
 
+class JupiterMoonOffset(BaseModel):
+    name: Literal["Io", "Europa", "Ganymede", "Callisto"]
+    east_arcmin: float
+    north_arcmin: float
+
+
+class JupiterMoonsDetail(BaseModel):
+    sampled_at: str
+    moons: list[JupiterMoonOffset]
+
+
 class PlanetVisibilityRow(BaseModel):
     body: str
     visible: bool
@@ -56,6 +67,24 @@ class PlanetVisibilityRow(BaseModel):
     peak_altitude_deg: float | None = None
     peak_at: str | None = None
     magnitude: float | None = None
+    jupiter_moons: JupiterMoonsDetail | None = None
+    saturn_ring_tilt_deg: float | None = None
+    saturn_ring_note: str | None = None
+
+
+class CelestialAlmanacRow(BaseModel):
+    body: str
+    rise_at: str | None = None
+    transit_at: str | None = None
+    set_at: str | None = None
+    transit_altitude_deg: float | None = None
+    always_up: bool = False
+    always_down: bool = False
+
+
+class CelestialDayAlmanac(BaseModel):
+    date: str
+    rows: list[CelestialAlmanacRow]
 
 
 class PlanetDayVisibility(BaseModel):
@@ -66,3 +95,4 @@ class PlanetDayVisibility(BaseModel):
 class AstronomyResponse(BaseModel):
     events: list[AstronomyEvent]
     planet_visibility: list[PlanetDayVisibility]
+    almanac: list[CelestialDayAlmanac] = Field(default_factory=list)

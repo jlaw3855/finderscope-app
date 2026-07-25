@@ -186,14 +186,26 @@ export function formatDsoType(objectType: string): string {
   return DSO_TYPE_LABELS[objectType] ?? objectType
 }
 
-export function formatDsoLabel(row: { name: string; common_name: string | null }): string {
+export function formatDsoLabel(row: {
+  name: string
+  common_name: string | null
+  messier?: number | null
+}): string {
+  const catalogLabel =
+    row.messier != null ? `M${row.messier}` : row.name
   if (row.common_name) {
-    return `${row.name} · ${row.common_name}`
+    return `${catalogLabel} · ${row.common_name}`
   }
-  return row.name
+  return catalogLabel
 }
 
-export function formatDsoShortLabel(row: { name: string }): string {
+export function formatDsoShortLabel(row: {
+  name: string
+  messier?: number | null
+}): string {
+  if (row.messier != null) {
+    return `M${row.messier}`
+  }
   return row.name
 }
 

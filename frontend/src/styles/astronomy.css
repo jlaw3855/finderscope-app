@@ -169,3 +169,40 @@
   color: #e8edf5;
   font-size: 0.9rem;
 }
+
+.dso-subsection-heading {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.95rem;
+  color: #d8e0f0;
+}
+
+.celestial-almanac-wrap {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.celestial-almanac-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.celestial-almanac-table th,
+.celestial-almanac-table td {
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.15);
+}
+
+.celestial-almanac-table thead th {
+  color: #9aa8c0;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.celestial-almanac-table tbody th {
+  font-weight: 600;
+  color: #e8edf5;
+}

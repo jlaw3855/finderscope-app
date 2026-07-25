@@ -4,7 +4,7 @@ Run Finderscope on a **home computer** for **private, non-commercial** use. Devi
 
 For VPS, cloud, or public HTTPS deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-Current release image: **v1.1.0** — `ghcr.io/jlaw3855/finderscope-app:1.1.0`
+Current release image: **v1.1.1** — `ghcr.io/jlaw3855/finderscope-app:1.1.1`
 
 ## Architecture
 
@@ -130,7 +130,7 @@ Caches survive container restarts and reboots. They are **per machine** — copy
 
 On the host:
 
-1. `curl http://127.0.0.1:8000/health` → `{"status":"ok","version":"1.1.0"}`
+1. `curl http://127.0.0.1:8000/health` → `{"status":"ok","version":"1.1.1"}`
 2. Search `Denver, CO` — forecast cards appear
 3. Open **Astronomy** → **Deep sky visibility** loads
 4. Site-sky chip shows real Bortle/SQM (`world_atlas_2015`, not fallback Bortle 5)

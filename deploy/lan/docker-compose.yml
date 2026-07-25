@@ -3,7 +3,7 @@
 
 services:
   finderscope:
-    image: ghcr.io/jlaw3855/finderscope-app:1.1.0
+    image: ghcr.io/jlaw3855/finderscope-app:1.1.1
     restart: unless-stopped
     ports:
       - "8000:8000"

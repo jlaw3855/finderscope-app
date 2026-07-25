@@ -40,6 +40,35 @@ export interface PlanetVisibilityRow {
   peak_altitude_deg: number | null
   peak_at: string | null
   magnitude: number | null
+  jupiter_moons?: JupiterMoonsDetail | null
+  saturn_ring_tilt_deg?: number | null
+  saturn_ring_note?: string | null
+}
+
+export interface JupiterMoonOffset {
+  name: 'Io' | 'Europa' | 'Ganymede' | 'Callisto'
+  east_arcmin: number
+  north_arcmin: number
+}
+
+export interface JupiterMoonsDetail {
+  sampled_at: string
+  moons: JupiterMoonOffset[]
+}
+
+export interface CelestialAlmanacRow {
+  body: string
+  rise_at: string | null
+  transit_at: string | null
+  set_at: string | null
+  transit_altitude_deg: number | null
+  always_up: boolean
+  always_down: boolean
+}
+
+export interface CelestialDayAlmanac {
+  date: string
+  rows: CelestialAlmanacRow[]
 }
 
 export interface PlanetDayVisibility {
@@ -57,4 +86,5 @@ export interface AstronomyRequest {
 export interface AstronomyResponse {
   events: AstronomyEvent[]
   planet_visibility: PlanetDayVisibility[]
+  almanac: CelestialDayAlmanac[]
 }

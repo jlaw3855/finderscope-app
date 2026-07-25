@@ -1,7 +1,9 @@
 import type { PlanetVisibilityRow, VisibilityWindow } from '../types/astronomy'
 import {
+  formatJupiterMoons,
   formatMagnitude,
   formatPeakAltitude,
+  formatSaturnRings,
   formatVisibilityWindows,
 } from '../lib/astronomy-format'
 import {
@@ -214,6 +216,16 @@ export function PlanetDayDetails({ planets }: { planets: PlanetVisibilityRow[] }
                 {row.peak_at ? ` at ${row.peak_at}` : ''}
                 {' · mag '}
                 {formatMagnitude(row.magnitude)}
+              </span>
+            )}
+            {row.jupiter_moons && (
+              <span className="planet-timeline-detail-phenomena muted">
+                {formatJupiterMoons(row.jupiter_moons)}
+              </span>
+            )}
+            {row.saturn_ring_tilt_deg != null && (
+              <span className="planet-timeline-detail-phenomena muted">
+                {formatSaturnRings(row.saturn_ring_tilt_deg, row.saturn_ring_note ?? null)}
               </span>
             )}
           </li>

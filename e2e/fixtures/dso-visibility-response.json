@@ -13,6 +13,7 @@
           "id": "NGC0224",
           "name": "NGC0224",
           "common_name": "Andromeda Galaxy",
+          "messier": 1,
           "object_type": "G",
           "visible": true,
           "windows_astronomical": [
@@ -29,6 +30,7 @@
           "id": "M0045",
           "name": "M0045",
           "common_name": "Pleiades",
+          "messier": 45,
           "object_type": "OCl",
           "visible": true,
           "windows_astronomical": [

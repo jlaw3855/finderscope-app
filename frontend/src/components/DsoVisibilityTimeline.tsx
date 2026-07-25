@@ -31,6 +31,8 @@ interface DsoVisibilityTimelineProps {
   darknessSegments: TimelineSegment[]
   noDarkness?: boolean
   showNextDaySpilloverHint?: boolean
+  timelineTestId?: string
+  detailsTestId?: string
 }
 
 const UNIFIED_DARKNESS_LABEL = 'Darkness (Sun below −18°)'
@@ -117,6 +119,7 @@ export function DsoVisibilityTimeline({
   darknessSegments,
   noDarkness = false,
   showNextDaySpilloverHint = false,
+  timelineTestId = 'dso-visibility-timeline',
 }: DsoVisibilityTimelineProps) {
   const observingDarknessSegments = useMemo(
     () =>
@@ -132,7 +135,7 @@ export function DsoVisibilityTimeline({
   return (
     <div
       className="planet-timeline dso-timeline"
-      data-testid="dso-visibility-timeline"
+      data-testid={timelineTestId}
       data-unified-darkness={unifiedDarkness ? 'true' : 'false'}
       role="img"
       aria-label={`Deep sky visibility timeline for ${date}, 6 PM to 6 AM`}
@@ -206,9 +209,15 @@ export function DsoVisibilityTimeline({
   )
 }
 
-export function DsoDayDetails({ objects }: { objects: DsoVisibilityRow[] }) {
+export function DsoDayDetails({
+  objects,
+  detailsTestId = 'dso-visibility-details',
+}: {
+  objects: DsoVisibilityRow[]
+  detailsTestId?: string
+}) {
   return (
-    <ul className="planet-timeline-details dso-timeline-details" data-testid="dso-visibility-details">
+    <ul className="planet-timeline-details dso-timeline-details" data-testid={detailsTestId}>
       {objects.map((row) => (
         <li key={row.id} className="planet-timeline-detail-row" data-testid="dso-visibility-detail">
           <span className="planet-timeline-detail-name">{formatDsoLabel(row)}</span>

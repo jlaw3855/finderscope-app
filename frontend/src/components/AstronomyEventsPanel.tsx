@@ -25,6 +25,7 @@ import {
   PlanetDayDetails,
   PlanetVisibilityTimeline,
 } from './PlanetVisibilityTimeline'
+import { CelestialAlmanacTable } from './CelestialAlmanacTable'
 
 interface AstronomyEventsPanelProps {
   timezone: string
@@ -59,6 +60,7 @@ function AstronomyEventsPanelComponent({
     [data?.planet_visibility, nights],
   )
   const planetDays = data?.planet_visibility ?? []
+  const almanacDays = data?.almanac ?? []
   const dsoDays = dsoData?.dso_visibility ?? []
 
   const selectedDate =
@@ -67,6 +69,7 @@ function AstronomyEventsPanelComponent({
       : availableDates[0] ?? ''
 
   const selectedDay = planetDays.find((day) => day.date === selectedDate)
+  const selectedAlmanacDay = almanacDays.find((day) => day.date === selectedDate)
   const selectedDsoDay = dsoDays.find((day) => day.date === selectedDate)
   const selectedNight = nights.find((night) => night.date === selectedDate)
   const firstForecastDate = nights[0]?.date
@@ -192,6 +195,13 @@ function AstronomyEventsPanelComponent({
                   </label>
                 </div>
 
+                {selectedAlmanacDay && (
+                  <CelestialAlmanacTable
+                    date={selectedDate}
+                    rows={selectedAlmanacDay.rows}
+                  />
+                )}
+
                 <PlanetVisibilityTimeline
                   date={selectedDate}
                   planets={selectedDay.planets}
@@ -218,6 +228,7 @@ function AstronomyEventsPanelComponent({
         </div>
         <p className="muted astronomy-section-note">
           Top 10 deep sky objects ranked by visual magnitude, local Bortle scale, and moon sky glow.
+          Messier catalog numbers appear when available.
         </p>
 
         {dsoLoading && (

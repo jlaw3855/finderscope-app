@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from astronomy import Body, Direction, Illumination, Observer, SearchRiseSet, Time
+from astronomy import Body, Illumination, Observer, Time
 
 from app.models.astronomy import PlanetDayVisibility, PlanetVisibilityRow
 from app.services.astronomy_geometry import altitude_deg
 from app.services.astronomy_time import calendar_day_bounds, time_to_local_hhmm
+from app.services.planet_phenomena import (
+    compute_jupiter_moons,
+    compute_saturn_ring_tilt,
+)
+from app.services.rise_set import collect_above_horizon_windows
 from app.services.visibility_windows import (
     ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG,
     CIVIL_TWILIGHT_SUN_ALTITUDE_DEG,
     SAMPLE_INTERVAL_MINUTES,
-    clip_window,
     collect_sun_below_windows,
     intersect_windows,
     merge_time_windows,
@@ -30,48 +34,6 @@ TELESCOPE_BODIES: list[tuple[Body, str]] = [
     (Body.Uranus, "Uranus"),
     (Body.Neptune, "Neptune"),
 ]
-
-
-def _collect_above_horizon_windows(
-    body: Body,
-    observer: Observer,
-    day_start: Time,
-    day_end: Time,
-) -> list[tuple[Time, Time]]:
-    span_days = max((day_end.ut - day_start.ut) + 1.0, 1.5)
-    windows: list[tuple[Time, Time]] = []
-
-    alt_at_start = altitude_deg(body, observer, day_start)
-    cursor = day_start
-
-    if alt_at_start > 0:
-        set_time = SearchRiseSet(body, observer, Direction.Set, day_start, span_days)
-        if set_time is None or set_time.ut > day_end.ut:
-            clipped = clip_window(day_start, day_end, day_start, day_end)
-            return [clipped] if clipped else []
-        clipped = clip_window(day_start, set_time, day_start, day_end)
-        if clipped:
-            windows.append(clipped)
-        cursor = set_time
-
-    while cursor.ut <= day_end.ut:
-        rise = SearchRiseSet(body, observer, Direction.Rise, cursor, span_days)
-        if rise is None or rise.ut > day_end.ut:
-            break
-        set_time = SearchRiseSet(body, observer, Direction.Set, rise, span_days)
-        if set_time is None:
-            clipped = clip_window(rise, day_end, day_start, day_end)
-            if clipped:
-                windows.append(clipped)
-            break
-        clipped = clip_window(rise, set_time, day_start, day_end)
-        if clipped:
-            windows.append(clipped)
-        if set_time.ut >= day_end.ut:
-            break
-        cursor = set_time
-
-    return windows
 
 
 def _peak_within_windows(
@@ -114,7 +76,7 @@ def _visibility_row(
     civil_sun_windows: list[tuple[Time, Time]],
     astronomical_sun_windows: list[tuple[Time, Time]],
 ) -> PlanetVisibilityRow:
-    horizon_windows = _collect_above_horizon_windows(body, observer, day_start, day_end)
+    horizon_windows = collect_above_horizon_windows(body, observer, day_start, day_end)
 
     civil_windows = merge_time_windows(intersect_windows(horizon_windows, civil_sun_windows))
     astronomical_windows = merge_time_windows(
@@ -135,6 +97,36 @@ def _visibility_row(
         peak_at=peak_at,
         magnitude=magnitude,
     )
+
+
+def _attach_planet_phenomena(
+    row: PlanetVisibilityRow,
+    observer: Observer,
+    date_str: str,
+    timezone_name: str,
+) -> PlanetVisibilityRow:
+    if not row.visible or not row.peak_at:
+        return row
+
+    updates: dict[str, object] = {}
+    if row.body == "Jupiter":
+        jupiter_moons = compute_jupiter_moons(observer, date_str, row.peak_at, timezone_name)
+        if jupiter_moons is not None:
+            updates["jupiter_moons"] = jupiter_moons
+    elif row.body == "Saturn":
+        ring_tilt, ring_note = compute_saturn_ring_tilt(
+            observer,
+            date_str,
+            row.peak_at,
+            timezone_name,
+        )
+        if ring_tilt is not None:
+            updates["saturn_ring_tilt_deg"] = ring_tilt
+            updates["saturn_ring_note"] = ring_note
+
+    if not updates:
+        return row
+    return row.model_copy(update=updates)
 
 
 def compute_planet_visibility(
@@ -160,15 +152,20 @@ def compute_planet_visibility(
             observer, day_start, day_end, ASTRONOMICAL_TWILIGHT_SUN_ALTITUDE_DEG
         )
         planets = [
-            _visibility_row(
-                body,
-                label,
+            _attach_planet_phenomena(
+                _visibility_row(
+                    body,
+                    label,
+                    observer,
+                    day_start,
+                    day_end,
+                    timezone_name,
+                    civil_sun_windows=civil_sun_windows,
+                    astronomical_sun_windows=astronomical_sun_windows,
+                ),
                 observer,
-                day_start,
-                day_end,
+                date_str,
                 timezone_name,
-                civil_sun_windows=civil_sun_windows,
-                astronomical_sun_windows=astronomical_sun_windows,
             )
             for body, label in bodies
         ]

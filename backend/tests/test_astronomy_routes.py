@@ -4,6 +4,8 @@ from unittest.mock import patch
 
 from app.models.astronomy import (
     AstronomyEvent,
+    CelestialAlmanacRow,
+    CelestialDayAlmanac,
     PlanetDayVisibility,
     PlanetVisibilityRow,
 )
@@ -12,10 +14,12 @@ from fastapi.testclient import TestClient
 
 class TestAstronomyRoute:
     @patch("app.routers.astronomy.search_astronomy_events")
+    @patch("app.routers.astronomy.compute_celestial_almanac")
     @patch("app.routers.astronomy.compute_planet_visibility")
     def test_astronomy_success(
         self,
         mock_visibility,
+        mock_almanac,
         mock_events,
         client: TestClient,
     ) -> None:
@@ -46,6 +50,20 @@ class TestAstronomyRoute:
                 ],
             )
         ]
+        mock_almanac.return_value = [
+            CelestialDayAlmanac(
+                date="2026-06-27",
+                rows=[
+                    CelestialAlmanacRow(
+                        body="Jupiter",
+                        rise_at="20:15",
+                        transit_at="01:05",
+                        set_at="05:40",
+                        transit_altitude_deg=48.0,
+                    )
+                ],
+            )
+        ]
 
         response = client.post(
             "/api/astronomy",
@@ -61,6 +79,7 @@ class TestAstronomyRoute:
         payload = response.json()
         assert payload["events"][0]["title"] == "Mars at opposition"
         assert payload["planet_visibility"][0]["planets"][0]["body"] == "Jupiter"
+        assert payload["almanac"][0]["rows"][0]["body"] == "Jupiter"
 
     def test_astronomy_rejects_invalid_latitude(self, client: TestClient) -> None:
         response = client.post(

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-25
+
+### Added
+
+- Celestial almanac (rise, transit, set) for Sun, Moon, and planets on each forecast night.
+- Jupiter Galilean moon offsets and Saturn ring tilt on planet visibility rows.
+- Messier catalog numbers (`M##`) on deep sky visibility rows when present in OpenNGC.
+
+### Changed
+
+- Deep sky Top 10 uses a single ranked list with Messier labels (no separate Messier table).
+
 ## [1.1.0] - 2026-07-18
 
 ### Added
@@ -44,5 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moon scoring migrated to astronomy-engine altitude-based sky glow.
 - Hourly score chart refactored to a unified left-aligned grid layout.
 
+[1.1.1]: https://github.com/jlaw3855/finderscope-app/releases/tag/v1.1.1
 [1.1.0]: https://github.com/jlaw3855/finderscope-app/releases/tag/v1.1.0
 [1.0.0]: https://github.com/jlaw3855/finderscope-app/releases/tag/v1.0.0

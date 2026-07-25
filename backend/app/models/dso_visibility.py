@@ -23,6 +23,7 @@ class DsoVisibilityRow(BaseModel):
     id: str
     name: str
     common_name: str | None = None
+    messier: int | None = None
     object_type: str
     visible: bool
     windows_astronomical: list[VisibilityWindow] = Field(default_factory=list)

@@ -100,3 +100,31 @@ def test_compute_dso_visibility_empty_when_nothing_detectable() -> None:
         catalog=catalog,
     )
     assert results[0].objects == []
+
+
+def test_compute_dso_visibility_populates_messier_field() -> None:
+    catalog = load_openngc_catalog_from_path(SAMPLE_CSV)
+    results = compute_dso_visibility(
+        DENVER_LAT,
+        DENVER_LON,
+        DENVER_TZ,
+        ["2026-08-09"],
+        SUBURBAN_SITE,
+        catalog=catalog,
+    )
+    andromeda = next(row for row in results[0].objects if row.name == "NGC0224")
+    assert andromeda.messier == 1
+
+
+def test_compute_dso_visibility_messier_objects_can_rank_in_top_ten() -> None:
+    catalog = load_openngc_catalog_from_path(SAMPLE_CSV)
+    results = compute_dso_visibility(
+        DENVER_LAT,
+        DENVER_LON,
+        DENVER_TZ,
+        ["2026-08-09"],
+        SUBURBAN_SITE,
+        catalog=catalog,
+    )
+    messier_rows = [row for row in results[0].objects if row.messier is not None]
+    assert len(messier_rows) > 0
